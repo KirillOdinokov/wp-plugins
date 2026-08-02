@@ -6,5 +6,5 @@
     "tested": "6.7",
     "requires_php": "7.2",
     "last_updated": "2026-08-01",
-    "changelog": "= 1.0.2 =\n* Test update - GitHub auto-update check\n\n= 1.0.1 =\n* Renamed to Odinokov Cookie"
+    "changelog": "= 1.0.2 =\n* Тестовое обновление - проверка автообновлений через GitHub\n\n= 1.0.1 =\n* Переименован в Odinokov Cookie"
 }
