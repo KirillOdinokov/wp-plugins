@@ -1,10 +1,10 @@
 {
-    "version": "1.0.0",
-    "download_url": "https://raw.githubusercontent.com/KirillOdinokov/wp-plugins/main/repo/odinokov-ratings-reviews-fix.zip",
-    "homepage": "https://raw.githubusercontent.com/KirillOdinokov/wp-plugins/main",
-    "requires": "5.8",
-    "tested": "6.7",
-    "requires_php": "7.4",
-    "last_updated": "2026-07-31",
-    "changelog": "= 1.0.0 =\n* РћР±СЉРµРґРёРЅРµРЅРёРµ Math Captcha for Reviews Рё Recalculate Product Ratings\n* РљР°РїС‡Р° РґР»СЏ С„РѕСЂРјС‹ РѕС‚Р·С‹РІР° WooCommerce\n* РџРµСЂРµСЃС‡С‘С‚ СЂРµР№С‚РёРЅРіРѕРІ РёР· Р°РґРјРёРЅРєРё\n* РњРµРЅСЋ РІ СЂР°Р·РґРµР»Рµ РћРґРёРЅРѕРєРѕРІ\n* РђРІС‚РѕРѕР±РЅРѕРІР»РµРЅРёСЏ"
+    "requires":  "5.8",
+    "download_url":  "https://raw.githubusercontent.com/KirillOdinokov/wp-plugins/main/repo/odinokov-ratings-reviews-fix.zip",
+    "last_updated":  "2026-08-01",
+    "tested":  "6.7",
+    "version":  "1.0.0",
+    "requires_php":  "7.4",
+    "homepage":  "https://raw.githubusercontent.com/KirillOdinokov/wp-plugins/main",
+    "changelog":  "= 1.0.0 =\\n* Капча для отзывов + пересчёт рейтингов WooCommerce\\n* Автообновления"
 }

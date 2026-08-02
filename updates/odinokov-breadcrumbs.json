@@ -1,10 +1,10 @@
 {
-    "version": "1.1.0",
-    "download_url": "https://raw.githubusercontent.com/KirillOdinokov/wp-plugins/main/repo/odinokov-breadcrumbs.zip",
-    "homepage": "https://raw.githubusercontent.com/KirillOdinokov/wp-plugins/main",
-    "requires": "5.8",
-    "tested": "6.7",
-    "requires_php": "7.4",
-    "last_updated": "2026-07-31",
-    "changelog": "= 1.1.0 =\n* Р”РѕР±Р°РІР»РµРЅР° РїРѕРґРґРµСЂР¶РєР° СЃС‚СЂР°РЅРёС†, Р·Р°РїРёСЃРµР№ Рё СЂСѓР±СЂРёРє (РЅРµ С‚РѕР»СЊРєРѕ WooCommerce)\n* Р”РѕР±Р°РІР»РµРЅРѕ РјРµРЅСЋ РІ СЂР°Р·РґРµР»Рµ РћРґРёРЅРѕРєРѕРІ\n* Р”РѕР±Р°РІР»РµРЅ РјРµС…Р°РЅРёР·Рј Р°РІС‚РѕРѕР±РЅРѕРІР»РµРЅРёР№\n* РћР±РЅРѕРІР»РµРЅС‹ СЃСЃС‹Р»РєРё РЅР° http://РѕРґРёРЅРѕРєРѕРІ.СЂС„\n\n= 1.0.0 =\n* РџРµСЂРІС‹Р№ СЂРµР»РёР·."
+    "requires":  "5.8",
+    "download_url":  "https://raw.githubusercontent.com/KirillOdinokov/wp-plugins/main/repo/odinokov-breadcrumbs.zip",
+    "last_updated":  "2026-08-01",
+    "tested":  "6.7",
+    "version":  "1.1.0",
+    "requires_php":  "7.4",
+    "homepage":  "https://raw.githubusercontent.com/KirillOdinokov/wp-plugins/main",
+    "changelog":  "= 1.1.0 =\\n* Поддержка страниц, записей, рубрик\\n* Меню в Одиноков, автообновления"
 }
