@@ -3,7 +3,7 @@
  * Plugin Name: CatReadMore Odinokov
  * Plugin URI:  https://github.com/KirillOdinokov/wp-plugins
  * Description: Скрывает часть длинного описания категории WooCommerce белым градиентом и выводит кнопку «Читать подробное описание категории». Полный текст остаётся в DOM (SEO friendly). Настройки в меню Одиноков → CatReadMore.
- * Version:     1.2.0
+ * Version:     1.3.0
  * Author:      Odinokov
  * Author URI:  https://github.com/KirillOdinokov/wp-plugins
  * License:     GPL-2.0-or-later
@@ -20,7 +20,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 if ( ! defined( 'CROMO_VERSION' ) ) {
-    define( 'CROMO_VERSION', '1.2.0' );
+    define( 'CROMO_VERSION', '1.3.0' );
 }
 if ( ! defined( 'CROMO_FILE' ) ) {
     define( 'CROMO_FILE', __FILE__ );
@@ -174,6 +174,8 @@ function cromo_defaults() {
         'button_text'         => 'Читать подробное описание категории',
         'font_family'         => 'inherit',
         'font_weight'         => 'inherit',
+        'font_italic'         => 0,
+        'font_underline'      => 0,
         'bg_color'            => '#ffffff',
         'text_color'          => '#222222',
         'gradient_color'      => '#ffffff',
@@ -370,6 +372,8 @@ function cromo_sanitize_settings( $input ) {
     }
     $out['font_family']         = isset( $input['font_family'] ) ? cromo_sanitize_font_family( $input['font_family'] ) : $defaults['font_family'];
     $out['font_weight']         = isset( $input['font_weight'] ) ? cromo_sanitize_font_weight( $input['font_weight'] ) : $defaults['font_weight'];
+    $out['font_italic']         = ! empty( $input['font_italic'] ) ? 1 : 0;
+    $out['font_underline']      = ! empty( $input['font_underline'] ) ? 1 : 0;
     $out['bg_color']            = isset( $input['bg_color'] ) ? cromo_sanitize_color( $input['bg_color'] ) : $defaults['bg_color'];
     $out['text_color']          = isset( $input['text_color'] ) ? cromo_sanitize_color( $input['text_color'] ) : $defaults['text_color'];
     $out['gradient_color']      = isset( $input['gradient_color'] ) ? cromo_sanitize_color( $input['gradient_color'] ) : $defaults['gradient_color'];
@@ -445,6 +449,13 @@ function cromo_admin_page() {
                                 <option value="700" <?php selected( $s['font_weight'], '700' ); ?>>700 (Bold)</option>
                                 <option value="800" <?php selected( $s['font_weight'], '800' ); ?>>800 (Extra Bold)</option>
                             </select>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row"><?php esc_html_e( 'Стиль шрифта', 'catreadmore-odinokov' ); ?></th>
+                        <td>
+                            <label style="margin-right:16px;"><input type="checkbox" name="cromo_settings[font_italic]" value="1" <?php checked( $s['font_italic'], 1 ); ?>> <em><?php esc_html_e( 'Курсив (italic)', 'catreadmore-odinokov' ); ?></em></label>
+                            <label><input type="checkbox" name="cromo_settings[font_underline]" value="1" <?php checked( $s['font_underline'], 1 ); ?>> <u><?php esc_html_e( 'Подчёркнутый (underline)', 'catreadmore-odinokov' ); ?></u></label>
                         </td>
                     </tr>
                     <tr>
@@ -647,6 +658,10 @@ function cromo_inline_styles() {
         $font_weight_css = 'font-weight:' . esc_attr( $s['font_weight'] ) . ';';
     }
 
+    $font_style_css = '';
+    if ( ! empty( $s['font_italic'] ) )  $font_style_css .= 'font-style:italic;';
+    if ( ! empty( $s['font_underline'] ) ) $font_style_css .= 'text-decoration:underline;';
+
     $bg     = $s['bg_color'] ? $s['bg_color'] : '#ffffff';
     $tc     = $s['text_color'] ? $s['text_color'] : '#222222';
     $gc     = $s['gradient_color'] ? $s['gradient_color'] : '#ffffff';
@@ -674,7 +689,7 @@ function cromo_inline_styles() {
 .cromo-term-description.is-collapsed{margin:{$margin_closed};overflow:hidden;}
 .cromo-term-description .cromo-fade{position:absolute;left:0;right:0;bottom:0;height:var(--cromo-gradient-h);pointer-events:none;background:linear-gradient(to bottom,rgba(255,255,255,0) 0%,{$gc} 100%);}
 .cromo-term-description .cromo-more-wrap{position:absolute;left:16px;bottom:16px;z-index:2;}
-.cromo-term-description .cromo-more-btn{display:inline-flex;align-items:center;gap:6px;background:{$bg};color:{$tc};border:{$border};border-radius:{$radius}px;padding:{$pad}px;text-decoration:none;cursor:pointer;line-height:1.2;{$font_family_css}{$font_weight_css}}
+.cromo-term-description .cromo-more-btn{display:inline-flex;align-items:center;gap:6px;background:{$bg};color:{$tc};border:{$border};border-radius:{$radius}px;padding:{$pad}px;text-decoration:none;cursor:pointer;line-height:1.2;{$font_family_css}{$font_weight_css}{$font_style_css}}
 .cromo-term-description .cromo-more-btn:hover{opacity:.9;}
 .cromo-term-description .cromo-more-btn:focus{outline:2px solid {$s['border_color']};outline-offset:2px;}
 .cromo-term-description .cromo-more-icon{display:inline-block;vertical-align:middle;max-width:" . (int) $s['icon_width'] . "px;height:auto;flex-shrink:0;}
