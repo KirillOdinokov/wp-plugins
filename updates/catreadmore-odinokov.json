@@ -1,10 +1,1 @@
-{
-    "version": "1.3.0",
-    "download_url": "https://raw.githubusercontent.com/KirillOdinokov/wp-plugins/main/repo/catreadmore-odinokov.zip",
-    "homepage": "https://raw.githubusercontent.com/KirillOdinokov/wp-plugins/main",
-    "requires": "5.8",
-    "tested": "6.7",
-    "requires_php": "7.4",
-    "last_updated": "2026-08-01",
-    "changelog": "= 1.3.0 =\n* Добавлен курсив (italic) и подчёркивание (underline) для шрифта кнопки"
-}
+{"version":"1.3.1","download_url":"https://raw.githubusercontent.com/KirillOdinokov/wp-plugins/main/repo/catreadmore-odinokov.zip","homepage":"https://raw.githubusercontent.com/KirillOdinokov/wp-plugins/main","requires":"5.8","tested":"6.7","requires_php":"7.4","last_updated":"2026-08-01","changelog":"= 1.3.1 =\n* Убран кэш проверки обновлений - мгновенное определение новых версий\n\n= 1.3.0 =\n* Добавлен курсив и подчёркивание для шрифта кнопки"}

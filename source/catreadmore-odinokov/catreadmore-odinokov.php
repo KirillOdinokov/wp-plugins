@@ -3,7 +3,7 @@
  * Plugin Name: CatReadMore Odinokov
  * Plugin URI:  https://github.com/KirillOdinokov/wp-plugins
  * Description: Скрывает часть длинного описания категории WooCommerce белым градиентом и выводит кнопку «Читать подробное описание категории». Полный текст остаётся в DOM (SEO friendly). Настройки в меню Одиноков → CatReadMore.
- * Version:     1.3.0
+ * Version:     1.3.1
  * Author:      Odinokov
  * Author URI:  https://github.com/KirillOdinokov/wp-plugins
  * License:     GPL-2.0-or-later
@@ -20,7 +20,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 if ( ! defined( 'CROMO_VERSION' ) ) {
-    define( 'CROMO_VERSION', '1.3.0' );
+    define( 'CROMO_VERSION', '1.3.1' );
 }
 if ( ! defined( 'CROMO_FILE' ) ) {
     define( 'CROMO_FILE', __FILE__ );
@@ -128,12 +128,6 @@ class CROMO_Updater {
     }
 
     private function get_latest_release() {
-        $transient_key = 'cromo_release_' . md5( $this->update_url );
-        $cached = get_transient( $transient_key );
-        if ( false !== $cached ) {
-            return $cached;
-        }
-
         $response = wp_remote_get( $this->update_url, array(
             'timeout' => 15,
         ) );
@@ -147,7 +141,6 @@ class CROMO_Updater {
             return null;
         }
 
-        set_transient( $transient_key, $release, 6 * HOUR_IN_SECONDS );
         return $release;
     }
 }
