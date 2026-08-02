@@ -1,0 +1,1 @@
+jQuery(function($){$('.odck-color-picker').wpColorPicker();});

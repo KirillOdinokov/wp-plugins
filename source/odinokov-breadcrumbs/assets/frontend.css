@@ -1,0 +1,165 @@
+.obm-mega-menu {
+    display: none;
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 100%;
+    z-index: 9999;
+    background: #fff;
+    border: 1px solid #e0e0e0;
+    border-radius: 4px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+    padding: 16px 20px;
+    margin-top: 4px;
+    font-family: inherit;
+    font-weight: 400;
+    color: #333;
+    line-height: 1.4;
+}
+
+.obm-mega-menu.is-visible {
+    display: block;
+}
+
+.obm-mega-menu__grid {
+    display: grid;
+    gap: 8px 24px;
+}
+
+.obm-mega-menu__column {
+    min-width: 0;
+}
+
+.obm-mega-menu__item {
+    display: block;
+    padding: 4px 0;
+    font-size: 13px;
+    text-decoration: none;
+    color: inherit;
+    text-align: left;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    hyphens: auto;
+    transition: color 0.15s ease;
+}
+
+.obm-mega-menu__item:hover,
+.obm-mega-menu__item:focus {
+    color: #0073aa;
+    text-decoration: underline;
+}
+
+.obm-mega-menu__item--product .obm-mega-menu__price {
+    display: block;
+    font-size: 12px;
+    opacity: 0.7;
+    margin-top: 1px;
+}
+
+.obm-mega-menu__loading {
+    text-align: center;
+    padding: 20px;
+    font-size: 13px;
+    opacity: 0.6;
+}
+
+.obm-mega-menu__footer {
+    margin-top: 12px;
+    padding-top: 10px;
+    border-top: 1px solid #e0e0e0;
+    text-align: left;
+}
+
+.obm-mega-menu__footer-btn {
+    display: inline-block;
+    padding: 6px 16px;
+    font-size: 13px;
+    font-weight: 500;
+    text-decoration: none;
+    color: #fff;
+    background: #0073aa;
+    border-radius: 3px;
+    transition: background 0.15s ease;
+}
+
+.obm-mega-menu__footer-btn:hover,
+.obm-mega-menu__footer-btn:focus {
+    background: #005a87;
+    color: #fff;
+    text-decoration: none;
+}
+
+/* Родительский контейнер хлебных крошек — relative для позиционирования */
+.obm-breadcrumb-wrapper {
+    position: relative;
+}
+
+/* Подсветка активного пункта */
+.obm-breadcrumb-wrapper .breadcrumb li.obm-active > a,
+.obm-breadcrumb-wrapper .breadcrumb li.obm-active {
+    color: #0073aa;
+}
+
+/* Стрелочка вниз после каждого пункта хлебных крошек */
+.obm-breadcrumb-wrapper .breadcrumb li .obm-arrow {
+    display: inline-block;
+    width: 0;
+    height: 0;
+    margin-left: 6px;
+    margin-right: 2px;
+    vertical-align: middle;
+    border-left: 4px solid transparent;
+    border-right: 4px solid transparent;
+    border-top: 5px solid currentColor;
+    opacity: 0.5;
+    transition: opacity 0.15s ease;
+}
+
+.obm-breadcrumb-wrapper .breadcrumb li:hover .obm-arrow {
+    opacity: 1;
+}
+
+/* Убираем стрелочку у последнего элемента (текущая страница) */
+.obm-breadcrumb-wrapper .breadcrumb li:last-child .obm-arrow {
+    display: none;
+}
+
+/* ====================================================================== */
+/*  Адаптивность                                                          */
+/* ====================================================================== */
+
+@media (max-width: 767px) {
+    .obm-mega-menu {
+        position: fixed;
+        left: 10px;
+        right: 10px;
+        top: auto;
+        bottom: 10px;
+        max-height: 60vh;
+        overflow-y: auto;
+        border-radius: 8px;
+        padding: 12px 16px;
+    }
+
+    .obm-mega-menu__grid {
+        gap: 4px 12px;
+    }
+
+    .obm-mega-menu__item {
+        font-size: 14px;
+        padding: 6px 0;
+    }
+
+    .obm-mega-menu__footer-btn {
+        width: 100%;
+        text-align: center;
+        padding: 10px 16px;
+        font-size: 14px;
+    }
+}
+
+@media (max-width: 480px) {
+    .obm-mega-menu__grid {
+        grid-template-columns: 1fr !important;
+    }
+}

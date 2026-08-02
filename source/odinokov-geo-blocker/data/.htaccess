@@ -1,0 +1,5 @@
+# Deny direct access to data files
+<FilesMatch "\.(mmdb|json)$">
+    Order Allow,Deny
+    Deny from all
+</FilesMatch>

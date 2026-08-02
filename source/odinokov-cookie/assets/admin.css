@@ -1,0 +1,16 @@
+/* ====================================================================== */
+/*  Cookie Notice — Admin Styles                                           */
+/* ====================================================================== */
+
+.odck-wrap .form-table th {
+    width: 280px;
+}
+
+.odck-wrap .form-table input[type="number"] {
+    width: 80px;
+}
+
+.odck-wrap .form-table .regular-text {
+    width: 400px;
+    max-width: 100%;
+}

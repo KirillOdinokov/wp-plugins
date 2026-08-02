@@ -1,0 +1,203 @@
+.oso-order-btn,
+.oso-btn-row .oso-btn {
+    transition: all .2s ease;
+    text-decoration: none;
+}
+.oso-order-btn-wrap {
+    margin-top: 8px;
+}
+.oso-order-btn:hover,
+.oso-btn-row .oso-btn:hover {
+    opacity: .92;
+    transform: translateY(-1px);
+}
+.oso-btn-row .oso-btn {
+    text-decoration: none;
+}
+.oso-btn-row .oso-btn .oso-btn-ico,
+.oso-order-btn .oso-btn-ico {
+    flex-shrink: 0;
+    width: 18px;
+    height: 18px;
+    max-width: 18px;
+    max-height: 18px;
+    overflow: hidden;
+}
+.oso-btn-row .oso-btn .oso-btn-ico img,
+.oso-order-btn .oso-btn-ico img {
+    width: 18px !important;
+    height: 18px !important;
+    max-width: 18px !important;
+    max-height: 18px !important;
+    object-fit: contain;
+    display: block;
+}
+.oso-btn-row .oso-btn .oso-btn-ico i,
+.oso-order-btn .oso-btn-ico i {
+    font-size: 18px !important;
+    line-height: 1;
+    width: 18px;
+    height: 18px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Modal */
+.oso-modal {
+    position: fixed !important;
+    z-index: 2147483600 !important;
+    left: 0 !important;
+    top: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+    overflow: auto !important;
+    background-color: rgba(0,0,0,0.6) !important;
+    display: none !important;
+    align-items: center !important;
+    justify-content: center !important;
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transition: opacity .2s ease;
+}
+.oso-modal.oso-modal-open {
+    display: flex !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+    pointer-events: auto !important;
+}
+.oso-modal-content {
+    background: #fff !important;
+    padding: 24px;
+    border-radius: 8px;
+    width: 100%;
+    max-width: 520px;
+    position: relative;
+    margin: 16px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+    z-index: 2147483601 !important;
+}
+.oso-modal-content h3 {
+    margin: 0 0 6px;
+    color: #222;
+}
+.oso-modal-close {
+    position: absolute;
+    right: 12px;
+    top: 8px;
+    background: none;
+    border: none;
+    font-size: 28px;
+    line-height: 1;
+    cursor: pointer;
+    color: #888;
+}
+.oso-modal-close:hover {
+    color: #333;
+}
+.oso-product-title {
+    font-weight: 600;
+    margin-bottom: 12px;
+    color: #222;
+}
+.oso-form-group {
+    margin-bottom: 14px;
+}
+.oso-form-group label {
+    display: block;
+    margin-bottom: 4px;
+    font-weight: 600;
+    color: #333;
+}
+.oso-form-group input[type="text"],
+.oso-form-group input[type="email"],
+.oso-form-group input[type="number"],
+.oso-form-group textarea {
+    width: 100%;
+    padding: 8px 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 14px;
+    box-sizing: border-box;
+}
+.oso-form-group input:focus,
+.oso-form-group textarea:focus {
+    border-color: #007cba;
+    outline: none;
+}
+.oso-required {
+    color: #e00;
+}
+.oso-hint {
+    font-size: 12px;
+    color: #666;
+    margin-top: 4px;
+}
+.oso-radio {
+    display: inline-flex;
+    align-items: center;
+    margin-right: 16px;
+    font-weight: normal;
+    cursor: pointer;
+}
+.oso-radio input {
+    margin-right: 4px;
+}
+.oso-captcha-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+.oso-captcha-row .oso-captcha-wrap {
+    margin-bottom: 0;
+    flex-shrink: 0;
+}
+#oso-captcha {
+    width: 80px;
+    padding: 8px 10px;
+    margin: 0;
+    text-align: center;
+}
+.oso-captcha-wrap {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 4px;
+}
+.oso-captcha-question {
+    font-weight: 700;
+    font-size: 16px;
+    color: #333;
+}
+.oso-captcha-refresh {
+    font-size: 12px;
+    text-decoration: underline;
+    color: #007cba;
+}
+.oso-submit-btn {
+    display: inline-block;
+    padding: 12px 24px;
+    background: var(--primary-color, #007cba);
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 15px;
+    font-weight: 600;
+    width: 100%;
+}
+.oso-submit-btn:hover {
+    opacity: .92;
+}
+.oso-form-messages {
+    margin-top: 8px;
+    font-size: 14px;
+}
+.oso-form-messages .oso-success {
+    color: #2a7;
+}
+.oso-form-messages .oso-error {
+    color: #c00;
+}

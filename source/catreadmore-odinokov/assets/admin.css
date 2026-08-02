@@ -1,0 +1,30 @@
+.cromo-admin-card {
+    background: #fff;
+    border: 1px solid #c3c4c7;
+    border-radius: 4px;
+    padding: 16px 20px;
+    margin-bottom: 20px;
+    max-width: 800px;
+}
+.cromo-admin-card h2 {
+    margin-top: 0;
+    padding-bottom: 8px;
+    border-bottom: 1px solid #eee;
+}
+.cromo-admin-card .form-table th {
+    width: 220px;
+    padding: 10px 10px 10px 0;
+}
+.cromo-admin-card .form-table td th {
+    width: auto;
+    padding-left: 20px;
+}
+.cromo-icon-upload {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: center;
+}
+.cromo-icon-upload #cromo_icon_preview {
+    flex-basis: 100%;
+}

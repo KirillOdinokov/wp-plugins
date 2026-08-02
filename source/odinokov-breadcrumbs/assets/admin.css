@@ -1,0 +1,12 @@
+.obm-wrap .form-table th {
+    width: 220px;
+}
+
+.obm-wrap .form-table td .description {
+    margin-top: 4px;
+    color: #646970;
+}
+
+.obm-wrap .wp-picker-container {
+    vertical-align: middle;
+}

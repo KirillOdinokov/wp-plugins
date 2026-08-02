@@ -1,0 +1,9 @@
+.schema-odinokov-logo-preview {
+    min-height: 32px;
+}
+.schema-odinokov-logo-preview img {
+    border: 1px solid #ccd0d4;
+    background: #f6f7f7;
+    padding: 4px;
+    border-radius: 3px;
+}

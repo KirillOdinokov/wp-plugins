@@ -1,0 +1,172 @@
+.oso-sert-wrap {
+    max-width: 600px;
+    margin: 0 auto;
+    font-size: 14px;
+    color: #333;
+}
+.oso-sert-title {
+    margin: 0 0 20px;
+    font-size: 20px;
+    color: #222;
+}
+.oso-sert-step {
+    margin-bottom: 20px;
+}
+.oso-sert-step > label {
+    display: block;
+    margin-bottom: 6px;
+    font-weight: 600;
+}
+.oso-sert-select {
+    width: 100%;
+    padding: 8px 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 14px;
+    box-sizing: border-box;
+    background: #fff;
+}
+.oso-sert-select:focus {
+    border-color: #007cba;
+    outline: none;
+}
+.oso-sert-product-wrap {
+    position: relative;
+}
+.oso-sert-search {
+    width: 100%;
+    padding: 8px 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 14px;
+    box-sizing: border-box;
+    margin-bottom: 6px;
+}
+.oso-sert-search:focus {
+    border-color: #007cba;
+    outline: none;
+}
+.oso-sert-product-wrap .oso-sert-select {
+    min-height: 200px;
+}
+.oso-sert-product-info {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: 6px;
+    font-size: 12px;
+    color: #666;
+}
+.oso-sert-load-more {
+    padding: 4px 12px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    background: #f7f7f7;
+    cursor: pointer;
+    font-size: 12px;
+}
+.oso-sert-load-more:hover {
+    background: #eee;
+}
+.oso-sert-checkboxes {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+.oso-sert-check {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: normal;
+    cursor: pointer;
+}
+.oso-sert-check input[type="checkbox"] {
+    margin: 0;
+    width: 16px;
+    height: 16px;
+}
+.oso-sert-other-wrap {
+    margin-top: 10px;
+}
+.oso-sert-other-wrap textarea {
+    width: 100%;
+    padding: 8px 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 14px;
+    box-sizing: border-box;
+    resize: vertical;
+}
+.oso-sert-fields {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 16px;
+}
+.oso-sert-field input {
+    width: 100%;
+    padding: 8px 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 14px;
+    box-sizing: border-box;
+}
+.oso-sert-field input:focus {
+    border-color: #007cba;
+    outline: none;
+}
+.oso-sert-captcha-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 16px;
+    flex-wrap: wrap;
+}
+.oso-sert-captcha-question {
+    font-weight: 700;
+    font-size: 16px;
+    white-space: nowrap;
+}
+.oso-sert-captcha-refresh {
+    font-size: 12px;
+    text-decoration: underline;
+    color: #007cba;
+    white-space: nowrap;
+}
+.oso-sert-captcha-row input[type="number"] {
+    width: 80px;
+    padding: 8px 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 14px;
+    text-align: center;
+    box-sizing: border-box;
+}
+.oso-sert-submit {
+    display: inline-block;
+    padding: 12px 24px;
+    background: var(--primary-color, #007cba);
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 15px;
+    font-weight: 600;
+}
+.oso-sert-submit:hover {
+    opacity: .92;
+}
+.oso-sert-submit:disabled {
+    opacity: .6;
+    cursor: not-allowed;
+}
+.oso-sert-messages {
+    margin-top: 10px;
+    font-size: 14px;
+}
+.oso-sert-messages .oso-sert-success {
+    color: #2a7;
+}
+.oso-sert-messages .oso-sert-error {
+    color: #c00;
+}

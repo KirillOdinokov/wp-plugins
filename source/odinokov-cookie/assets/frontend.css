@@ -1,0 +1,14 @@
+/* Odinokov Cookie Notice */
+.odck-cookie-notice{position:fixed!important;bottom:20px;left:50%;transform:translateX(-50%);z-index:999999;max-width:600px;width:calc(100% - 30px);padding:16px 20px;box-sizing:border-box;background:#fff;border:1px solid #e0e0e0;border-radius:0;box-shadow:0 2px 12px rgba(0,0,0,.1);font-size:14px;line-height:1.5;color:#333;display:none;font-family:inherit}
+.odck-cookie-notice p{margin:0 0 12px 0;padding:0}
+.odck-cookie-notice a{color:#0073aa;text-decoration:underline}
+.odck-cookie-notice a:hover{text-decoration:none}
+.odck-cookie-notice .odck-actions{display:flex;flex-wrap:wrap;align-items:center;gap:10px}
+.odck-cookie-notice .odck-accept-btn{display:inline-block;padding:8px 20px;font-size:14px;line-height:1.4;cursor:pointer;border:2px solid #0073aa;border-radius:4px;color:#0073aa;font-weight:500;transition:all .2s ease;white-space:nowrap;font-family:inherit}
+.odck-accept-btn.odck-btn-flat{background:#0073aa;color:#fff;border-color:#0073aa}
+.odck-accept-btn.odck-btn-flat:hover{opacity:.85}
+.odck-accept-btn.odck-btn-shadow{color:#fff;border:none;transform:translateY(0)}
+.odck-accept-btn.odck-btn-shadow:hover{transform:translateY(-1px)}
+.odck-accept-btn.odck-btn-shadow:active{transform:translateY(0)}
+.odck-cookie-notice .odck-privacy-link{font-size:13px}
+@media(max-width:480px){.odck-cookie-notice{bottom:10px;padding:14px 16px;font-size:13px}.odck-cookie-notice .odck-actions{flex-direction:column;align-items:flex-start}.odck-cookie-notice .odck-accept-btn{width:100%;text-align:center}}
