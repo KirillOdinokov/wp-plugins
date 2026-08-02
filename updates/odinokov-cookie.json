@@ -1,0 +1,10 @@
+{
+    "version": "1.0.2",
+    "download_url": "https://raw.githubusercontent.com/KirillOdinokov/wp-plugins/main/repo/odinokov-cookie.zip",
+    "homepage": "https://raw.githubusercontent.com/KirillOdinokov/wp-plugins/main",
+    "requires": "5.8",
+    "tested": "6.7",
+    "requires_php": "7.2",
+    "last_updated": "2026-08-01",
+    "changelog": "= 1.0.2 =\n* РўРµСЃС‚РѕРІРѕРµ РѕР±РЅРѕРІР»РµРЅРёРµ вЂ” РїСЂРѕРІРµСЂРєР° РјРµС…Р°РЅРёР·РјР° Р°РІС‚РѕРѕР±РЅРѕРІР»РµРЅРёР№ С‡РµСЂРµР· HTTPS\n\n= 1.0.1 =\n* РџРµСЂРµРёРјРµРЅРѕРІР°РЅ РІ Odinokov Cookie\n* РњРµРЅСЋ РІ СЂР°Р·РґРµР»Рµ РћРґРёРЅРѕРєРѕРІ\n* РђРІС‚РѕРѕР±РЅРѕРІР»РµРЅРёСЏ"
+}

@@ -1,0 +1,10 @@
+{
+    "version": "1.0.1",
+    "download_url": "https://raw.githubusercontent.com/KirillOdinokov/wp-plugins/main/repo/odinokov-cyr-to-lat-rdr.zip",
+    "homepage": "https://raw.githubusercontent.com/KirillOdinokov/wp-plugins/main",
+    "requires": "5.8",
+    "tested": "6.7",
+    "requires_php": "7.2",
+    "last_updated": "2026-07-31",
+    "changelog": "= 1.0.1 =\n* РџРµСЂРµРёРјРµРЅРѕРІР°РЅ РІ Odinokov Cyr-to-Lat Redirect\n* РњРµРЅСЋ РІ СЂР°Р·РґРµР»Рµ РћРґРёРЅРѕРєРѕРІ\n* РђРІС‚РѕСЂ Odinokov\n* РђРІС‚РѕРѕР±РЅРѕРІР»РµРЅРёСЏ"
+}

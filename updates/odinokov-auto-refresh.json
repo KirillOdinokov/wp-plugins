@@ -1,0 +1,10 @@
+{
+    "version": "1.0.0",
+    "download_url": "https://raw.githubusercontent.com/KirillOdinokov/wp-plugins/main/repo/odinokov-auto-refresh.zip",
+    "homepage": "https://raw.githubusercontent.com/KirillOdinokov/wp-plugins/main",
+    "requires": "5.5",
+    "tested": "6.7",
+    "requires_php": "7.2",
+    "last_updated": "2026-07-31",
+    "changelog": "= 1.0.0 =\n* РџРµСЂРІС‹Р№ СЂРµР»РёР·. Р РµР±СЂРµРЅРґРёРЅРі РёР· Auto Fresh Date РІ Odinokov Auto Refresh."
+}

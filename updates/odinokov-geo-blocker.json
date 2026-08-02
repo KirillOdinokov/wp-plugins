@@ -1,0 +1,10 @@
+{
+    "version": "1.0.1",
+    "download_url": "https://raw.githubusercontent.com/KirillOdinokov/wp-plugins/main/repo/odinokov-geo-blocker.zip",
+    "homepage": "https://raw.githubusercontent.com/KirillOdinokov/wp-plugins/main",
+    "requires": "5.8",
+    "tested": "6.7",
+    "requires_php": "7.4",
+    "last_updated": "2026-07-31",
+    "changelog": "= 1.0.1 =\n* РџРµСЂРµРёРјРµРЅРѕРІР°РЅ РІ Odinokov Geo Blocker\n* РњРµРЅСЋ РїРµСЂРµРЅРµСЃРµРЅРѕ РІ СЂР°Р·РґРµР» РћРґРёРЅРѕРєРѕРІ\n* Email РґР»СЏ СѓРІРµРґРѕРјР»РµРЅРёР№ РЅР°СЃС‚СЂР°РёРІР°РµС‚СЃСЏ\n* Р”РѕР±Р°РІР»РµРЅ Р°РІС‚РѕР°РїРґРµР№С‚РµСЂ\n* РћР±РЅРѕРІР»РµРЅС‹ СЃСЃС‹Р»РєРё РЅР° РѕРґРёРЅРѕРєРѕРІ.СЂС„\n* РСЃРїСЂР°РІР»РµРЅ HTML С„РѕСЂРјС‹ Р±Р»РѕРєРёСЂРѕРІРєРё\n* Р›РѕРіРіРµСЂ Р·Р°С‰РёС‰С‘РЅ РѕС‚ РѕС€РёР±РѕРє С‡С‚РµРЅРёСЏ\n\n= 1.0.0 =\n* РџРµСЂРІС‹Р№ СЂРµР»РёР·."
+}

@@ -1,0 +1,10 @@
+{
+    "version": "1.0.6",
+    "download_url": "https://raw.githubusercontent.com/KirillOdinokov/wp-plugins/main/repo/order-share-odinokov.zip",
+    "homepage": "https://raw.githubusercontent.com/KirillOdinokov/wp-plugins/main",
+    "requires": "5.8",
+    "tested": "6.7",
+    "requires_php": "7.4",
+    "last_updated": "2026-07-31",
+    "changelog": "= 1.0.6 =\n* РњРµРЅСЋ РїРµСЂРµРЅРµСЃРµРЅРѕ РІ СЂР°Р·РґРµР» РћРґРёРЅРѕРєРѕРІ\n* Р”РѕР±Р°РІР»РµРЅ РјРµС…Р°РЅРёР·Рј Р°РІС‚РѕРѕР±РЅРѕРІР»РµРЅРёР№\n* РћР±РЅРѕРІР»РµРЅС‹ СЃСЃС‹Р»РєРё РЅР° http://РѕРґРёРЅРѕРєРѕРІ.СЂС„\n\n= 1.0.5 =\n* РџСЂРµРґС‹РґСѓС‰Р°СЏ РІРµСЂСЃРёСЏ."
+}

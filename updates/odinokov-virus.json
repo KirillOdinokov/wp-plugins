@@ -1,0 +1,10 @@
+{
+    "version": "1.2.1",
+    "download_url": "https://raw.githubusercontent.com/KirillOdinokov/wp-plugins/main/repo/odinokov-virus.zip",
+    "homepage": "https://raw.githubusercontent.com/KirillOdinokov/wp-plugins/main",
+    "requires": "5.8",
+    "tested": "6.7",
+    "requires_php": "7.4",
+    "last_updated": "2026-08-01",
+    "changelog": "= 1.2.1 =\n* Р”РѕР±Р°РІР»РµРЅР° РїСЂРѕРІРµСЂРєР° headers_sent() РІ security headers\n\n= 1.2.0 =\n* Р›РѕРіРё РІ wp-content/uploads\n* Р‘Р»РѕРєРёСЂРѕРІРєР° СЃРєР°РЅРµСЂРѕРІ\n* Р—Р°С‰РёС‚Р° wp-login\n* XML-RPC off\n* Р—Р°РіРѕР»РѕРІРєРё Р±РµР·РѕРїР°СЃРЅРѕСЃС‚Рё\n* РњРµРЅСЋ РІ РћРґРёРЅРѕРєРѕРІ\n* РђРІС‚РѕРѕР±РЅРѕРІР»РµРЅРёСЏ"
+}

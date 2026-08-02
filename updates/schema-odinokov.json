@@ -1,0 +1,10 @@
+{
+    "version": "1.3.0",
+    "download_url": "https://raw.githubusercontent.com/KirillOdinokov/wp-plugins/main/repo/schema-odinokov.zip",
+    "homepage": "https://raw.githubusercontent.com/KirillOdinokov/wp-plugins/main",
+    "requires": "5.6",
+    "tested": "6.7",
+    "requires_php": "7.2",
+    "last_updated": "2026-07-31",
+    "changelog": "= 1.3.0 =\n* Р”РѕР±Р°РІР»РµРЅ WebSite + SearchAction (Sitelinks Search Box)\n* Р”РѕР±Р°РІР»РµРЅ BreadcrumbList РЅР° РІСЃРµС… СЃС‚СЂР°РЅРёС†Р°С…\n* Р”РѕР±Р°РІР»РµРЅ AggregateRating РґР»СЏ С‚РѕРІР°СЂРѕРІ WooCommerce (Р·РІС‘Р·РґС‹)\n* Р”РѕР±Р°РІР»РµРЅС‹ GTIN/MPN РїРѕР»СЏ РґР»СЏ С‚РѕРІР°СЂРѕРІ\n* РџРѕРґРґРµСЂР¶РєР° РєР°С‚РµРіРѕСЂРёР№ Р±Р»РѕРіР° Рё СЃС‚СЂР°РЅРёС† РІ С…Р»РµР±РЅС‹С… РєСЂРѕС€РєР°С…\n* РњРµРЅСЋ РІ СЂР°Р·РґРµР»Рµ РћРґРёРЅРѕРєРѕРІ\n* РђРІС‚РѕРѕР±РЅРѕРІР»РµРЅРёСЏ\n\n= 1.2.0 =\n* РџСЂРµРґС‹РґСѓС‰Р°СЏ РІРµСЂСЃРёСЏ."
+}
