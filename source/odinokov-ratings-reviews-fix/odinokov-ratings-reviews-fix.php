@@ -3,7 +3,7 @@
  * Plugin Name: Odinokov Ratings & Reviews Fix
  * Plugin URI:  https://github.com/KirillOdinokov/wp-plugins
  * Description: Математическая капча для формы отзыва WooCommerce + пересчёт рейтингов товаров по существующим отзывам.
- * Version:     1.0.0
+ * Version:     1.0.1
  * Author:      Odinokov
  * Author URI:  https://github.com/KirillOdinokov/wp-plugins
  * License:     GPL v2 or later
@@ -12,7 +12,7 @@
 
 if ( ! defined( 'ABSPATH' ) ) exit;
 
-define( 'ORRF_VERSION', '1.0.0' );
+define( 'ORRF_VERSION', '1.0.1' );
 define( 'ORRF_DIR', plugin_dir_path( __FILE__ ) );
 
 require_once ORRF_DIR . 'includes/class-orrf-updater.php';
@@ -39,6 +39,7 @@ class Odinokov_Ratings_Reviews_Fix {
         add_action( 'wp_enqueue_scripts', [ $this, 'inline_styles' ] );
         add_action( 'admin_menu', [ $this, 'add_admin_menu' ] );
         add_action( 'admin_post_orf_recalculate', [ $this, 'handle_recalculate' ] );
+        add_action( 'admin_post_orrf_force_check', [ $this, 'force_check' ] );
         add_action( 'admin_enqueue_scripts', [ $this, 'admin_assets' ] );
     }
 
@@ -141,8 +142,22 @@ class Odinokov_Ratings_Reviews_Fix {
                 <p>Математическая капча добавляется в форму отзыва на странице товара. Работает автоматически.</p>
                 <p style="color:green;">Активно</p>
             </div>
+
+            <form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" style="margin-top:10px;">
+                <?php wp_nonce_field( 'orrf_force_check', 'orrf_force_check_nonce' ); ?>
+                <input type="hidden" name="action" value="orrf_force_check">
+                <?php submit_button( __( 'Проверить обновления', 'odinokov-ratings-reviews-fix' ), 'secondary' ); ?>
+            </form>
         </div>
         <?php
+    }
+
+    public function force_check() {
+        if ( ! current_user_can( 'manage_options' ) ) wp_die( 'Access denied.' );
+        check_admin_referer( 'orrf_force_check', 'orrf_force_check_nonce' );
+        delete_transient( 'orrf_rel_' . md5( 'https://raw.githubusercontent.com/KirillOdinokov/wp-plugins/main/updates/odinokov-ratings-reviews-fix.json' ) );
+        wp_safe_redirect( add_query_arg( 'orrf_force_check_done', '1', admin_url( 'admin.php?page=odinokov-ratings-fix' ) ) );
+        exit;
     }
 
     public function handle_recalculate() {

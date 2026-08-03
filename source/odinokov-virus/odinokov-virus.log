@@ -1,0 +1,4 @@
+[2026-07-28 13:40:26] [blocked_ua_pattern] [IP: 173.239.218.74] wp2shell | IP: 173.239.218.74 | UA: wp2shell | URL: /
+[2026-07-28 13:40:29] [blocked_ua_pattern] [IP: 173.239.218.40] wp2shell | IP: 173.239.218.40 | UA: wp2shell | URL: /wp-json/
+[2026-07-28 13:40:31] [blocked_ua_pattern] [IP: 173.239.218.45] wp2shell | IP: 173.239.218.45 | UA: wp2shell | URL: /?rest_route=/
+[2026-07-28 20:38:35] [rest_batch_blocked] [IP: 209.141.32.143] Unauthenticated POST to batch/v1 | IP: 209.141.32.143 | UA: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.1.2.3 Safari/537.36 Edg/121.0.623.86 | URL: /?rest_route=/batch/v1

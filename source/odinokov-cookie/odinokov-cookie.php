@@ -3,7 +3,7 @@
  * Plugin Name: Odinokov Cookie
  * Plugin URI:  https://github.com/KirillOdinokov/wp-plugins
  * Description: Простое и безопасное уведомление об использовании Cookies для функционирования сайта и Яндекс Метрики.
- * Version:     1.0.4
+ * Version:     1.0.5
  * Author:      Odinokov
  * Author URI:  https://github.com/KirillOdinokov/wp-plugins
  * Text Domain: odinokov-cookie
@@ -11,7 +11,7 @@
 
 if ( ! defined( 'ABSPATH' ) ) exit;
 
-define( 'ODCK_VERSION', '1.0.4' );
+define( 'ODCK_VERSION', '1.0.5' );
 define( 'ODCK_DIR', plugin_dir_path( __FILE__ ) );
 define( 'ODCK_URL', plugin_dir_url( __FILE__ ) );
 
@@ -50,6 +50,7 @@ class Odinokov_Cookie_Notice {
         add_action( 'wp_footer', [ $this, 'render_notice' ] );
         add_action( 'wp_ajax_odck_accept', [ $this, 'ajax_accept' ] );
         add_action( 'wp_ajax_nopriv_odck_accept', [ $this, 'ajax_accept' ] );
+        add_action( 'admin_post_odck_force_check', [ $this, 'force_check' ] );
     }
 
     public function get_defaults() {
@@ -160,8 +161,23 @@ class Odinokov_Cookie_Notice {
                 </table>
                 <?php submit_button(); ?>
             </form>
+            <form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" style="margin-top:10px;">
+                <?php wp_nonce_field( 'odck_force_check', 'odck_force_check_nonce' ); ?>
+                <input type="hidden" name="action" value="odck_force_check">
+                <?php submit_button( __( 'Проверить обновления', 'odinokov-cookie' ), 'secondary' ); ?>
+            </form>
         </div>
         <?php
+    }
+
+    public function force_check() {
+        if ( ! current_user_can( 'manage_options' ) ) {
+            wp_die( 'Access denied.' );
+        }
+        check_admin_referer( 'odck_force_check', 'odck_force_check_nonce' );
+        delete_transient( 'odck_rel_' . md5( 'https://raw.githubusercontent.com/KirillOdinokov/wp-plugins/main/updates/odinokov-cookie.json' ) );
+        wp_safe_redirect( add_query_arg( 'odck_force_check_done', '1', admin_url( 'admin.php?page=odinokov-cookie' ) ) );
+        exit;
     }
 
     /* ========== Frontend ========== */

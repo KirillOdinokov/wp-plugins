@@ -3,7 +3,7 @@
  * Plugin Name: Schema Odinokov
  * Plugin URI:  https://github.com/KirillOdinokov/wp-plugins
  * Description: Полная JSON-LD разметка: Organization, LocalBusiness, Product (WooCommerce), Article, BreadcrumbList, WebSite+SearchAction, FAQ, AggregateRating, og:image. Всё что Yoast Premium не даёт бесплатно.
- * Version:     1.3.0
+ * Version:     1.3.1
  * Author:      Odinokov
  * Author URI:  https://github.com/KirillOdinokov/wp-plugins
  * License:     GPL-2.0-or-later
@@ -16,7 +16,7 @@
 
 if ( ! defined( 'ABSPATH' ) ) exit;
 
-define( 'SCHEMA_ODINOKOV_VERSION', '1.3.0' );
+define( 'SCHEMA_ODINOKOV_VERSION', '1.3.1' );
 define( 'SCHEMA_ODINOKOV_FILE', __FILE__ );
 define( 'SCHEMA_ODINOKOV_DIR', plugin_dir_path( __FILE__ ) );
 define( 'SCHEMA_ODINOKOV_URL', plugin_dir_url( __FILE__ ) );

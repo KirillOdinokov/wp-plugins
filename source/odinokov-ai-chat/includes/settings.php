@@ -45,6 +45,7 @@ function odinokov_ai_admin_menu() {
     );
 }
 add_action('admin_menu', 'odinokov_ai_admin_menu');
+add_action('admin_post_oac_force_check', 'oac_force_check');
 
 function odinokov_ai_dashboard() {
     ?>
@@ -426,6 +427,12 @@ function odinokov_ai_settings_html() {
             <?php submit_button('Сохранить настройки'); ?>
         </form>
 
+        <form method="post" action="<?php echo esc_url(admin_url('admin-post.php')); ?>" style="margin-top:10px;">
+            <?php wp_nonce_field('oac_force_check', 'oac_force_check_nonce'); ?>
+            <input type="hidden" name="action" value="oac_force_check">
+            <?php submit_button(__('Проверить обновления', 'odinokov-ai-chat'), 'secondary'); ?>
+        </form>
+
         <script>
         jQuery(document).ready(function($) {
             $('.odinokov-ai-color-picker').wpColorPicker();
@@ -588,4 +595,12 @@ function odinokov_ai_logs_page() {
         <?php endif; ?>
     </div>
     <?php
+}
+
+function oac_force_check() {
+    if (!current_user_can('manage_options')) wp_die('Access denied.');
+    check_admin_referer('oac_force_check', 'oac_force_check_nonce');
+    delete_transient('odinokov_ai_release_' . md5('https://raw.githubusercontent.com/KirillOdinokov/wp-plugins/main/updates/odinokov-ai-chat.json'));
+    wp_safe_redirect(add_query_arg('oac_force_check_done', '1', admin_url('admin.php?page=odinokov-ai-chat')));
+    exit;
 }

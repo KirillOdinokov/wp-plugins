@@ -3,7 +3,7 @@
  * Plugin Name: Odinokov Virus
  * Plugin URI:  https://github.com/KirillOdinokov/wp-plugins
  * Description: Комплексная защита от взлома: блокировка вредоносных User-Agent, путей шеллов, защита REST API, XML-RPC, wp-login от брутфорса, блокировка сканирования уязвимостей. Яндекс-боты не блокируются. + Автоочистка БД.
- * Version:     1.2.1
+ * Version:     1.2.2
  * Author:      Odinokov
  * Author URI:  https://github.com/KirillOdinokov/wp-plugins
  * License:     GPL v2 or later
@@ -14,7 +14,7 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
-define('ODINOKOV_VIRUS_VERSION', '1.2.0');
+define('ODINOKOV_VIRUS_VERSION', '1.2.1');
 define('ODINOKOV_VIRUS_DIR', plugin_dir_path(__FILE__));
 define('ODINOKOV_VIRUS_CRON_HOOK', 'odinokov_virus_weekly_cleanup');
 
@@ -81,6 +81,7 @@ class Odinokov_Virus {
         add_action('admin_menu', [$this, 'add_admin_page']);
         add_action('admin_post_odinokov_virus_clear_log', [$this, 'clear_log']);
         add_action('admin_post_odinokov_virus_run_cleanup', [$this, 'handle_manual_cleanup']);
+        add_action('admin_post_odv_force_check', [$this, 'force_check']);
         add_action(ODINOKOV_VIRUS_CRON_HOOK, [$this, 'run_cleanup']);
         add_action('wp_login_failed', [$this, 'log_login_failure']);
         add_action('send_headers', [$this, 'add_security_headers']);
@@ -262,11 +263,24 @@ class Odinokov_Virus {
                 <?php wp_nonce_field('odinokov_virus_clear_log', 'odinokov_virus_nonce'); ?>
                 <?php submit_button('Очистить лог', 'delete', 'submit', false); ?>
             </form>
+            <form method="post" action="<?php echo esc_url(admin_url('admin-post.php')); ?>" style="margin-top:10px;">
+                <?php wp_nonce_field('odv_force_check', 'odv_force_check_nonce'); ?>
+                <input type="hidden" name="action" value="odv_force_check">
+                <?php submit_button(__('Проверить обновления', 'odinokov-virus'), 'secondary'); ?>
+            </form>
             <textarea readonly style="width:100%;height:400px;font-family:monospace;font-size:12px;"><?php
                 echo empty($log_lines) ? 'Лог пуст.' : esc_textarea(implode("\n", $log_lines));
             ?></textarea>
         </div>
         <?php
+    }
+
+    public function force_check() {
+        if (!current_user_can('manage_options')) wp_die('Access denied.');
+        check_admin_referer('odv_force_check', 'odv_force_check_nonce');
+        delete_transient('odv_rel_' . md5('https://raw.githubusercontent.com/KirillOdinokov/wp-plugins/main/updates/odinokov-virus.json'));
+        wp_safe_redirect(add_query_arg('odv_force_check_done', '1', admin_url('admin.php?page=odinokov-virus')));
+        exit;
     }
 
     public function clear_log() {

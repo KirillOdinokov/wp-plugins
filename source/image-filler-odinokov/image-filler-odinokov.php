@@ -3,7 +3,7 @@
  * Plugin Name: Image Filler Odinokov
  * Plugin URI:  https://github.com/KirillOdinokov/wp-plugins
  * Description: Заполняет пустые thumbnails категорий изображениями товаров и пустые картинки товаров — thumbnail родительской категории. Без перегрузки сервера (батчи + AJAX + nonce).
- * Version:     1.0.1
+ * Version:     1.0.2
  * Author:      Odinokov
  * Author URI:  https://github.com/KirillOdinokov/wp-plugins
  * Text Domain: image-filler-odinokov
@@ -13,7 +13,7 @@ if ( ! defined( 'ABSPATH' ) ) {
     exit;
 }
 
-define( 'IFO_VERSION', '1.0.1' );
+define( 'IFO_VERSION', '1.0.2' );
 
 require_once plugin_dir_path( __FILE__ ) . 'includes/class-ifo-updater.php';
 
@@ -44,6 +44,7 @@ class Image_Filler_Odinokov {
         add_action( 'admin_init',            [ $this, 'register_settings' ] );
         add_action( 'admin_enqueue_scripts', [ $this, 'enqueue_assets' ] );
         add_action( 'wp_ajax_ifo_run',       [ $this, 'ajax_run' ] );
+        add_action( 'admin_post_ifo_force_check', [ $this, 'force_check' ] );
     }
 
     public function add_menu() {
@@ -152,6 +153,11 @@ class Image_Filler_Odinokov {
                 </table>
                 <?php submit_button( 'Сохранить настройки' ); ?>
             </form>
+            <form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" style="margin-top:10px;">
+                <?php wp_nonce_field( 'ifo_force_check', 'ifo_force_check_nonce' ); ?>
+                <input type="hidden" name="action" value="ifo_force_check">
+                <?php submit_button( __( 'Проверить обновления', 'image-filler-odinokov' ), 'secondary' ); ?>
+            </form>
             <hr>
             <h2>Действия</h2>
             <p><button type="button" class="button button-primary" data-action="fill_cats">1. Заполнить thumbnails категорий</button> <span class="description">Берёт первое изображение из товаров категории.</span></p>
@@ -170,6 +176,14 @@ class Image_Filler_Odinokov {
             <div class="ifo-scan-result"></div>
         </div>
         <?php
+    }
+
+    public function force_check() {
+        if ( ! current_user_can( 'manage_options' ) ) wp_die( 'Access denied.' );
+        check_admin_referer( 'ifo_force_check', 'ifo_force_check_nonce' );
+        delete_transient( 'ifo_rel_' . md5( 'https://raw.githubusercontent.com/KirillOdinokov/wp-plugins/main/updates/image-filler-odinokov.json' ) );
+        wp_safe_redirect( add_query_arg( 'ifo_force_check_done', '1', admin_url( 'admin.php?page=image-filler-odinokov' ) ) );
+        exit;
     }
 
     public function ajax_run() {

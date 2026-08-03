@@ -1,10 +1,10 @@
-{
-    "version": "1.0.4",
-    "download_url": "https://raw.githubusercontent.com/KirillOdinokov/wp-plugins/main/repo/odinokov-cookie.zip",
-    "homepage": "https://raw.githubusercontent.com/KirillOdinokov/wp-plugins/main",
-    "requires": "5.8",
-    "tested": "6.7",
-    "requires_php": "7.2",
-    "last_updated": "2026-08-01",
-    "changelog": "= 1.0.4 =\n* Auto-update test round 2"
+﻿{
+    "requires":  "5.8",
+    "download_url":  "https://raw.githubusercontent.com/KirillOdinokov/wp-plugins/main/repo/odinokov-cookie.zip",
+    "last_updated":  "2026-08-03",
+    "tested":  "6.7",
+    "version":  "1.0.5",
+    "requires_php":  "7.2",
+    "homepage":  "https://raw.githubusercontent.com/KirillOdinokov/wp-plugins/main",
+    "changelog":  "= 1.0.5 =\n* Кнопка «Проверить обновления» для принудительного сброса кеша"
 }

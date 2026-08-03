@@ -3,7 +3,7 @@
  * Plugin Name: Odinokov Cyr-to-Lat Redirect
  * Plugin URI:  https://github.com/KirillOdinokov/wp-plugins
  * Description: Автоматический 301 редирект с URL, содержащих кириллические символы, на латинские аналоги (после транслитерации плагином Cyr-To-Lat).
- * Version:     1.0.1
+ * Version:     1.0.2
  * Author:      Odinokov
  * Author URI:  https://github.com/KirillOdinokov/wp-plugins
  * License:     GPL-2.0+
@@ -11,7 +11,7 @@
 
 if ( ! defined( 'ABSPATH' ) ) exit;
 
-define( 'OCLR_VERSION', '1.0.1' );
+define( 'OCLR_VERSION', '1.0.2' );
 
 require_once plugin_dir_path( __FILE__ ) . 'includes/class-oclr-updater.php';
 
@@ -28,6 +28,7 @@ new OCLR_Plugin_Updater(
 );
 
 add_action( 'admin_menu', 'oclr_admin_menu' );
+add_action( 'admin_post_oclr_force_check', 'oclr_force_check' );
 function oclr_admin_menu() {
     global $menu; $e = false;
     if ( is_array( $menu ) ) { foreach ( $menu as $i ) { if ( isset( $i[2] ) && 'odinokov-plugins' === $i[2] ) { $e = true; break; } } }
@@ -44,8 +45,22 @@ function oclr_dashboard() {
             <p>Автоматический 301 редирект с кириллических URL на латиницу. Работает автоматически, настроек не требует.</p>
             <p style="color:green;">Активно</p>
         </div>
-    </div></div>
+    </div>
+    <form method="post" action="<?php echo esc_url(admin_url('admin-post.php')); ?>" style="margin-top:10px;">
+        <?php wp_nonce_field('oclr_force_check', 'oclr_force_check_nonce'); ?>
+        <input type="hidden" name="action" value="oclr_force_check">
+        <?php submit_button(__('Проверить обновления', 'odinokov-cyr-to-lat-rdr'), 'secondary'); ?>
+    </form>
+    </div>
     <?php
+}
+
+function oclr_force_check() {
+    if (!current_user_can('manage_options')) wp_die('Access denied.');
+    check_admin_referer('oclr_force_check', 'oclr_force_check_nonce');
+    delete_transient('oclr_rel_' . md5('https://raw.githubusercontent.com/KirillOdinokov/wp-plugins/main/updates/odinokov-cyr-to-lat-rdr.json'));
+    wp_safe_redirect(add_query_arg('oclr_force_check_done', '1', admin_url('admin.php?page=odinokov-cyr-to-lat-rdr')));
+    exit;
 }
 
 class OCLR_Redirect {

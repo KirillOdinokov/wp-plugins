@@ -3,7 +3,7 @@
  * Plugin Name: Odinokov AI Chat
  * Plugin URI:  https://github.com/KirillOdinokov/wp-plugins
  * Description: Чат-консультант с ИИ (DeepSeek). Отвечает по ГОСТ, СНиП, СП. Шорткод: [odinokov_chat]
- * Version:     1.3.1
+ * Version:     1.3.2
  * Author:      Odinokov
  * Author URI:  https://github.com/KirillOdinokov/wp-plugins
  * License:     GPL-2.0+
@@ -14,7 +14,7 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
-define('ODINOKOV_AI_VERSION', '1.3.1');
+define('ODINOKOV_AI_VERSION', '1.3.2');
 define('ODINOKOV_AI_PLUGIN_DIR', plugin_dir_path(__FILE__));
 define('ODINOKOV_AI_PLUGIN_URL', plugin_dir_url(__FILE__));
 

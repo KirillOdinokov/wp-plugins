@@ -29,6 +29,7 @@ class Admin {
         add_action( 'admin_menu', [ $this, 'add_menu' ] );
         add_action( 'admin_init', [ $this, 'register_settings' ] );
         add_action( 'admin_enqueue_scripts', [ $this, 'enqueue_media' ] );
+        add_action( 'admin_post_sod_force_check', [ $this, 'force_check' ] );
     }
 
     public function add_menu() {
@@ -414,7 +415,22 @@ class Admin {
 
                 <?php submit_button(); ?>
             </form>
+            <form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" style="margin-top:10px;">
+                <?php wp_nonce_field( 'sod_force_check', 'sod_force_check_nonce' ); ?>
+                <input type="hidden" name="action" value="sod_force_check">
+                <?php submit_button( __( 'Проверить обновления', 'schema-odinokov' ), 'secondary' ); ?>
+            </form>
         </div>
         <?php
+    }
+
+    public function force_check() {
+        if ( ! current_user_can( 'manage_options' ) ) {
+            wp_die( 'Access denied.' );
+        }
+        check_admin_referer( 'sod_force_check', 'sod_force_check_nonce' );
+        delete_transient( 'sod_rel_' . md5( 'https://raw.githubusercontent.com/KirillOdinokov/wp-plugins/main/updates/schema-odinokov.json' ) );
+        wp_safe_redirect( add_query_arg( 'sod_force_check_done', '1', admin_url( 'admin.php?page=schema-odinokov' ) ) );
+        exit;
     }
 }
