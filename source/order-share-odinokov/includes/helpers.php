@@ -25,17 +25,18 @@ function oso_build_button_style( $s ) {
 function oso_render_icon( $s, $which ) {
     $custom_key = 'share' === $which ? 'custom_share_icon' : ( 'pdf' === $which ? 'custom_pdf_icon' : 'custom_order_icon' );
     $fa_key     = 'share' === $which ? 'share_icon' : ( 'pdf' === $which ? 'pdf_icon' : 'order_icon' );
+    $is         = isset( $s['icon_size'] ) ? (int) $s['icon_size'] : 18;
 
     if ( ! empty( $s[ $custom_key ] ) ) {
         $alt = 'share' === $which ? esc_attr__( 'Поделиться', 'order-share-odinokov' ) : ( 'pdf' === $which ? esc_attr__( 'PDF', 'order-share-odinokov' ) : esc_attr__( 'Заявка', 'order-share-odinokov' ) );
-        return '<img src="' . esc_url( $s[ $custom_key ] ) . '" alt="' . $alt . '" width="18" height="18" style="width:18px;height:18px;max-width:18px;max-height:18px;object-fit:contain;" loading="lazy" decoding="async">';
+        return '<img src="' . esc_url( $s[ $custom_key ] ) . '" alt="' . $alt . '" width="' . $is . '" height="' . $is . '" style="width:' . $is . 'px;height:' . $is . 'px;max-width:' . $is . 'px;max-height:' . $is . 'px;object-fit:contain;" loading="lazy" decoding="async">';
     }
 
     $icon_set = isset( $s['icon_set'] ) ? $s['icon_set'] : 'black and bold';
     $png_url  = oso_get_icon_set_png( $icon_set, $which );
     if ( $png_url ) {
         $alt = 'share' === $which ? esc_attr__( 'Поделиться', 'order-share-odinokov' ) : ( 'pdf' === $which ? esc_attr__( 'PDF', 'order-share-odinokov' ) : esc_attr__( 'Заявка', 'order-share-odinokov' ) );
-        return '<img src="' . esc_url( $png_url ) . '" alt="' . $alt . '" width="18" height="18" style="width:18px;height:18px;max-width:18px;max-height:18px;object-fit:contain;" loading="lazy" decoding="async">';
+        return '<img src="' . esc_url( $png_url ) . '" alt="' . $alt . '" width="' . $is . '" height="' . $is . '" style="width:' . $is . 'px;height:' . $is . 'px;max-width:' . $is . 'px;max-height:' . $is . 'px;object-fit:contain;" loading="lazy" decoding="async">';
     }
 
     if ( ! empty( $s[ $fa_key ] ) ) {

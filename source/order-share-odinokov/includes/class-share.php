@@ -72,6 +72,7 @@ class OSO_Share {
         $ph     = (int) $s['padding_h'];
         $gap    = (int) $s['gap'];
         $fs     = (int) $s['font_size'];
+        $is     = (int) $s['icon_size'];
         $weight = (int) $s['font_weight'];
         $upper  = ! empty( $s['uppercase'] ) ? 'uppercase' : 'none';
         $bcolor = $s['border_color'] ? $s['border_color'] : '#222222';
@@ -81,9 +82,9 @@ class OSO_Share {
 .oso-btn-row .oso-btn:hover{opacity:.9;}
 .oso-btn-row .oso-btn:focus{outline:2px solid {$bcolor};outline-offset:2px;}
 .oso-btn-row .oso-btn:active{transform:translateY(1px);}
-.oso-btn-row .oso-btn-ico{display:inline-flex;align-items:center;justify-content:center;line-height:1;flex-shrink:0;width:18px;height:18px;max-width:18px;max-height:18px;overflow:hidden;}
-.oso-btn-row .oso-btn-ico img{width:18px !important;height:18px !important;max-width:18px !important;max-height:18px !important;object-fit:contain;display:block;}
-.oso-btn-row .oso-btn-ico i{font-size:18px !important;line-height:1;width:18px;height:18px;display:inline-flex;align-items:center;justify-content:center;}
+.oso-btn-row .oso-btn-ico{display:inline-flex;align-items:center;justify-content:center;line-height:1;flex-shrink:0;width:{$is}px;height:{$is}px;max-width:{$is}px;max-height:{$is}px;overflow:hidden;}
+.oso-btn-row .oso-btn-ico img{width:{$is}px !important;height:{$is}px !important;max-width:{$is}px !important;max-height:{$is}px !important;object-fit:contain;display:block;}
+.oso-btn-row .oso-btn-ico i{font-size:{$is}px !important;line-height:1;width:{$is}px;height:{$is}px;display:inline-flex;align-items:center;justify-content:center;}
 .oso-btn-row .oso-btn.is-shared{opacity:.7;}
 @media print{.oso-btn-row{display:none !important;}}";
         echo '<style id="oso-share-inline">' . $css . '</style>'; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
