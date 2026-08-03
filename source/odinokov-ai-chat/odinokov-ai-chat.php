@@ -19,8 +19,8 @@ define('ODINOKOV_AI_PLUGIN_DIR', plugin_dir_path(__FILE__));
 define('ODINOKOV_AI_PLUGIN_URL', plugin_dir_url(__FILE__));
 
 require_once ODINOKOV_AI_PLUGIN_DIR . 'includes/settings.php';
-require_once ODINOKOV_AI_PLUGIN_DIR . 'includes/ajax.php';
 require_once ODINOKOV_AI_PLUGIN_DIR . 'includes/logger.php';
+require_once ODINOKOV_AI_PLUGIN_DIR . 'includes/ajax.php';
 require_once ODINOKOV_AI_PLUGIN_DIR . 'includes/updater/updater.php';
 
 new Odinokov_AI_Updater(__FILE__, 'https://raw.githubusercontent.com/KirillOdinokov/wp-plugins/main/updates/odinokov-ai-chat.json');
