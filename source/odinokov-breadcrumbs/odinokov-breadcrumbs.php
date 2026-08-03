@@ -3,7 +3,7 @@
  * Plugin Name: Odinokov Breadcrumbs
  * Plugin URI:  https://github.com/KirillOdinokov/wp-plugins
  * Description: Добавляет мега-меню при наведении на пункты хлебных крошек. Выводит дочерние категории/товары/записи в формате wide menu. Подгрузка через AJAX.
- * Version:     1.1.0
+ * Version:     1.1.1
  * Author:      Odinokov
  * Author URI:  https://github.com/KirillOdinokov/wp-plugins
  * License:     GPL-2.0-or-later
@@ -19,7 +19,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 if ( ! defined( 'OBM_VERSION' ) ) {
-    define( 'OBM_VERSION', '1.1.0' );
+    define( 'OBM_VERSION', '1.1.1' );
 }
 if ( ! defined( 'OBM_FILE' ) ) {
     define( 'OBM_FILE', __FILE__ );
@@ -67,6 +67,7 @@ class Odinokov_Breadcrumbs {
         add_action( 'wp_enqueue_scripts', [ $this, 'frontend_enqueue' ] );
         add_action( 'wp_ajax_' . self::AJAX_ACTION, [ $this, 'ajax_load_menu' ] );
         add_action( 'wp_ajax_nopriv_' . self::AJAX_ACTION, [ $this, 'ajax_load_menu' ] );
+        add_action( 'admin_post_obm_force_check', [ $this, 'force_check' ] );
     }
 
     /* ====================================================================== */
@@ -228,8 +229,23 @@ class Odinokov_Breadcrumbs {
                 </table>
                 <?php submit_button(); ?>
             </form>
+            <form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" style="margin-top:10px;">
+                <?php wp_nonce_field( 'obm_force_check', 'obm_force_check_nonce' ); ?>
+                <input type="hidden" name="action" value="obm_force_check">
+                <?php submit_button( __( 'Проверить обновления', 'odinokov-breadcrumbs' ), 'secondary' ); ?>
+            </form>
         </div>
         <?php
+    }
+
+    public function force_check() {
+        if ( ! current_user_can( 'manage_options' ) ) {
+            wp_die( 'Access denied.' );
+        }
+        check_admin_referer( 'obm_force_check', 'obm_force_check_nonce' );
+        delete_transient( 'obm_release_' . md5( 'https://raw.githubusercontent.com/KirillOdinokov/wp-plugins/main/updates/odinokov-breadcrumbs.json' ) );
+        wp_safe_redirect( add_query_arg( 'obm_force_check_done', '1', admin_url( 'admin.php?page=odinokov-breadcrumbs' ) ) );
+        exit;
     }
 
     /* ====================================================================== */

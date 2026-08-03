@@ -3,7 +3,7 @@
  * Plugin Name: Odinokov Auto Refresh
  * Plugin URI:  https://github.com/KirillOdinokov/wp-plugins
  * Description: Автоматически обновляет дату last modified у записей, страниц, товаров WooCommerce, категорий и меток, чтобы сайт не выглядел заброшенным.
- * Version:     1.0.0
+ * Version:     1.0.1
  * Author:      Odinokov
  * Author URI:  https://github.com/KirillOdinokov/wp-plugins
  * License:     GPL-2.0+
@@ -14,7 +14,7 @@ if ( ! defined( 'ABSPATH' ) ) {
     exit;
 }
 
-define( 'OAR_VERSION', '1.0.0' );
+define( 'OAR_VERSION', '1.0.1' );
 define( 'OAR_PLUGIN_FILE', __FILE__ );
 define( 'OAR_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
 define( 'OAR_OPTION_KEY', 'oar_settings' );

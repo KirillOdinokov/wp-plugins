@@ -1,10 +1,10 @@
-{
-    "requires":  "5.5",
+﻿{
+    "requires":  "5.8",
     "download_url":  "https://raw.githubusercontent.com/KirillOdinokov/wp-plugins/main/repo/odinokov-auto-refresh.zip",
-    "last_updated":  "2026-08-01",
+    "last_updated":  "2026-08-03",
     "tested":  "6.7",
-    "version":  "1.0.0",
+    "version":  "1.0.1",
     "requires_php":  "7.2",
     "homepage":  "https://raw.githubusercontent.com/KirillOdinokov/wp-plugins/main",
-    "changelog":  "= 1.0.0 =\\n* Первый релиз. Ребрендинг из Auto Fresh Date."
+    "changelog":  "= 1.0.1 =\n* Кнопка «Проверить обновления» для принудительного сброса кеша"
 }

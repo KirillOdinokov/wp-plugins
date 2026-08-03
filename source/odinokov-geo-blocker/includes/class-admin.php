@@ -7,6 +7,7 @@ class WP_Geo_Blocker_Admin {
         add_action( 'admin_post_odgk_remove_exception', array( __CLASS__, 'handle_remove_exception' ) );
         add_action( 'admin_post_odgk_install_mu', array( __CLASS__, 'handle_install_mu' ) );
         add_action( 'admin_post_odgk_clear_log', array( __CLASS__, 'handle_clear_log' ) );
+        add_action( 'admin_post_odgk_force_check', array( __CLASS__, 'force_check' ) );
         add_action( 'admin_init', array( __CLASS__, 'register_settings' ) );
     }
 
@@ -74,6 +75,11 @@ class WP_Geo_Blocker_Admin {
                         </tr>
                     </table>
                     <?php submit_button(); ?>
+                </form>
+                <form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" style="margin-top:10px;">
+                    <?php wp_nonce_field( 'odgk_force_check', 'odgk_force_check_nonce' ); ?>
+                    <input type="hidden" name="action" value="odgk_force_check">
+                    <?php submit_button( __( 'Проверить обновления', 'odinokov-geo-blocker' ), 'secondary' ); ?>
                 </form>
             </div>
 
@@ -173,6 +179,14 @@ class WP_Geo_Blocker_Admin {
         if ( ! is_dir( $mu_dir ) ) wp_mkdir_p( $mu_dir );
         copy( ODGK_DIR . 'odinokov-geo-blocker-mu.php', $mu_dir . '/odinokov-geo-blocker-mu.php' );
         wp_safe_redirect( admin_url( 'admin.php?page=odgk-exceptions&mu_installed=1' ) ); exit;
+    }
+
+    public static function force_check() {
+        if ( ! current_user_can( 'manage_options' ) ) wp_die( 'Access denied.' );
+        check_admin_referer( 'odgk_force_check', 'odgk_force_check_nonce' );
+        delete_transient( 'odgk_rel_' . md5( 'https://raw.githubusercontent.com/KirillOdinokov/wp-plugins/main/updates/odinokov-geo-blocker.json' ) );
+        wp_safe_redirect( add_query_arg( 'odgk_force_check_done', '1', admin_url( 'admin.php?page=odgk-exceptions' ) ) );
+        exit;
     }
 
     public static function handle_clear_log() {

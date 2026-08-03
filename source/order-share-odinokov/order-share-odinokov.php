@@ -3,7 +3,7 @@
  * Plugin Name:       Order Share Odinokov
  * Plugin URI:        https://github.com/KirillOdinokov/wp-plugins
  * Description:       Объединённый плагин: кнопки «Отправить» (Web Share API), «Сохранить PDF» (Print) и «Оставить заявку» (PopUp форма) на страницах товара WooCommerce. Полная настройка стиля всех трёх кнопок из админки. Защита от ботов, капча, отключение add-to-cart. Шорткод [sert-request] — форма запроса документации.
- * Version:           1.0.6
+ * Version:           1.0.7
  * Author:            Odinokov
  * Author URI:        https://github.com/KirillOdinokov/wp-plugins
  * License:           GPL-2.0-or-later
@@ -20,7 +20,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 if ( ! defined( 'OSO_VERSION' ) ) {
-    define( 'OSO_VERSION', '1.0.6' );
+    define( 'OSO_VERSION', '1.0.7' );
 }
 if ( ! defined( 'OSO_FILE' ) ) {
     define( 'OSO_FILE', __FILE__ );
@@ -271,6 +271,7 @@ function oso_sanitize_icon_set( $v ) {
 }
 
 add_action( 'admin_init', 'oso_register_settings' );
+add_action( 'admin_post_oso_force_check', 'oso_force_check' );
 function oso_register_settings() {
     register_setting(
         'oso_settings_group',
@@ -285,6 +286,14 @@ function oso_register_settings() {
         'type'              => 'string',
         'sanitize_callback' => 'sanitize_email',
     ) );
+}
+
+function oso_force_check() {
+    if ( ! current_user_can( 'manage_options' ) ) wp_die( 'Access denied.' );
+    check_admin_referer( 'oso_force_check', 'oso_force_check_nonce' );
+    delete_transient( 'oso_rel_' . md5( 'https://raw.githubusercontent.com/KirillOdinokov/wp-plugins/main/updates/order-share-odinokov.json' ) );
+    wp_safe_redirect( add_query_arg( 'oso_force_check_done', '1', admin_url( 'admin.php?page=order-share-odinokov' ) ) );
+    exit;
 }
 
 function oso_sanitize_settings( $input ) {
@@ -654,6 +663,11 @@ function oso_render_settings_page() {
             </table>
 
             <?php submit_button(); ?>
+        </form>
+        <form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" style="margin-top:10px;">
+            <?php wp_nonce_field( 'oso_force_check', 'oso_force_check_nonce' ); ?>
+            <input type="hidden" name="action" value="oso_force_check">
+            <?php submit_button( __( 'Проверить обновления', 'order-share-odinokov' ), 'secondary' ); ?>
         </form>
     </div>
     <style>

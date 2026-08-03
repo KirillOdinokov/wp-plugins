@@ -21,6 +21,7 @@ class OAR_Admin {
         add_action( 'admin_init', array( $this, 'register_settings' ) );
         add_action( 'admin_post_oar_run_now', array( $this, 'handle_run_now' ) );
         add_action( 'admin_post_oar_reset_state', array( $this, 'handle_reset_state' ) );
+        add_action( 'admin_post_oar_force_check', array( $this, 'force_check' ) );
     }
 
     public function menu() {
@@ -116,6 +117,16 @@ class OAR_Admin {
         @set_time_limit( 0 );
         OAR_Processor::run();
         wp_safe_redirect( add_query_arg( 'oar_msg', 'ran', admin_url( 'admin.php?page=' . self::SLUG ) ) );
+        exit;
+    }
+
+    public function force_check() {
+        if ( ! current_user_can( self::CAP ) ) {
+            wp_die( 'Access denied.' );
+        }
+        check_admin_referer( 'oar_force_check', 'oar_force_check_nonce' );
+        delete_transient( 'oar_release_' . md5( 'https://raw.githubusercontent.com/KirillOdinokov/wp-plugins/main/updates/odinokov-auto-refresh.json' ) );
+        wp_safe_redirect( add_query_arg( 'oar_force_check_done', '1', admin_url( 'admin.php?page=' . self::SLUG ) ) );
         exit;
     }
 
@@ -262,6 +273,12 @@ class OAR_Admin {
                 <input type="hidden" name="action" value="oar_reset_state">
                 <?php wp_nonce_field( 'oar_reset_state' ); ?>
                 <?php submit_button( __( 'Сбросить курсор', 'odinokov-auto-refresh' ), 'delete', 'submit', false ); ?>
+            </form>
+
+            <form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" style="margin-top:10px;">
+                <?php wp_nonce_field( 'oar_force_check', 'oar_force_check_nonce' ); ?>
+                <input type="hidden" name="action" value="oar_force_check">
+                <?php submit_button( __( 'Проверить обновления', 'odinokov-auto-refresh' ), 'secondary' ); ?>
             </form>
         </div>
         <?php

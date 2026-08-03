@@ -1,10 +1,10 @@
-{
+﻿{
     "requires":  "5.8",
     "download_url":  "https://raw.githubusercontent.com/KirillOdinokov/wp-plugins/main/repo/order-share-odinokov.zip",
-    "last_updated":  "2026-08-01",
+    "last_updated":  "2026-08-03",
     "tested":  "6.7",
-    "version":  "1.0.6",
-    "requires_php":  "7.4",
+    "version":  "1.0.7",
+    "requires_php":  "7.2",
     "homepage":  "https://raw.githubusercontent.com/KirillOdinokov/wp-plugins/main",
-    "changelog":  "= 1.0.6 =\\n* Меню в Одиноков, автообновления"
+    "changelog":  "= 1.0.7 =\n* Кнопка «Проверить обновления» для принудительного сброса кеша"
 }
