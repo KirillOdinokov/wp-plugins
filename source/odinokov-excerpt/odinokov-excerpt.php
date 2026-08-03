@@ -3,7 +3,7 @@
  * Plugin Name: Odinokov Excerpt
  * Plugin URI:  https://github.com/KirillOdinokov/wp-plugins
  * Description: Показывает короткое описание категорий и товаров при наведении в каталоге WooCommerce. Совместим с Porto.
- * Version:     1.0.1
+ * Version:     1.0.2
  * Author:      Odinokov
  * Author URI:  https://github.com/KirillOdinokov/wp-plugins
  * Text Domain: odinokov-excerpt
@@ -11,7 +11,7 @@
 
 if ( ! defined( 'ABSPATH' ) ) exit;
 
-define( 'ODEX_VERSION', '1.0.1' );
+define( 'ODEX_VERSION', '1.0.2' );
 define( 'ODEX_DIR', plugin_dir_path( __FILE__ ) );
 define( 'ODEX_URL', plugin_dir_url( __FILE__ ) );
 
@@ -43,6 +43,7 @@ class Odinokov_Excerpt {
     private function __construct() {
         add_action( 'admin_menu', [ $this, 'add_admin_menu' ] );
         add_action( 'admin_init', [ $this, 'register_settings' ] );
+        add_action( 'admin_post_odex_force_check', [ $this, 'force_check' ] );
         add_action( 'wp_enqueue_scripts', [ $this, 'enqueue_assets' ] );
         add_action( 'woocommerce_after_shop_loop_item', [ $this, 'product_excerpt' ] );
         add_action( 'woocommerce_after_subcategory', [ $this, 'category_excerpt' ] );
@@ -141,10 +142,24 @@ class Odinokov_Excerpt {
                         </td>
                     </tr>
                 </table>
-                <?php submit_button(); ?>
+                <?php submit_button( __( 'Сохранить', 'odinokov-excerpt' ) ); ?>
+            </form>
+
+            <form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" style="margin-top:10px;">
+                <?php wp_nonce_field( 'odex_force_check', 'odex_force_check_nonce' ); ?>
+                <input type="hidden" name="action" value="odex_force_check">
+                <?php submit_button( __( 'Проверить обновления', 'odinokov-excerpt' ), 'secondary' ); ?>
             </form>
         </div>
         <?php
+    }
+
+    public function force_check() {
+        if ( ! current_user_can( 'manage_options' ) ) wp_die( 'Access denied.' );
+        check_admin_referer( 'odex_force_check', 'odex_force_check_nonce' );
+        delete_transient( 'odex_rel_' . md5( 'https://raw.githubusercontent.com/KirillOdinokov/wp-plugins/main/updates/odinokov-excerpt.json' ) );
+        wp_safe_redirect( add_query_arg( 'odex_checked', '1', admin_url( 'admin.php?page=odinokov-excerpt' ) ) );
+        exit;
     }
 
     public function enqueue_assets() {
