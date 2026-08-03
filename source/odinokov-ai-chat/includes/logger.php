@@ -15,8 +15,6 @@ function odinokov_ai_create_logs_table() {
         ai_reply TEXT NOT NULL,
         model VARCHAR(50) DEFAULT NULL,
         ip VARCHAR(45) DEFAULT NULL,
-        status VARCHAR(10) DEFAULT 'ok',
-        error_msg TEXT DEFAULT NULL,
         INDEX idx_created (created_at)
     ) {$charset}";
 
@@ -30,10 +28,10 @@ function odinokov_ai_create_logs_table() {
 
 function odinokov_ai_log_conversation($user_msg, $ai_reply, $model = '') {
     global $wpdb;
-    $wpdb->insert(
+    @$wpdb->insert(
         $wpdb->prefix . 'odinokov_ai_logs',
-        array('user_msg' => mb_substr($user_msg, 0, 5000), 'ai_reply' => mb_substr($ai_reply, 0, 10000), 'model' => $model, 'ip' => $_SERVER['REMOTE_ADDR'] ?? '', 'status' => 'ok'),
-        array('%s', '%s', '%s', '%s', '%s')
+        array('user_msg' => mb_substr($user_msg, 0, 5000), 'ai_reply' => mb_substr($ai_reply, 0, 10000), 'model' => $model, 'ip' => $_SERVER['REMOTE_ADDR'] ?? ''),
+        array('%s', '%s', '%s', '%s')
     );
 }
 
@@ -41,13 +39,12 @@ function odinokov_ai_log_error($user_msg, $error_msg, $model = '') {
     global $wpdb;
     @$wpdb->insert(
         $wpdb->prefix . 'odinokov_ai_logs',
-        array('user_msg' => mb_substr($user_msg, 0, 5000), 'ai_reply' => '', 'model' => $model, 'ip' => $_SERVER['REMOTE_ADDR'] ?? '', 'status' => 'error', 'error_msg' => mb_substr($error_msg, 0, 2000)),
-        array('%s', '%s', '%s', '%s', '%s', '%s')
+        array('user_msg' => mb_substr($user_msg, 0, 5000), 'ai_reply' => mb_substr($error_msg, 0, 10000), 'model' => $model, 'ip' => $_SERVER['REMOTE_ADDR'] ?? ''),
+        array('%s', '%s', '%s', '%s')
     );
-    // Also log to file as backup
-    $upload_dir = wp_upload_dir();
-    $log_file = $upload_dir['basedir'] . '/odinokov-ai-errors.log';
-    @file_put_contents($log_file, '[' . date('Y-m-d H:i:s') . '] ' . $error_msg . ' | Q: ' . $user_msg . "\n", FILE_APPEND);
+    // File backup log
+    $log_file = wp_upload_dir()['basedir'] . '/odinokov-ai-errors.log';
+    @file_put_contents($log_file, '[' . date('Y-m-d H:i:s') . '] ' . $error_msg . ' | ' . $user_msg . "\n", FILE_APPEND);
 }
 
 function odinokov_ai_cleanup_old_logs() {

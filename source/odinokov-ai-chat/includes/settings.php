@@ -547,65 +547,43 @@ function odinokov_ai_logs_page() {
     if (!current_user_can('manage_options')) return;
     global $wpdb;
     $table = $wpdb->prefix . 'odinokov_ai_logs';
-    $filter = isset($_GET['filter']) ? sanitize_key($_GET['filter']) : '';
-    $where = '';
-    if ($filter === 'error') $where = "WHERE status = 'error'";
-    elseif ($filter === 'ok') $where = "WHERE status = 'ok'";
-    $total = $wpdb->get_var("SELECT COUNT(*) FROM $table $where");
+    $total = $wpdb->get_var("SELECT COUNT(*) FROM $table");
     $page = isset($_GET['paged']) ? max(1, (int)$_GET['paged']) : 1;
     $per = 50;
     $offset = ($page - 1) * $per;
-    $rows = $wpdb->get_results($wpdb->prepare("SELECT * FROM $table $where ORDER BY id DESC LIMIT %d OFFSET %d", $per, $offset));
+    $rows = $wpdb->get_results($wpdb->prepare("SELECT * FROM $table ORDER BY id DESC LIMIT %d OFFSET %d", $per, $offset));
     $pages = ceil($total / $per);
     ?>
     <div class="wrap">
         <h1>AI Chat — Логи запросов</h1>
-        <p>
-            <a href="<?php echo admin_url('admin.php?page=odinokov-ai-chat-logs'); ?>" class="button<?php echo $filter ? '' : ' button-primary'; ?>">Все</a>
-            <a href="<?php echo admin_url('admin.php?page=odinokov-ai-chat-logs&filter=error'); ?>" class="button<?php echo $filter === 'error' ? ' button-primary' : ''; ?>" style="color:<?php echo $filter === 'error' ? '#fff' : '#d63638'; ?>;">Ошибки</a>
-            <a href="<?php echo admin_url('admin.php?page=odinokov-ai-chat-logs&filter=ok'); ?>" class="button<?php echo $filter === 'ok' ? ' button-primary' : ''; ?>;">Успешные</a>
-            <span style="margin-left:10px;color:#666;">Всего записей: <?php echo (int)$total; ?></span>
-        </p>
+        <p><span style="color:#666;">Всего записей: <?php echo (int)$total; ?></span></p>
         <table class="wp-list-table widefat fixed striped">
             <thead>
                 <tr>
                     <th style="width:130px;">Дата</th>
-                    <th style="width:60px;">Статус</th>
                     <th style="width:110px;">IP</th>
                     <th>Вопрос</th>
-                    <th>Ответ / Ошибка</th>
+                    <th>Ответ</th>
                 </tr>
             </thead>
             <tbody>
                 <?php if (empty($rows)): ?>
-                    <tr><td colspan="5" style="text-align:center;padding:20px;">Логов нет.</td></tr>
+                    <tr><td colspan="4" style="text-align:center;padding:20px;">Логов нет. Проверьте API-ключ и наличие вопросов в чате.</td></tr>
                 <?php else: foreach ($rows as $row): ?>
                     <tr>
                         <td style="font-size:12px;"><?php echo esc_html($row->created_at); ?></td>
-                        <td><?php echo $row->status === 'error' ? '<span style="color:#d63638;font-weight:700;">Ошибка</span>' : '<span style="color:green;">OK</span>'; ?></td>
                         <td style="font-size:11px;"><?php echo esc_html($row->ip); ?></td>
                         <td style="max-width:250px;word-break:break-word;"><?php echo esc_html(mb_substr($row->user_msg, 0, 200)); ?></td>
-                        <td style="max-width:300px;word-break:break-word;font-size:12px;">
-                            <?php if ($row->status === 'error'): ?>
-                                <span style="color:#d63638;"><?php echo esc_html($row->error_msg); ?></span>
-                            <?php else: ?>
-                                <?php echo esc_html(mb_substr($row->ai_reply, 0, 300)); ?>
-                            <?php endif; ?>
-                        </td>
+                        <td style="max-width:300px;word-break:break-word;font-size:12px;"><?php echo esc_html(mb_substr($row->ai_reply, 0, 300)); ?></td>
                     </tr>
                 <?php endforeach; endif; ?>
             </tbody>
         </table>
         <?php if ($pages > 1): ?>
         <div class="tablenav" style="margin-top:10px;">
-            <div class="tablenav-pages">
-                <?php
-                $url = admin_url('admin.php?page=odinokov-ai-chat-logs' . ($filter ? '&filter=' . $filter : ''));
-                for ($i = 1; $i <= $pages; $i++) {
-                    echo '<a href="' . esc_url($url . '&paged=' . $i) . '" class="' . ($i === $page ? 'button button-primary' : 'button') . '" style="margin:0 2px;">' . $i . '</a>';
-                }
-                ?>
-            </div>
+            <?php for ($i = 1; $i <= $pages; $i++): ?>
+                <a href="<?php echo esc_url(admin_url('admin.php?page=odinokov-ai-chat-logs&paged=' . $i)); ?>" class="<?php echo $i === $page ? 'button button-primary' : 'button'; ?>" style="margin:0 2px;"><?php echo $i; ?></a>
+            <?php endfor; ?>
         </div>
         <?php endif; ?>
     </div>
