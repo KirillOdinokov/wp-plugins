@@ -1,0 +1,73 @@
+.odex-floating-tooltip {
+    position: absolute;
+    z-index: 99999;
+    background: #fff;
+    border: 2px solid #ddd;
+    border-radius: 6px;
+    padding: 14px 16px;
+    box-shadow: 0 6px 24px rgba(0, 0, 0, 0.15);
+    font-size: 14px;
+    line-height: 1.6;
+    color: #333;
+    pointer-events: auto;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.2s ease, visibility 0.2s ease;
+    box-sizing: border-box;
+    max-width: 320px;
+    width: 100%;
+}
+
+.odex-floating-tooltip.odex-visible {
+    opacity: 1;
+    visibility: visible;
+}
+
+.odex-tooltip-text {
+    margin: 0 0 10px 0;
+    word-wrap: break-word;
+}
+
+.odex-tooltip-btn {
+    display: inline-block;
+    padding: 6px 14px;
+    background: #08c;
+    color: #fff;
+    text-decoration: none;
+    border-radius: 4px;
+    font-size: 13px;
+    font-weight: 500;
+    transition: background 0.2s ease;
+    border: none;
+    cursor: pointer;
+}
+
+.odex-tooltip-btn:hover,
+.odex-tooltip-btn:focus {
+    background: #006699;
+    color: #fff;
+    text-decoration: none;
+}
+
+.odex-tooltip-arrow {
+    position: absolute;
+    top: -8px;
+    left: 20px;
+    width: 0;
+    height: 0;
+    border-left: 8px solid transparent;
+    border-right: 8px solid transparent;
+    border-bottom: 8px solid #ddd;
+}
+
+.odex-tooltip-arrow::after {
+    content: '';
+    position: absolute;
+    top: 2px;
+    left: -6px;
+    width: 0;
+    height: 0;
+    border-left: 6px solid transparent;
+    border-right: 6px solid transparent;
+    border-bottom: 6px solid #fff;
+}
