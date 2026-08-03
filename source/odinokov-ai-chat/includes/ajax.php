@@ -74,7 +74,9 @@ function odinokov_ai_handle_chat() {
     ]);
 
     if (is_wp_error($response)) {
-        wp_send_json_error(['detail' => 'Ошибка соединения: ' . $response->get_error_message()], 502);
+        $err = 'Ошибка соединения: ' . $response->get_error_message();
+        odinokov_ai_log_error($message, $err, $model);
+        wp_send_json_error(['detail' => $err], 502);
     }
 
     $status_code = wp_remote_retrieve_response_code($response);
@@ -83,7 +85,9 @@ function odinokov_ai_handle_chat() {
 
     if ($status_code !== 200 || !isset($data['choices'][0]['message']['content'])) {
         $error_msg = $data['error']['message'] ?? 'Неизвестная ошибка API';
-        wp_send_json_error(['detail' => "DeepSeek API ({$status_code}): {$error_msg}"], 502);
+        $full_err  = "DeepSeek API ({$status_code}): {$error_msg}";
+        odinokov_ai_log_error($message, $full_err, $model);
+        wp_send_json_error(['detail' => $full_err], 502);
     }
 
     $reply = $data['choices'][0]['message']['content'];

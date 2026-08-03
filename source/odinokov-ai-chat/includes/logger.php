@@ -9,13 +9,16 @@ function odinokov_ai_create_logs_table() {
     $charset    = $wpdb->get_charset_collate();
 
     $sql = "CREATE TABLE IF NOT EXISTS {$table_name} (
-        id         BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-        created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-        user_msg   TEXT NOT NULL,
-        ai_reply   TEXT NOT NULL,
-        model      VARCHAR(50) DEFAULT NULL,
-        ip         VARCHAR(45) DEFAULT NULL,
-        INDEX idx_created (created_at)
+        id          BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+        created_at  DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        user_msg    TEXT NOT NULL,
+        ai_reply    TEXT NOT NULL,
+        model       VARCHAR(50) DEFAULT NULL,
+        ip          VARCHAR(45) DEFAULT NULL,
+        status      VARCHAR(10) DEFAULT 'ok',
+        error_msg   TEXT DEFAULT NULL,
+        INDEX idx_created (created_at),
+        INDEX idx_status (status)
     ) {$charset};";
 
     require_once ABSPATH . 'wp-admin/includes/upgrade.php';
@@ -28,17 +31,32 @@ function odinokov_ai_create_logs_table() {
 
 function odinokov_ai_log_conversation($user_msg, $ai_reply, $model = '') {
     global $wpdb;
-    $table_name = $wpdb->prefix . 'odinokov_ai_logs';
-
     $wpdb->insert(
-        $table_name,
+        $wpdb->prefix . 'odinokov_ai_logs',
         [
-            'user_msg' => mb_substr($user_msg, 0, 5000),
-            'ai_reply' => mb_substr($ai_reply, 0, 10000),
-            'model'    => $model,
-            'ip'       => $_SERVER['REMOTE_ADDR'] ?? '',
+            'user_msg'  => mb_substr($user_msg, 0, 5000),
+            'ai_reply'  => mb_substr($ai_reply, 0, 10000),
+            'model'     => $model,
+            'ip'        => $_SERVER['REMOTE_ADDR'] ?? '',
+            'status'    => 'ok',
         ],
-        ['%s', '%s', '%s', '%s']
+        ['%s', '%s', '%s', '%s', '%s']
+    );
+}
+
+function odinokov_ai_log_error($user_msg, $error_msg, $model = '') {
+    global $wpdb;
+    $wpdb->insert(
+        $wpdb->prefix . 'odinokov_ai_logs',
+        [
+            'user_msg'  => mb_substr($user_msg, 0, 5000),
+            'ai_reply'  => '',
+            'model'     => $model,
+            'ip'        => $_SERVER['REMOTE_ADDR'] ?? '',
+            'status'    => 'error',
+            'error_msg' => mb_substr($error_msg, 0, 2000),
+        ],
+        ['%s', '%s', '%s', '%s', '%s', '%s']
     );
 }
 
