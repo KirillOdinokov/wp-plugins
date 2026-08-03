@@ -65,13 +65,14 @@ function odinokov_ai_handle_chat() {
     ];
 
     $response = wp_remote_post('https://api.deepseek.com/v1/chat/completions', [
-        'timeout' => 60,
+        'timeout' => 120,
         'headers' => [
             'Authorization' => "Bearer {$api_key}",
             'Content-Type'  => 'application/json',
         ],
         'body' => wp_json_encode($body),
     ]);
+    // Chat timeout: 120s
 
     if (is_wp_error($response)) {
         $err = 'Ошибка соединения: ' . $response->get_error_message();
