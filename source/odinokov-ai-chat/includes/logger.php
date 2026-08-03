@@ -9,20 +9,29 @@ function odinokov_ai_create_logs_table() {
     $charset    = $wpdb->get_charset_collate();
 
     $sql = "CREATE TABLE IF NOT EXISTS {$table_name} (
-        id          BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-        created_at  DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-        user_msg    TEXT NOT NULL,
-        ai_reply    TEXT NOT NULL,
-        model       VARCHAR(50) DEFAULT NULL,
-        ip          VARCHAR(45) DEFAULT NULL,
-        status      VARCHAR(10) DEFAULT 'ok',
-        error_msg   TEXT DEFAULT NULL,
-        INDEX idx_created (created_at),
-        INDEX idx_status (status)
+        id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+        created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        user_msg TEXT NOT NULL,
+        ai_reply TEXT NOT NULL,
+        model VARCHAR(50) DEFAULT NULL,
+        ip VARCHAR(45) DEFAULT NULL,
+        status VARCHAR(10) DEFAULT 'ok',
+        error_msg TEXT DEFAULT NULL,
+        INDEX idx_created (created_at)
     ) {$charset};";
 
     require_once ABSPATH . 'wp-admin/includes/upgrade.php';
     dbDelta($sql);
+
+    // Add columns if they don't exist (for upgrades from older versions)
+    $row = $wpdb->get_row("SHOW COLUMNS FROM {$table_name} LIKE 'status'");
+    if (!$row) {
+        $wpdb->query("ALTER TABLE {$table_name} ADD COLUMN status VARCHAR(10) DEFAULT 'ok' AFTER ip");
+    }
+    $row = $wpdb->get_row("SHOW COLUMNS FROM {$table_name} LIKE 'error_msg'");
+    if (!$row) {
+        $wpdb->query("ALTER TABLE {$table_name} ADD COLUMN error_msg TEXT DEFAULT NULL AFTER status");
+    }
 
     if (!wp_next_scheduled('odinokov_ai_cleanup_logs')) {
         wp_schedule_event(time() + 3600, 'daily', 'odinokov_ai_cleanup_logs');
