@@ -3,7 +3,7 @@
  * Plugin Name: Odinokov Excerpt
  * Plugin URI:  https://github.com/KirillOdinokov/wp-plugins
  * Description: Показывает короткое описание категорий и товаров при наведении в каталоге WooCommerce. Совместим с Porto.
- * Version:     1.0.0
+ * Version:     1.0.1
  * Author:      Odinokov
  * Author URI:  https://github.com/KirillOdinokov/wp-plugins
  * Text Domain: odinokov-excerpt
@@ -11,7 +11,7 @@
 
 if ( ! defined( 'ABSPATH' ) ) exit;
 
-define( 'ODEX_VERSION', '1.0.0' );
+define( 'ODEX_VERSION', '1.0.1' );
 define( 'ODEX_DIR', plugin_dir_path( __FILE__ ) );
 define( 'ODEX_URL', plugin_dir_url( __FILE__ ) );
 
@@ -31,6 +31,8 @@ new ODEX_Plugin_Updater(
 
 class Odinokov_Excerpt {
 
+    const OPTION_KEY = 'odex_settings';
+
     private static $instance = null;
 
     public static function get_instance() {
@@ -40,9 +42,39 @@ class Odinokov_Excerpt {
 
     private function __construct() {
         add_action( 'admin_menu', [ $this, 'add_admin_menu' ] );
+        add_action( 'admin_init', [ $this, 'register_settings' ] );
         add_action( 'wp_enqueue_scripts', [ $this, 'enqueue_assets' ] );
         add_action( 'woocommerce_after_shop_loop_item', [ $this, 'product_excerpt' ] );
         add_action( 'woocommerce_after_subcategory', [ $this, 'category_excerpt' ] );
+    }
+
+    public function get_defaults() {
+        return [
+            'product_enabled'  => 1,
+            'category_enabled' => 1,
+            'product_chars'    => 100,
+            'category_chars'   => 150,
+        ];
+    }
+
+    public function get_settings() {
+        $saved = get_option( self::OPTION_KEY, [] );
+        if ( ! is_array( $saved ) ) $saved = [];
+        return array_merge( $this->get_defaults(), $saved );
+    }
+
+    public function register_settings() {
+        register_setting( 'odex_settings_group', self::OPTION_KEY, [ 'sanitize_callback' => [ $this, 'sanitize_settings' ] ] );
+    }
+
+    public function sanitize_settings( $input ) {
+        $d = $this->get_defaults();
+        $o = [];
+        $o['product_enabled']  = ! empty( $input['product_enabled'] ) ? 1 : 0;
+        $o['category_enabled'] = ! empty( $input['category_enabled'] ) ? 1 : 0;
+        $o['product_chars']    = isset( $input['product_chars'] ) ? max( 10, min( 1000, (int) $input['product_chars'] ) ) : $d['product_chars'];
+        $o['category_chars']   = isset( $input['category_chars'] ) ? max( 10, min( 1000, (int) $input['category_chars'] ) ) : $d['category_chars'];
+        return $o;
     }
 
     public function add_admin_menu() {
@@ -69,17 +101,48 @@ class Odinokov_Excerpt {
 
     public function render_admin_page() {
         if ( ! current_user_can( 'manage_options' ) ) return;
+        $s = $this->get_settings();
         ?>
         <div class="wrap">
-            <h1>Odinokov Excerpt</h1>
-            <div style="background:#fff;border:1px solid #c3c4c7;border-radius:4px;padding:20px;max-width:600px;margin-top:16px;">
-                <p><?php esc_html_e( 'Плагин добавляет всплывающее описание при наведении на товары и подкатегории в каталоге WooCommerce.', 'odinokov-excerpt' ); ?></p>
-                <ul style="list-style:disc;padding-left:20px;">
-                    <li><?php esc_html_e( 'Подкатегории — первые 150 символов описания', 'odinokov-excerpt' ); ?></li>
-                    <li><?php esc_html_e( 'Товары — первые 100 символов краткого описания', 'odinokov-excerpt' ); ?></li>
-                </ul>
-                <p style="color:#666;"><?php esc_html_e( 'Настроек не требуется. Плагин работает автоматически.', 'odinokov-excerpt' ); ?></p>
-            </div>
+            <h1>Odinokov Excerpt — Настройки</h1>
+            <form method="post" action="options.php">
+                <?php settings_fields( 'odex_settings_group' ); ?>
+                <table class="form-table">
+                    <tr>
+                        <th scope="row"><?php esc_html_e( 'Товары', 'odinokov-excerpt' ); ?></th>
+                        <td>
+                            <label>
+                                <input type="checkbox" name="<?php echo esc_attr( self::OPTION_KEY ); ?>[product_enabled]" value="1" <?php checked( $s['product_enabled'], 1 ); ?>>
+                                <?php esc_html_e( 'Показывать описание при наведении на товар', 'odinokov-excerpt' ); ?>
+                            </label>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row"><label for="odex_product_chars"><?php esc_html_e( 'Символов в описании товара', 'odinokov-excerpt' ); ?></label></th>
+                        <td>
+                            <input type="number" id="odex_product_chars" name="<?php echo esc_attr( self::OPTION_KEY ); ?>[product_chars]" value="<?php echo esc_attr( $s['product_chars'] ); ?>" min="10" max="1000" step="5" class="small-text">
+                            <p class="description"><?php esc_html_e( 'По умолчанию: 100', 'odinokov-excerpt' ); ?></p>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row"><?php esc_html_e( 'Подкатегории', 'odinokov-excerpt' ); ?></th>
+                        <td>
+                            <label>
+                                <input type="checkbox" name="<?php echo esc_attr( self::OPTION_KEY ); ?>[category_enabled]" value="1" <?php checked( $s['category_enabled'], 1 ); ?>>
+                                <?php esc_html_e( 'Показывать описание при наведении на подкатегорию', 'odinokov-excerpt' ); ?>
+                            </label>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row"><label for="odex_category_chars"><?php esc_html_e( 'Символов в описании подкатегории', 'odinokov-excerpt' ); ?></label></th>
+                        <td>
+                            <input type="number" id="odex_category_chars" name="<?php echo esc_attr( self::OPTION_KEY ); ?>[category_chars]" value="<?php echo esc_attr( $s['category_chars'] ); ?>" min="10" max="1000" step="5" class="small-text">
+                            <p class="description"><?php esc_html_e( 'По умолчанию: 150', 'odinokov-excerpt' ); ?></p>
+                        </td>
+                    </tr>
+                </table>
+                <?php submit_button(); ?>
+            </form>
         </div>
         <?php
     }
@@ -97,6 +160,9 @@ class Odinokov_Excerpt {
     }
 
     public function product_excerpt() {
+        $s = $this->get_settings();
+        if ( ! $s['product_enabled'] ) return;
+
         global $product;
         if ( ! $product || ! is_a( $product, 'WC_Product' ) ) return;
 
@@ -108,8 +174,10 @@ class Odinokov_Excerpt {
 
         if ( empty( trim( $desc ) ) ) return;
 
-        $desc = mb_substr( $desc, 0, 100 );
-        if ( 100 === mb_strlen( wp_strip_all_tags( $product->get_short_description() ?: $product->get_description() ) ) ) {
+        $limit = (int) $s['product_chars'];
+        $original = mb_strlen( $desc );
+        $desc = mb_substr( $desc, 0, $limit );
+        if ( $original > $limit ) {
             $desc .= '…';
         }
 
@@ -123,6 +191,9 @@ class Odinokov_Excerpt {
     }
 
     public function category_excerpt( $category ) {
+        $s = $this->get_settings();
+        if ( ! $s['category_enabled'] ) return;
+
         if ( ! $category || empty( $category->term_id ) ) return;
 
         $desc = term_description( $category->term_id, 'product_cat' );
@@ -130,9 +201,10 @@ class Odinokov_Excerpt {
 
         if ( empty( trim( $desc ) ) ) return;
 
+        $limit = (int) $s['category_chars'];
         $original_len = mb_strlen( $desc );
-        $desc = mb_substr( $desc, 0, 150 );
-        if ( $original_len > 150 ) {
+        $desc = mb_substr( $desc, 0, $limit );
+        if ( $original_len > $limit ) {
             $desc .= '…';
         }
 

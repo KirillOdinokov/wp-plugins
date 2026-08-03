@@ -3,8 +3,8 @@
     "download_url":  "https://raw.githubusercontent.com/KirillOdinokov/wp-plugins/main/repo/odinokov-excerpt.zip",
     "last_updated":  "2026-08-03",
     "tested":  "6.7",
-    "version":  "1.0.0",
+    "version":  "1.0.1",
     "requires_php":  "7.2",
     "homepage":  "https://raw.githubusercontent.com/KirillOdinokov/wp-plugins/main",
-    "changelog":  "= 1.0.0 =\n* Initial release"
+    "changelog":  "= 1.0.1 =\n* Добавлены настройки: включение/отключение для товаров и категорий, настраиваемое количество символов\n\n= 1.0.0 =\n* Первый релиз"
 }
