@@ -22,10 +22,10 @@ function oso_build_button_style( $s ) {
     return "display:inline-flex;align-items:center;gap:8px;background:{$bg};color:{$tc};border:{$border};border-radius:{$radius}px;padding:{$pv}px {$ph}px;font-size:{$fs}px;font-weight:{$weight};text-transform:{$upper};line-height:1.2;text-decoration:none;cursor:pointer;{$ff}";
 }
 
-function oso_render_icon( $s, $which ) {
+function oso_render_icon( $s, $which, $icon_size = null ) {
     $custom_key = 'share' === $which ? 'custom_share_icon' : ( 'pdf' === $which ? 'custom_pdf_icon' : 'custom_order_icon' );
     $fa_key     = 'share' === $which ? 'share_icon' : ( 'pdf' === $which ? 'pdf_icon' : 'order_icon' );
-    $is         = isset( $s['icon_size'] ) ? (int) $s['icon_size'] : 18;
+    $is         = null !== $icon_size ? (int) $icon_size : 18;
 
     if ( ! empty( $s[ $custom_key ] ) ) {
         $alt = 'share' === $which ? esc_attr__( 'Поделиться', 'order-share-odinokov' ) : ( 'pdf' === $which ? esc_attr__( 'PDF', 'order-share-odinokov' ) : esc_attr__( 'Заявка', 'order-share-odinokov' ) );

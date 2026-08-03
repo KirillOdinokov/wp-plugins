@@ -72,7 +72,7 @@ class OSO_Share {
         $ph     = (int) $s['padding_h'];
         $gap    = (int) $s['gap'];
         $fs     = (int) $s['font_size'];
-        $is     = (int) $s['icon_size'];
+        $is     = (int) $s['icon_size_product'];
         $weight = (int) $s['font_weight'];
         $upper  = ! empty( $s['uppercase'] ) ? 'uppercase' : 'none';
         $bcolor = $s['border_color'] ? $s['border_color'] : '#222222';
@@ -175,17 +175,18 @@ class OSO_Share {
         );
 
         $style  = oso_build_button_style( $s );
+        $is     = (int) $s['icon_size_product'];
 
         echo '<div class="oso-btn-row" data-oso-share="' . esc_attr( wp_json_encode( $data ) ) . '">';
 
         echo '<button type="button" id="' . esc_attr( $share_id ) . '" class="oso-btn oso-btn-share" aria-label="' . esc_attr( $s['share_text'] ) . '" style="' . esc_attr( $style ) . '">';
-        echo '<span class="oso-btn-ico" aria-hidden="true">' . oso_render_icon( $s, 'share' ) . '</span>'; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+        echo '<span class="oso-btn-ico" aria-hidden="true" style="width:' . $is . 'px;height:' . $is . 'px;max-width:' . $is . 'px;max-height:' . $is . 'px;">' . oso_render_icon( $s, 'share', $is ) . '</span>'; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
         echo '<span class="oso-btn-txt">' . esc_html( $s['share_text'] ) . '</span>';
         echo '</button>';
 
         if ( ! empty( $s['print_button'] ) ) {
             echo '<button type="button" id="' . esc_attr( $pdf_id ) . '" class="oso-btn oso-btn-pdf" aria-label="' . esc_attr( $s['pdf_text'] ) . '" style="' . esc_attr( $style ) . '">';
-            echo '<span class="oso-btn-ico" aria-hidden="true">' . oso_render_icon( $s, 'pdf' ) . '</span>'; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+            echo '<span class="oso-btn-ico" aria-hidden="true" style="width:' . $is . 'px;height:' . $is . 'px;max-width:' . $is . 'px;max-height:' . $is . 'px;">' . oso_render_icon( $s, 'pdf', $is ) . '</span>'; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
             echo '<span class="oso-btn-txt">' . esc_html( $s['pdf_text'] ) . '</span>';
             echo '</button>';
         }
@@ -200,7 +201,7 @@ class OSO_Share {
                 $pid  = $product->get_id();
                 $pnam = $product->get_name();
                 echo '<a href="javascript:void(0)" id="' . esc_attr( $order_id ) . '" class="oso-btn oso-btn-order oso-order-btn" data-product-id="' . esc_attr( $pid ) . '" data-product-name="' . esc_attr( $pnam ) . '" style="' . esc_attr( $style ) . '">';
-                echo '<span class="oso-btn-ico" aria-hidden="true">' . oso_render_icon( $s, 'order' ) . '</span>'; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+                echo '<span class="oso-btn-ico" aria-hidden="true" style="width:' . $is . 'px;height:' . $is . 'px;max-width:' . $is . 'px;max-height:' . $is . 'px;">' . oso_render_icon( $s, 'order', $is ) . '</span>'; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
                 echo '<span class="oso-btn-txt">' . esc_html( $s['order_text'] ) . '</span>';
                 echo '</a>';
             }

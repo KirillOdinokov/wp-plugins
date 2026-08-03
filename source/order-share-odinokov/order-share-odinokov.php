@@ -3,7 +3,7 @@
  * Plugin Name:       Order Share Odinokov
  * Plugin URI:        https://github.com/KirillOdinokov/wp-plugins
  * Description:       Объединённый плагин: кнопки «Отправить» (Web Share API), «Сохранить PDF» (Print) и «Оставить заявку» (PopUp форма) на страницах товара WooCommerce. Полная настройка стиля всех трёх кнопок из админки. Защита от ботов, капча, отключение add-to-cart. Шорткод [sert-request] — форма запроса документации.
- * Version:           1.0.8
+ * Version:           1.0.9
  * Author:            Odinokov
  * Author URI:        https://github.com/KirillOdinokov/wp-plugins
  * License:           GPL-2.0-or-later
@@ -20,7 +20,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 if ( ! defined( 'OSO_VERSION' ) ) {
-    define( 'OSO_VERSION', '1.0.8' );
+    define( 'OSO_VERSION', '1.0.9' );
 }
 if ( ! defined( 'OSO_FILE' ) ) {
     define( 'OSO_FILE', __FILE__ );
@@ -109,7 +109,8 @@ function oso_defaults() {
         'font_family'             => 'inherit',
         'custom_fonts'            => '',
         'font_size'               => 14,
-        'icon_size'               => 18,
+        'icon_size_product'       => 18,
+        'icon_size_category'      => 18,
         'bg_color'                => '#ffffff',
         'text_color'              => '#222222',
         'border_color'            => '#222222',
@@ -150,7 +151,8 @@ function oso_get_settings() {
     }
 
     $merged['font_size']       = max( 8, min( 60, (int) $merged['font_size'] ) );
-    $merged['icon_size']       = max( 12, min( 80, (int) $merged['icon_size'] ) );
+    $merged['icon_size_product']  = max( 12, min( 80, (int) $merged['icon_size_product'] ) );
+    $merged['icon_size_category'] = max( 12, min( 80, (int) $merged['icon_size_category'] ) );
     $merged['border_width']    = max( 0, min( 20, (int) $merged['border_width'] ) );
     $merged['border_radius']   = max( 0, min( 100, (int) $merged['border_radius'] ) );
     $merged['padding_v']       = max( 0, min( 60, (int) $merged['padding_v'] ) );
@@ -344,8 +346,10 @@ function oso_sanitize_settings( $input ) {
     $out['border_color']     = oso_sanitize_color( $input['border_color'] ?? $defaults['border_color'] );
 
     $nums = array(
-        'font_size'     => array( 8, 60 ),
-        'border_width'  => array( 0, 20 ),
+        'font_size'          => array( 8, 60 ),
+        'icon_size_product'  => array( 12, 80 ),
+        'icon_size_category' => array( 12, 80 ),
+        'border_width'       => array( 0, 20 ),
         'border_radius' => array( 0, 100 ),
         'padding_v'     => array( 0, 60 ),
         'padding_h'     => array( 0, 60 ),
@@ -589,8 +593,12 @@ function oso_render_settings_page() {
                     <td><input type="number" min="8" max="60" name="oso_settings[font_size]" value="<?php echo esc_attr( $s['font_size'] ); ?>"></td>
                 </tr>
                 <tr>
-                    <th scope="row"><?php esc_html_e( 'Размер иконки (px)', 'order-share-odinokov' ); ?></th>
-                    <td><input type="number" min="12" max="80" name="oso_settings[icon_size]" value="<?php echo esc_attr( $s['icon_size'] ); ?>"></td>
+                    <th scope="row"><?php esc_html_e( 'Размер иконки на товаре (px)', 'order-share-odinokov' ); ?></th>
+                    <td><input type="number" min="12" max="80" name="oso_settings[icon_size_product]" value="<?php echo esc_attr( $s['icon_size_product'] ); ?>"></td>
+                </tr>
+                <tr>
+                    <th scope="row"><?php esc_html_e( 'Размер иконки в категории (px)', 'order-share-odinokov' ); ?></th>
+                    <td><input type="number" min="12" max="80" name="oso_settings[icon_size_category]" value="<?php echo esc_attr( $s['icon_size_category'] ); ?>"></td>
                 </tr>
                 <tr>
                     <th scope="row"><?php esc_html_e( 'Цвет фона', 'order-share-odinokov' ); ?></th>

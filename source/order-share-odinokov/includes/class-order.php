@@ -190,10 +190,12 @@ class OSO_Order {
         $s         = oso_get_settings();
         $style     = oso_build_button_style( $s );
         $btn_text  = $s['order_text'];
-        $icon_html = oso_render_icon( $s, 'order' );
+        $is_single = ( function_exists( 'is_product' ) && is_product() );
+        $icon_size = $is_single ? (int) $s['icon_size_product'] : (int) $s['icon_size_category'];
+        $icon_html = oso_render_icon( $s, 'order', $icon_size );
 
         echo '<a href="javascript:void(0)" class="oso-order-btn oso-btn" data-product-id="' . esc_attr( $product_id ) . '" data-product-name="' . esc_attr( $product_name ) . '" style="' . esc_attr( $style ) . '">';
-        echo '<span class="oso-btn-ico" aria-hidden="true">' . $icon_html . '</span>'; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+        echo '<span class="oso-btn-ico" aria-hidden="true" style="width:' . $icon_size . 'px;height:' . $icon_size . 'px;max-width:' . $icon_size . 'px;max-height:' . $icon_size . 'px;">' . $icon_html . '</span>'; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
         echo '<span class="oso-btn-txt">' . esc_html( $btn_text ) . '</span>';
         echo '</a>';
     }

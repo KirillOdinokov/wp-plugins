@@ -17,27 +17,16 @@
 .oso-btn-row .oso-btn .oso-btn-ico,
 .oso-order-btn .oso-btn-ico {
     flex-shrink: 0;
-    width: 18px;
-    height: 18px;
-    max-width: 18px;
-    max-height: 18px;
     overflow: hidden;
 }
 .oso-btn-row .oso-btn .oso-btn-ico img,
 .oso-order-btn .oso-btn-ico img {
-    width: 18px !important;
-    height: 18px !important;
-    max-width: 18px !important;
-    max-height: 18px !important;
     object-fit: contain;
     display: block;
 }
 .oso-btn-row .oso-btn .oso-btn-ico i,
 .oso-order-btn .oso-btn-ico i {
-    font-size: 18px !important;
     line-height: 1;
-    width: 18px;
-    height: 18px;
     display: inline-flex;
     align-items: center;
     justify-content: center;
