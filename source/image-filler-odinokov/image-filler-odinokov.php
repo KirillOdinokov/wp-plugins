@@ -182,7 +182,8 @@ class Image_Filler_Odinokov {
         if ( ! current_user_can( 'manage_options' ) ) wp_die( 'Access denied.' );
         check_admin_referer( 'ifo_force_check', 'ifo_force_check_nonce' );
         delete_transient( 'ifo_rel_' . md5( 'https://raw.githubusercontent.com/KirillOdinokov/wp-plugins/main/updates/image-filler-odinokov.json' ) );
-        wp_safe_redirect( add_query_arg( 'ifo_force_check_done', '1', admin_url( 'admin.php?page=image-filler-odinokov' ) ) );
+        set_site_transient( 'update_plugins', null );
+        wp_safe_redirect( admin_url( 'plugins.php?ifo_force_check_done=1' ) );
         exit;
     }
 

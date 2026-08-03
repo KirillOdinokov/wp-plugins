@@ -176,7 +176,8 @@ class Odinokov_Cookie_Notice {
         }
         check_admin_referer( 'odck_force_check', 'odck_force_check_nonce' );
         delete_transient( 'odck_rel_' . md5( 'https://raw.githubusercontent.com/KirillOdinokov/wp-plugins/main/updates/odinokov-cookie.json' ) );
-        wp_safe_redirect( add_query_arg( 'odck_force_check_done', '1', admin_url( 'admin.php?page=odinokov-cookie' ) ) );
+        set_site_transient( 'update_plugins', null );
+        wp_safe_redirect( admin_url( 'plugins.php?odck_force_check_done=1' ) );
         exit;
     }
 

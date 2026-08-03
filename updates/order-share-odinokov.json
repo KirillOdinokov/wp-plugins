@@ -6,5 +6,5 @@
     "version":  "1.0.8",
     "requires_php":  "7.2",
     "homepage":  "https://raw.githubusercontent.com/KirillOdinokov/wp-plugins/main",
-    "changelog":  "= 1.0.8 =\n* Настройка размера иконки (12–80 px)\n\n= 1.0.7 =\n* Кнопка «Проверить обновления»"
+    "changelog":  "= 1.0.8 =\n* Исправлена кнопка «Проверить обновления» — редирект на страницу плагинов"
 }

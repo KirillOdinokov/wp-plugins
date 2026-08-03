@@ -244,7 +244,8 @@ class Odinokov_Breadcrumbs {
         }
         check_admin_referer( 'obm_force_check', 'obm_force_check_nonce' );
         delete_transient( 'obm_release_' . md5( 'https://raw.githubusercontent.com/KirillOdinokov/wp-plugins/main/updates/odinokov-breadcrumbs.json' ) );
-        wp_safe_redirect( add_query_arg( 'obm_force_check_done', '1', admin_url( 'admin.php?page=odinokov-breadcrumbs' ) ) );
+        set_site_transient( 'update_plugins', null );
+        wp_safe_redirect( admin_url( 'plugins.php?obm_force_check_done=1' ) );
         exit;
     }
 

@@ -430,7 +430,8 @@ class Admin {
         }
         check_admin_referer( 'sod_force_check', 'sod_force_check_nonce' );
         delete_transient( 'sod_rel_' . md5( 'https://raw.githubusercontent.com/KirillOdinokov/wp-plugins/main/updates/schema-odinokov.json' ) );
-        wp_safe_redirect( add_query_arg( 'sod_force_check_done', '1', admin_url( 'admin.php?page=schema-odinokov' ) ) );
+        set_site_transient( 'update_plugins', null );
+        wp_safe_redirect( admin_url( 'plugins.php?sod_force_check_done=1' ) );
         exit;
     }
 }

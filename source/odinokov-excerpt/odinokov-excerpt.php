@@ -158,7 +158,8 @@ class Odinokov_Excerpt {
         if ( ! current_user_can( 'manage_options' ) ) wp_die( 'Access denied.' );
         check_admin_referer( 'odex_force_check', 'odex_force_check_nonce' );
         delete_transient( 'odex_rel_' . md5( 'https://raw.githubusercontent.com/KirillOdinokov/wp-plugins/main/updates/odinokov-excerpt.json' ) );
-        wp_safe_redirect( add_query_arg( 'odex_checked', '1', admin_url( 'admin.php?page=odinokov-excerpt' ) ) );
+        set_site_transient( 'update_plugins', null );
+        wp_safe_redirect( admin_url( 'plugins.php?odex_force_check_done=1' ) );
         exit;
     }
 

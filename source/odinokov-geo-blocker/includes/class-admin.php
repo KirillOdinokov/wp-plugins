@@ -185,7 +185,8 @@ class WP_Geo_Blocker_Admin {
         if ( ! current_user_can( 'manage_options' ) ) wp_die( 'Access denied.' );
         check_admin_referer( 'odgk_force_check', 'odgk_force_check_nonce' );
         delete_transient( 'odgk_rel_' . md5( 'https://raw.githubusercontent.com/KirillOdinokov/wp-plugins/main/updates/odinokov-geo-blocker.json' ) );
-        wp_safe_redirect( add_query_arg( 'odgk_force_check_done', '1', admin_url( 'admin.php?page=odgk-exceptions' ) ) );
+        set_site_transient( 'update_plugins', null );
+        wp_safe_redirect( admin_url( 'plugins.php?odgk_force_check_done=1' ) );
         exit;
     }
 

@@ -59,7 +59,8 @@ function oclr_force_check() {
     if (!current_user_can('manage_options')) wp_die('Access denied.');
     check_admin_referer('oclr_force_check', 'oclr_force_check_nonce');
     delete_transient('oclr_rel_' . md5('https://raw.githubusercontent.com/KirillOdinokov/wp-plugins/main/updates/odinokov-cyr-to-lat-rdr.json'));
-    wp_safe_redirect(add_query_arg('oclr_force_check_done', '1', admin_url('admin.php?page=odinokov-cyr-to-lat-rdr')));
+    set_site_transient('update_plugins', null);
+    wp_safe_redirect(admin_url('plugins.php?oclr_force_check_done=1'));
     exit;
 }
 

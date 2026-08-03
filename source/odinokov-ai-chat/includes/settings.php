@@ -601,6 +601,7 @@ function oac_force_check() {
     if (!current_user_can('manage_options')) wp_die('Access denied.');
     check_admin_referer('oac_force_check', 'oac_force_check_nonce');
     delete_transient('odinokov_ai_release_' . md5('https://raw.githubusercontent.com/KirillOdinokov/wp-plugins/main/updates/odinokov-ai-chat.json'));
-    wp_safe_redirect(add_query_arg('oac_force_check_done', '1', admin_url('admin.php?page=odinokov-ai-chat')));
+    set_site_transient('update_plugins', null);
+    wp_safe_redirect(admin_url('plugins.php?oac_force_check_done=1'));
     exit;
 }

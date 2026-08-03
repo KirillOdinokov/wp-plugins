@@ -294,7 +294,8 @@ function oso_force_check() {
     if ( ! current_user_can( 'manage_options' ) ) wp_die( 'Access denied.' );
     check_admin_referer( 'oso_force_check', 'oso_force_check_nonce' );
     delete_transient( 'oso_rel_' . md5( 'https://raw.githubusercontent.com/KirillOdinokov/wp-plugins/main/updates/order-share-odinokov.json' ) );
-    wp_safe_redirect( add_query_arg( 'oso_force_check_done', '1', admin_url( 'admin.php?page=order-share-odinokov' ) ) );
+    set_site_transient( 'update_plugins', null );
+    wp_safe_redirect( admin_url( 'plugins.php?oso_checked=1' ) );
     exit;
 }
 

@@ -6,5 +6,5 @@
     "version":  "1.2.2",
     "requires_php":  "7.2",
     "homepage":  "https://raw.githubusercontent.com/KirillOdinokov/wp-plugins/main",
-    "changelog":  "= 1.2.2 =\n* Кнопка «Проверить обновления» для принудительного сброса кеша"
+    "changelog":  "= 1.2.2 =\n* Исправлена кнопка «Проверить обновления» — редирект на страницу плагинов"
 }

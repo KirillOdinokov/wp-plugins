@@ -126,7 +126,8 @@ class OAR_Admin {
         }
         check_admin_referer( 'oar_force_check', 'oar_force_check_nonce' );
         delete_transient( 'oar_release_' . md5( 'https://raw.githubusercontent.com/KirillOdinokov/wp-plugins/main/updates/odinokov-auto-refresh.json' ) );
-        wp_safe_redirect( add_query_arg( 'oar_force_check_done', '1', admin_url( 'admin.php?page=' . self::SLUG ) ) );
+        set_site_transient( 'update_plugins', null );
+        wp_safe_redirect( admin_url( 'plugins.php?oar_force_check_done=1' ) );
         exit;
     }
 
