@@ -1,0 +1,12 @@
+.otc-tags-wrap {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+}
+.otc-tag {
+    transition: opacity 0.2s ease, transform 0.2s ease;
+}
+.otc-tag:hover {
+    opacity: 0.85;
+    transform: translateY(-1px);
+}
