@@ -1,0 +1,16 @@
+.omc-cb-row label {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    cursor: pointer;
+}
+.omc-cb-row input[type="checkbox"] {
+    margin: 0;
+}
+#omc-subcats {
+    transition: border-color 0.2s ease;
+}
+#omc-subcats.loading {
+    opacity: 0.6;
+    pointer-events: none;
+}
