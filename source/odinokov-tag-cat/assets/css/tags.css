@@ -3,10 +3,35 @@
     flex-wrap: wrap;
     align-items: center;
 }
+.otc-tags-collapsed .otc-tag:nth-child(n+26) {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+}
+.otc-tags-expanded .otc-tag {
+    position: static;
+    width: auto;
+    height: auto;
+    margin: auto;
+    clip: auto;
+    white-space: normal;
+}
 .otc-tag {
     transition: opacity 0.2s ease, transform 0.2s ease;
 }
 .otc-tag:hover {
     opacity: 0.85;
     transform: translateY(-1px);
+}
+.otc-toggle-btn {
+    transition: background 0.2s ease;
+}
+.otc-toggle-btn:hover {
+    background: #e8e8e8 !important;
 }

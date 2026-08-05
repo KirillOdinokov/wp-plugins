@@ -3,7 +3,7 @@
  * Plugin Name: Odinokov Tag Cat
  * Plugin URI:  https://github.com/KirillOdinokov/wp-plugins
  * Description: Выводит теги товаров категории после описания категории в WooCommerce. Настраиваемый визуал беджей.
- * Version:     1.0.1
+ * Version:     1.0.2
  * Author:      Odinokov
  * Author URI:  https://github.com/KirillOdinokov/wp-plugins
  * Text Domain: odinokov-tag-cat
@@ -11,7 +11,7 @@
 
 if ( ! defined( 'ABSPATH' ) ) exit;
 
-define( 'OTC_VERSION', '1.0.1' );
+define( 'OTC_VERSION', '1.0.2' );
 define( 'OTC_DIR', plugin_dir_path( __FILE__ ) );
 define( 'OTC_URL', plugin_dir_url( __FILE__ ) );
 
@@ -252,6 +252,7 @@ class Odinokov_Tag_Cat {
     public function enqueue_assets() {
         if ( ! is_product_category() && ! is_tax( 'product_cat' ) ) return;
         wp_enqueue_style( 'otc-tags', OTC_URL . 'assets/css/tags.css', [], OTC_VERSION );
+        wp_enqueue_script( 'otc-tags', OTC_URL . 'assets/js/tags.js', [], OTC_VERSION, true );
     }
 
     public function render_tags() {
@@ -290,6 +291,8 @@ class Odinokov_Tag_Cat {
         if ( empty( $tags ) ) return;
 
         $s = $this->get_settings();
+        $total = count( $tags );
+        $limit = 25;
 
         $ff = 'inherit' !== $s['tag_font_family'] ? 'font-family:' . esc_attr( $s['tag_font_family'] ) . ', sans-serif;' : '';
 
@@ -308,10 +311,12 @@ class Odinokov_Tag_Cat {
             $ff
         );
 
-        echo '<div class="otc-tags-wrap" style="margin-top:16px;line-height:2;">';
+        echo '<div class="otc-tags-wrap' . ( $total > $limit ? ' otc-tags-collapsed' : '' ) . '" style="margin-top:16px;line-height:2;">';
+        $i = 0;
         foreach ( $tags as $tag ) {
             $url = get_term_link( $tag );
             if ( is_wp_error( $url ) ) continue;
+            $i++;
             printf(
                 '<a href="%s" class="otc-tag" style="%s">%s</a>',
                 esc_url( $url ),
@@ -320,6 +325,9 @@ class Odinokov_Tag_Cat {
             );
         }
         echo '</div>';
+        if ( $total > $limit ) {
+            echo '<button type="button" class="otc-toggle-btn" data-otc-show="' . esc_attr__( 'Показать полностью', 'odinokov-tag-cat' ) . ' (' . ( $total - $limit ) . ')" data-otc-hide="' . esc_attr__( 'Скрыть', 'odinokov-tag-cat' ) . '" style="display:inline-block;margin:8px 4px;padding:4px 12px;background:#f5f5f5;border:1px solid #ccc;border-radius:4px;cursor:pointer;font-size:13px;color:#333;">' . esc_html__( 'Показать полностью', 'odinokov-tag-cat' ) . ' (' . ( $total - $limit ) . ')</button>';
+        }
     }
 }
 

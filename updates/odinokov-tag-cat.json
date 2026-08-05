@@ -1,10 +1,10 @@
 ﻿{
     "requires":  "5.8",
     "download_url":  "https://raw.githubusercontent.com/KirillOdinokov/wp-plugins/main/repo/odinokov-tag-cat.zip",
-    "last_updated":  "2026-08-04",
+    "last_updated":  "2026-08-05",
     "tested":  "6.7",
-    "version":  "1.0.1",
+    "version":  "1.0.2",
     "requires_php":  "7.2",
     "homepage":  "https://raw.githubusercontent.com/KirillOdinokov/wp-plugins/main",
-    "changelog":  "= 1.0.1 =\n* Исправлен хук вывода — woocommerce_before_shop_loop вместо archive_description"
+    "changelog":  "= 1.0.2 =\n* Лимит 25 тегов + кнопка «Показать полностью»\n* SEO-friendly: скрытые теги остаются в HTML (clip, не display:none)"
 }
