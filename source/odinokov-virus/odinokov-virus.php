@@ -3,7 +3,7 @@
  * Plugin Name: Odinokov Virus
  * Plugin URI:  https://github.com/KirillOdinokov/wp-plugins
  * Description: Комплексная защита от взлома: блокировка вредоносных User-Agent, путей шеллов, защита REST API, XML-RPC, wp-login от брутфорса, блокировка сканирования уязвимостей. Яндекс-боты не блокируются. + Автоочистка БД.
- * Version:     1.2.2
+ * Version:     1.2.3
  * Author:      Odinokov
  * Author URI:  https://github.com/KirillOdinokov/wp-plugins
  * License:     GPL v2 or later
@@ -14,7 +14,7 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
-define('ODINOKOV_VIRUS_VERSION', '1.2.1');
+define('ODINOKOV_VIRUS_VERSION', '1.2.3');
 define('ODINOKOV_VIRUS_DIR', plugin_dir_path(__FILE__));
 define('ODINOKOV_VIRUS_CRON_HOOK', 'odinokov_virus_weekly_cleanup');
 
@@ -85,6 +85,10 @@ class Odinokov_Virus {
         add_action(ODINOKOV_VIRUS_CRON_HOOK, [$this, 'run_cleanup']);
         add_action('wp_login_failed', [$this, 'log_login_failure']);
         add_action('send_headers', [$this, 'add_security_headers']);
+
+        if (!wp_next_scheduled(ODINOKOV_VIRUS_CRON_HOOK)) {
+            wp_schedule_event(time(), 'weekly', ODINOKOV_VIRUS_CRON_HOOK);
+        }
     }
 
     /* ========== Security Headers ========== */

@@ -1,10 +1,10 @@
 ﻿{
     "requires":  "5.8",
     "download_url":  "https://raw.githubusercontent.com/KirillOdinokov/wp-plugins/main/repo/odinokov-virus.zip",
-    "last_updated":  "2026-08-03",
+    "last_updated":  "2026-08-06",
     "tested":  "6.7",
-    "version":  "1.2.2",
+    "version":  "1.2.3",
     "requires_php":  "7.2",
     "homepage":  "https://raw.githubusercontent.com/KirillOdinokov/wp-plugins/main",
-    "changelog":  "= 1.2.2 =\n* Исправлена кнопка «Проверить обновления» — редирект на страницу плагинов"
+    "changelog":  "= 1.2.3 =\n* Автоочистка БД: cron перерегистрируется при каждой загрузке плагина"
 }
