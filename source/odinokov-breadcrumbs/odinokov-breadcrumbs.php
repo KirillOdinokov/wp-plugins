@@ -3,7 +3,7 @@
  * Plugin Name: Odinokov Breadcrumbs
  * Plugin URI:  https://github.com/KirillOdinokov/wp-plugins
  * Description: Добавляет мега-меню при наведении на пункты хлебных крошек. Выводит дочерние категории/товары/записи в формате wide menu. Подгрузка через AJAX.
- * Version:     1.1.2
+ * Version:     1.1.3
  * Author:      Odinokov
  * Author URI:  https://github.com/KirillOdinokov/wp-plugins
  * License:     GPL-2.0-or-later
@@ -19,7 +19,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 if ( ! defined( 'OBM_VERSION' ) ) {
-    define( 'OBM_VERSION', '1.1.2' );
+    define( 'OBM_VERSION', '1.1.3' );
 }
 if ( ! defined( 'OBM_FILE' ) ) {
     define( 'OBM_FILE', __FILE__ );
@@ -244,7 +244,8 @@ class Odinokov_Breadcrumbs {
         }
         check_admin_referer( 'obm_force_check', 'obm_force_check_nonce' );
         delete_transient( 'obm_release_' . md5( 'https://raw.githubusercontent.com/KirillOdinokov/wp-plugins/main/updates/odinokov-breadcrumbs.json' ) );
-        set_site_transient( 'update_plugins', null );
+        delete_site_transient( 'update_plugins' );
+        wp_update_plugins();
         wp_safe_redirect( admin_url( 'plugins.php?obm_force_check_done=1' ) );
         exit;
     }

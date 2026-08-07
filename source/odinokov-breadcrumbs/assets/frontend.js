@@ -107,13 +107,13 @@
                             menuEl.classList.add('is-visible');
                             menuEl.setAttribute('aria-hidden', 'false');
                             setActive(li);
-                            li.classList.add('obm-has-children');
+                            li.classList.remove('obm-no-children');
                         } else {
-                            li.classList.remove('obm-has-children');
+                            li.classList.add('obm-no-children');
                             hideMenu();
                         }
                     } else {
-                        li.classList.remove('obm-has-children');
+                        li.classList.add('obm-no-children');
                         hideMenu();
                     }
                 } catch (e) {
