@@ -32,19 +32,25 @@
             scheduleHide();
         });
 
+        var skipLabels = ['home', 'главная', 'home page', 'товары', 'products'];
         var items = breadcrumb.querySelectorAll('li');
         items.forEach(function(li) {
-            var arrow = document.createElement('span');
-            arrow.className = 'obm-arrow';
-            arrow.setAttribute('aria-hidden', 'true');
-            li.appendChild(arrow);
+            var text = (li.textContent || '').trim().toLowerCase();
+            var shouldSkip = skipLabels.indexOf(text) !== -1;
 
-            li.addEventListener('mouseenter', function(e) {
-                handleItemHover(li);
-            });
-            li.addEventListener('mouseleave', function() {
-                scheduleHide();
-            });
+            if (!shouldSkip) {
+                var arrow = document.createElement('span');
+                arrow.className = 'obm-arrow';
+                arrow.setAttribute('aria-hidden', 'true');
+                li.appendChild(arrow);
+
+                li.addEventListener('mouseenter', function(e) {
+                    handleItemHover(li);
+                });
+                li.addEventListener('mouseleave', function() {
+                    scheduleHide();
+                });
+            }
         });
 
         wrapper.addEventListener('mouseleave', function() {
