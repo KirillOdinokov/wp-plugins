@@ -101,12 +101,19 @@
                 try {
                     var response = JSON.parse(this.responseText);
                     if (response.success) {
-                        renderMenu(response.data);
-                        positionMenu(li);
-                        menuEl.classList.add('is-visible');
-                        menuEl.setAttribute('aria-hidden', 'false');
-                        setActive(li);
+                        var hasItems = renderMenu(response.data);
+                        if (hasItems) {
+                            positionMenu(li);
+                            menuEl.classList.add('is-visible');
+                            menuEl.setAttribute('aria-hidden', 'false');
+                            setActive(li);
+                            li.classList.add('obm-has-children');
+                        } else {
+                            li.classList.remove('obm-has-children');
+                            hideMenu();
+                        }
                     } else {
+                        li.classList.remove('obm-has-children');
                         hideMenu();
                     }
                 } catch (e) {
@@ -158,7 +165,7 @@
             menuEl.innerHTML = '';
             menuEl.classList.remove('is-visible');
             menuEl.setAttribute('aria-hidden', 'true');
-            return;
+            return false;
         }
 
         var cols = getColumns(items.length);
@@ -194,6 +201,7 @@
         }
 
         menuEl.innerHTML = html;
+        return true;
     }
 
     function positionMenu(li) {

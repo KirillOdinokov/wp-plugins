@@ -102,7 +102,7 @@
 
 /* Стрелочка вниз после каждого пункта хлебных крошек */
 .obm-breadcrumb-wrapper .breadcrumb li .obm-arrow {
-    display: inline-block;
+    display: none;
     width: 0;
     height: 0;
     margin-left: 6px;
@@ -115,13 +115,12 @@
     transition: opacity 0.15s ease;
 }
 
-.obm-breadcrumb-wrapper .breadcrumb li:hover .obm-arrow {
-    opacity: 1;
+.obm-breadcrumb-wrapper .breadcrumb li.obm-has-children .obm-arrow {
+    display: inline-block;
 }
 
-/* Убираем стрелочку у последнего элемента (текущая страница) */
-.obm-breadcrumb-wrapper .breadcrumb li:last-child .obm-arrow {
-    display: none;
+.obm-breadcrumb-wrapper .breadcrumb li:hover .obm-arrow {
+    opacity: 1;
 }
 
 /* ====================================================================== */

@@ -1,10 +1,10 @@
 ﻿{
     "requires":  "5.8",
     "download_url":  "https://raw.githubusercontent.com/KirillOdinokov/wp-plugins/main/repo/odinokov-breadcrumbs.zip",
-    "last_updated":  "2026-08-03",
+    "last_updated":  "2026-08-07",
     "tested":  "6.7",
-    "version":  "1.1.1",
+    "version":  "1.1.2",
     "requires_php":  "7.2",
     "homepage":  "https://raw.githubusercontent.com/KirillOdinokov/wp-plugins/main",
-    "changelog":  "= 1.1.1 =\n* Исправлена кнопка «Проверить обновления» — редирект на страницу плагинов"
+    "changelog":  "= 1.1.2 =\n* Стрелочки только у пунктов с дочерними элементами (класс obm-has-children)"
 }
