@@ -246,19 +246,19 @@ function odinokov_ai_handle_generate_areas() {
         . "Категории:\n" . $categories;
 
     $response = wp_remote_post('https://api.deepseek.com/v1/chat/completions', [
-        'timeout' => 60,
+        'timeout' => 120,
         'headers' => [
             'Authorization' => "Bearer {$api_key}",
             'Content-Type'  => 'application/json',
         ],
         'body' => wp_json_encode([
-            'model'       => get_option('odinokov_ai_model', 'deepseek-v4-pro'),
+            'model'       => get_option('odinokov_ai_model', 'deepseek-chat'),
             'messages'    => [
                 ['role' => 'system', 'content' => $system_msg],
                 ['role' => 'user', 'content' => $gen_prompt],
             ],
             'temperature' => 0.3,
-            'max_tokens'  => 1024,
+            'max_tokens'  => 2048,
         ]),
     ]);
 
@@ -276,6 +276,9 @@ function odinokov_ai_handle_generate_areas() {
     }
 
     $areas = trim($data['choices'][0]['message']['content']);
+    if (empty($areas)) {
+        wp_send_json_error(['detail' => 'API вернул пустой ответ. Попробуйте ещё раз или упростите список категорий.'], 502);
+    }
     wp_send_json_success(['areas' => $areas]);
 }
 add_action('wp_ajax_odinokov_ai_generate_areas', 'odinokov_ai_handle_generate_areas');
@@ -300,18 +303,18 @@ function odinokov_ai_handle_generate_suggestions() {
         . "Категории:\n" . $categories;
 
     $response = wp_remote_post('https://api.deepseek.com/v1/chat/completions', [
-        'timeout' => 60,
+        'timeout' => 120,
         'headers' => [
             'Authorization' => "Bearer {$api_key}",
             'Content-Type'  => 'application/json',
         ],
         'body' => wp_json_encode([
-            'model'       => get_option('odinokov_ai_model', 'deepseek-v4-pro'),
+            'model'       => get_option('odinokov_ai_model', 'deepseek-chat'),
             'messages'    => [
                 ['role' => 'user', 'content' => $gen_prompt],
             ],
             'temperature' => 0.5,
-            'max_tokens'  => 512,
+            'max_tokens'  => 1024,
         ]),
     ]);
 

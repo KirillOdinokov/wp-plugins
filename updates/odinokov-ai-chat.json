@@ -1,10 +1,10 @@
 ﻿{
     "requires":  "5.8",
     "download_url":  "https://raw.githubusercontent.com/KirillOdinokov/wp-plugins/main/repo/odinokov-ai-chat.zip",
-    "last_updated":  "2026-08-03",
+    "last_updated":  "2026-08-12",
     "tested":  "6.7",
-    "version":  "1.3.2",
+    "version":  "1.3.3",
     "requires_php":  "7.2",
     "homepage":  "https://raw.githubusercontent.com/KirillOdinokov/wp-plugins/main",
-    "changelog":  "= 1.3.2 =\n* Исправлена кнопка «Проверить обновления» — редирект на страницу плагинов"
+    "changelog":  "= 1.3.3 =\n* Увеличен timeout до 120с и max_tokens до 2048 для генерации областей знаний\n* Модель по умолчанию deepseek-chat\n* Проверка на пустой ответ от API"
 }
