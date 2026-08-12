@@ -3,7 +3,7 @@
  * Plugin Name: Odinokov Geo Blocker
  * Plugin URI:  https://github.com/KirillOdinokov/wp-plugins
  * Description: Блокирует доступ к сайту с неразрешённых стран на уровне must-use плагина. Разрешённые страны: Россия, Беларусь, Украина, Казахстан, Узбекистан. Googlebot проверяется по reverse DNS.
- * Version:     1.0.3
+ * Version:     1.0.4
  * Author:      Odinokov
  * Author URI:  https://github.com/KirillOdinokov/wp-plugins
  * License:     GPL-2.0+
@@ -11,7 +11,7 @@
 
 if ( ! defined( 'ABSPATH' ) ) exit;
 
-define( 'ODGK_VERSION', '1.0.3' );
+define( 'ODGK_VERSION', '1.0.4' );
 define( 'ODGK_DIR', plugin_dir_path( __FILE__ ) );
 define( 'ODGK_URL', plugin_dir_url( __FILE__ ) );
 define( 'ODGK_DATA_DIR', ODGK_DIR . 'data' );

@@ -3,8 +3,8 @@
     "download_url":  "https://raw.githubusercontent.com/KirillOdinokov/wp-plugins/main/repo/odinokov-geo-blocker.zip",
     "last_updated":  "2026-08-12",
     "tested":  "6.7",
-    "version":  "1.0.3",
+    "version":  "1.0.4",
     "requires_php":  "7.2",
     "homepage":  "https://raw.githubusercontent.com/KirillOdinokov/wp-plugins/main",
-    "changelog":  "= 1.0.3 =\n* США удалены из разрешённых стран\n* Верификация Googlebot через reverse DNS (gethostbyaddr + gethostbyname)"
+    "changelog":  "= 1.0.4 =\n* Кеширование DNS-верификации Googlebot на 24ч (файловый кеш)\n* Автоочистка просроченных записей (1 из 200 запросов)"
 }
