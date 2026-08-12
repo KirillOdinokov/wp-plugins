@@ -3,7 +3,7 @@
  * Plugin Name: Odinokov Menu Cat
  * Plugin URI:  https://github.com/KirillOdinokov/wp-plugins
  * Description: Автоматическое добавление категорий товаров WooCommerce в меню сайта с сохранением иерархии.
- * Version:     1.0.0
+ * Version:     1.0.1
  * Author:      Odinokov
  * Author URI:  https://github.com/KirillOdinokov/wp-plugins
  * Text Domain: odinokov-menu-cat
@@ -11,7 +11,7 @@
 
 if ( ! defined( 'ABSPATH' ) ) exit;
 
-define( 'OMC_VERSION', '1.0.0' );
+define( 'OMC_VERSION', '1.0.1' );
 define( 'OMC_DIR', plugin_dir_path( __FILE__ ) );
 define( 'OMC_URL', plugin_dir_url( __FILE__ ) );
 
@@ -146,6 +146,14 @@ class Odinokov_Menu_Cat {
                         <a href="#" id="omc-select-all" style="display:none;font-size:12px;"><?php esc_html_e( 'Выбрать все', 'odinokov-menu-cat' ); ?></a>
                         <span style="display:none;color:#ccc;margin:0 6px;" id="omc-select-sep">|</span>
                         <a href="#" id="omc-deselect-all" style="display:none;font-size:12px;"><?php esc_html_e( 'Снять все', 'odinokov-menu-cat' ); ?></a>
+                        <span style="display:none;color:#ccc;margin:0 6px;" class="omc-level-sep">|</span>
+                        <a href="#" class="omc-select-level" data-level="2" style="display:none;font-size:12px;"><?php esc_html_e( 'До 2 уровня', 'odinokov-menu-cat' ); ?></a>
+                        <span style="display:none;color:#ccc;margin:0 6px;" class="omc-level-sep">|</span>
+                        <a href="#" class="omc-select-level" data-level="3" style="display:none;font-size:12px;"><?php esc_html_e( 'До 3 уровня', 'odinokov-menu-cat' ); ?></a>
+                        <span style="display:none;color:#ccc;margin:0 6px;" class="omc-level-sep">|</span>
+                        <a href="#" class="omc-select-level" data-level="4" style="display:none;font-size:12px;"><?php esc_html_e( 'До 4 уровня', 'odinokov-menu-cat' ); ?></a>
+                        <span style="display:none;color:#ccc;margin:0 6px;" class="omc-level-sep">|</span>
+                        <a href="#" class="omc-select-level" data-level="5" style="display:none;font-size:12px;"><?php esc_html_e( 'До 5 уровня', 'odinokov-menu-cat' ); ?></a>
                     </p>
                 </div>
 
@@ -209,9 +217,10 @@ class Odinokov_Menu_Cat {
 
         foreach ( $children as $child ) {
             $indent = $depth * 20;
+            $level  = $depth + 2; // parent is level 1, first child is level 2
             echo '<div class="omc-cb-row" style="padding-left:' . (int) $indent . 'px;margin:3px 0;">';
             echo '<label>';
-            echo '<input type="checkbox" name="omc_cats[]" value="' . esc_attr( $child->term_id ) . '"> ';
+            echo '<input type="checkbox" name="omc_cats[]" value="' . esc_attr( $child->term_id ) . '" data-level="' . (int) $level . '"> ';
             echo esc_html( $child->name );
             echo ' <span style="color:#999;font-size:11px;">(' . (int) $child->count . ')</span>';
             echo '</label>';

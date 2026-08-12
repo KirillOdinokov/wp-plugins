@@ -6,6 +6,8 @@
     var $selectAll = $('#omc-select-all');
     var $deselectAll = $('#omc-deselect-all');
     var $selectSep = $('#omc-select-sep');
+    var $levelBtns = $('.omc-select-level');
+    var $levelSeps = $('.omc-level-sep');
 
     function syncHidden() {
         var menuId = $('#omc-menu-id').val();
@@ -21,12 +23,40 @@
         });
     }
 
+    function getMaxLevel() {
+        var max = 0;
+        $subcats.find('input[type="checkbox"]').each(function() {
+            var lv = parseInt($(this).data('level'), 10) || 0;
+            if (lv > max) max = lv;
+        });
+        return max;
+    }
+
+    function showLevelBtns(maxLevel) {
+        $levelBtns.hide();
+        $levelSeps.hide();
+        if (maxLevel >= 2) {
+            $levelBtns.filter('[data-level="2"]').show().prev('.omc-level-sep').show();
+        }
+        if (maxLevel >= 3) {
+            $levelBtns.filter('[data-level="3"]').show().prev('.omc-level-sep').show();
+        }
+        if (maxLevel >= 4) {
+            $levelBtns.filter('[data-level="4"]').show().prev('.omc-level-sep').show();
+        }
+        if (maxLevel >= 5) {
+            $levelBtns.filter('[data-level="5"]').show().prev('.omc-level-sep').show();
+        }
+    }
+
     function loadSubcats(termId) {
         if (!termId) {
             $subcats.html('<p style="color:#888;margin:0;">' + OMC.empty + '</p>');
             $selectAll.hide();
             $deselectAll.hide();
             $selectSep.hide();
+            $levelBtns.hide();
+            $levelSeps.hide();
             return;
         }
 
@@ -43,11 +73,14 @@
                 $selectAll.show();
                 $deselectAll.show();
                 $selectSep.show();
+                showLevelBtns(getMaxLevel());
             } else {
                 $subcats.html('<p style="color:#c00;margin:0;">' + OMC.error + '</p>');
                 $selectAll.hide();
                 $deselectAll.hide();
                 $selectSep.hide();
+                $levelBtns.hide();
+                $levelSeps.hide();
             }
         }).fail(function() {
             $subcats.removeClass('loading').html('<p style="color:#c00;margin:0;">' + OMC.error + '</p>');
@@ -66,6 +99,15 @@
     $deselectAll.on('click', function(e) {
         e.preventDefault();
         $subcats.find('input[type="checkbox"]').prop('checked', false);
+    });
+
+    $levelBtns.on('click', function(e) {
+        e.preventDefault();
+        var level = parseInt($(this).data('level'), 10);
+        $subcats.find('input[type="checkbox"]').each(function() {
+            var cbLevel = parseInt($(this).data('level'), 10) || 0;
+            $(this).prop('checked', cbLevel <= level);
+        });
     });
 
     $('form').on('submit', function() {

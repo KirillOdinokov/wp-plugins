@@ -1,10 +1,10 @@
 ﻿{
     "requires":  "5.8",
     "download_url":  "https://raw.githubusercontent.com/KirillOdinokov/wp-plugins/main/repo/odinokov-menu-cat.zip",
-    "last_updated":  "2026-08-05",
+    "last_updated":  "2026-08-12",
     "tested":  "6.7",
-    "version":  "1.0.0",
+    "version":  "1.0.1",
     "requires_php":  "7.2",
     "homepage":  "https://raw.githubusercontent.com/KirillOdinokov/wp-plugins/main",
-    "changelog":  "= 1.0.0 =\n* Первый релиз"
+    "changelog":  "= 1.0.1 =\n* Кнопки «До 2/3/4/5 уровня» — выделение категорий по глубине вложенности"
 }
