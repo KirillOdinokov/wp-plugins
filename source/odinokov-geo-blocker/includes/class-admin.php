@@ -58,7 +58,7 @@ class WP_Geo_Blocker_Admin {
             <h1>Odinokov Geo Blocker</h1>
             <div class="card" style="max-width:800px;padding:20px;margin-top:20px;">
                 <h2>Разрешённые страны</h2>
-                <p>Россия (RU), Беларусь (BY), США (US), Украина (UA), Казахстан (KZ), Узбекистан (UZ)</p>
+                <p>Россия (RU), Беларусь (BY), Украина (UA), Казахстан (KZ), Узбекистан (UZ)</p>
             </div>
 
             <div class="card" style="max-width:800px;padding:20px;margin-top:20px;">

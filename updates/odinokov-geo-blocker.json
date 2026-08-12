@@ -1,10 +1,10 @@
 ﻿{
     "requires":  "5.8",
     "download_url":  "https://raw.githubusercontent.com/KirillOdinokov/wp-plugins/main/repo/odinokov-geo-blocker.zip",
-    "last_updated":  "2026-08-03",
+    "last_updated":  "2026-08-12",
     "tested":  "6.7",
-    "version":  "1.0.2",
+    "version":  "1.0.3",
     "requires_php":  "7.2",
     "homepage":  "https://raw.githubusercontent.com/KirillOdinokov/wp-plugins/main",
-    "changelog":  "= 1.0.2 =\n* Исправлена кнопка «Проверить обновления» — редирект на страницу плагинов"
+    "changelog":  "= 1.0.3 =\n* США удалены из разрешённых стран\n* Верификация Googlebot через reverse DNS (gethostbyaddr + gethostbyname)"
 }

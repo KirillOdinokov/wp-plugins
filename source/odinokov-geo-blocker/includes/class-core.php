@@ -3,9 +3,9 @@ class WP_Geo_Blocker {
 
     private static $instance = null;
     private $db_reader = null;
-    private $allowed_countries = array( 'RU', 'BY', 'US', 'UA', 'KZ', 'UZ' );
+    private $allowed_countries = array( 'RU', 'BY', 'UA', 'KZ', 'UZ' );
     private $country_names = array(
-        'RU' => 'Россия / Russia', 'BY' => 'Беларусь / Belarus', 'US' => 'США / USA',
+        'RU' => 'Россия / Russia', 'BY' => 'Беларусь / Belarus',
         'UA' => 'Украина / Ukraine', 'KZ' => 'Казахстан / Kazakhstan', 'UZ' => 'Узбекистан / Uzbekistan',
     );
     private $exceptions_file;
@@ -23,6 +23,7 @@ class WP_Geo_Blocker {
         $this->load_exceptions();
         $ip = $this->get_client_ip();
         if ( $this->is_ip_excepted( $ip ) ) return;
+        if ( $this->is_verified_googlebot( $ip ) ) return;
         $country = $this->get_country_by_ip( $ip );
         if ( null === $country ) return;
 
@@ -61,6 +62,16 @@ class WP_Geo_Blocker {
 
     private function is_cli() { return defined('WP_CLI') && WP_CLI || php_sapi_name() === 'cli' || ! isset($_SERVER['HTTP_HOST']); }
     private function is_cron() { return defined('DOING_CRON') && DOING_CRON; }
+
+    private function is_verified_googlebot( $ip ) {
+        $ua = isset( $_SERVER['HTTP_USER_AGENT'] ) ? trim( $_SERVER['HTTP_USER_AGENT'] ) : '';
+        if ( stripos( $ua, 'Googlebot' ) === false ) return false;
+        $hostname = @gethostbyaddr( $ip );
+        if ( ! $hostname || $hostname === $ip ) return false;
+        if ( stripos( $hostname, '.googlebot.com' ) === false && stripos( $hostname, '.google.com' ) === false ) return false;
+        $resolved = @gethostbyname( $hostname );
+        return $resolved === $ip;
+    }
 
     private function get_client_ip() {
         foreach ( array( 'HTTP_CF_CONNECTING_IP', 'HTTP_X_REAL_IP', 'HTTP_X_FORWARDED_FOR', 'HTTP_CLIENT_IP', 'REMOTE_ADDR' ) as $h ) {

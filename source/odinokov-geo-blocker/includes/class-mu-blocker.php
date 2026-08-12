@@ -23,15 +23,17 @@ class WP_Geo_MU_Blocker {
             if ( isset( $entry['ip'] ) && $entry['ip'] === $ip ) return;
         }
 
+        // Whitelist real Googlebot (reverse DNS check)
+        if ( self::is_verified_googlebot( $ua, $ip ) ) return;
+
         // Yandex whitelist
-        $ua = isset( $_SERVER['HTTP_USER_AGENT'] ) ? trim( $_SERVER['HTTP_USER_AGENT'] ) : '';
         $yandex_ua = array( 'YandexBot', 'YandexImages', 'YandexMobileBot', 'YandexMetrika', 'YandexWebmaster', 'YandexTurbo' );
         foreach ( $yandex_ua as $p ) { if ( stripos( $ua, $p ) !== false ) return; }
 
         $country = self::get_country( $ip );
         if ( null === $country ) return;
 
-        $allowed = array( 'RU', 'BY', 'US', 'UA', 'KZ', 'UZ' );
+        $allowed = array( 'RU', 'BY', 'UA', 'KZ', 'UZ' );
         if ( ! in_array( $country, $allowed, true ) ) {
             if ( class_exists( 'WP_Geo_Blocker_Logger' ) ) {
                 WP_Geo_Blocker_Logger::log_mu( $ip, $country );
@@ -51,6 +53,15 @@ class WP_Geo_MU_Blocker {
             }
         }
         return '127.0.0.1';
+    }
+
+    private static function is_verified_googlebot( $ua, $ip ) {
+        if ( stripos( $ua, 'Googlebot' ) === false ) return false;
+        $hostname = @gethostbyaddr( $ip );
+        if ( ! $hostname || $hostname === $ip ) return false;
+        if ( stripos( $hostname, '.googlebot.com' ) === false && stripos( $hostname, '.google.com' ) === false ) return false;
+        $resolved = @gethostbyname( $hostname );
+        return $resolved === $ip;
     }
 
     private static function get_country( $ip ) {
