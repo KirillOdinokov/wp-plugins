@@ -3,8 +3,8 @@
     "download_url":  "https://raw.githubusercontent.com/KirillOdinokov/wp-plugins/main/repo/odinokov-table-view.zip",
     "last_updated":  "2026-08-14",
     "tested":  "6.7",
-    "version":  "1.0.27",
+    "version":  "1.0.28",
     "requires_php":  "7.2",
     "homepage":  "https://raw.githubusercontent.com/KirillOdinokov/wp-plugins/main",
-    "changelog":  "= 1.0.27 =\n* woocommerce_product_query + post__in=[0]"
+    "changelog":  "= 1.0.28 =\n* Прямой вывод подкатегорий через woocommerce_before_shop_loop"
 }

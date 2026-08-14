@@ -3,7 +3,7 @@
  * Plugin Name: Odinokov Table View
  * Plugin URI:  https://github.com/KirillOdinokov/wp-plugins
  * Description: Автоматический табличный вид для категорий WooCommerce с однотипными товарами. Управление выводом подкатегорий/товаров. Совместим с Porto.
- * Version:     1.0.27
+ * Version:     1.0.28
  * Author:      Odinokov
  * Author URI:  https://github.com/KirillOdinokov/wp-plugins
  * Text Domain: odinokov-table-view
@@ -11,7 +11,7 @@
 
 if ( ! defined( 'ABSPATH' ) ) exit;
 
-define( 'OTV_VERSION', '1.0.27' );
+define( 'OTV_VERSION', '1.0.28' );
 define( 'OTV_DIR', plugin_dir_path( __FILE__ ) );
 define( 'OTV_URL', plugin_dir_url( __FILE__ ) );
 
@@ -46,8 +46,8 @@ class Odinokov_Table_View {
         add_action( 'wp', [ $this, 'check_category' ], 0 );
         add_action( 'wp_enqueue_scripts', [ $this, 'enqueue_assets' ] );
         add_filter( 'body_class', [ $this, 'body_class' ] );
-        add_action( 'woocommerce_product_query', [ $this, 'control_products' ], 99 );
-        add_filter( 'woocommerce_product_subcategories_hide_empty', [ $this, 'show_hidden_subcats' ], 99 );
+        add_action( 'woocommerce_before_shop_loop', [ $this, 'output_subcategories' ], 5 );
+        add_action( 'woocommerce_product_query', [ $this, 'hide_products' ], 99 );
     }
 
     public function add_admin_menu() {
@@ -149,16 +149,46 @@ class Odinokov_Table_View {
         $this->override_display = $result['display'];
     }
 
-    public function control_products( $q ) {
+    public function output_subcategories() {
+        if ( null === $this->override_display ) return;
+        if ( ! is_product_category() ) return;
+
+        $term = get_queried_object();
+        if ( ! $term || ! isset( $term->term_id ) ) return;
+
+        $subcats = get_terms( [
+            'taxonomy'   => 'product_cat',
+            'parent'     => $term->term_id,
+            'hide_empty' => false,
+        ] );
+
+        if ( empty( $subcats ) || is_wp_error( $subcats ) ) return;
+
+        woocommerce_product_loop_start();
+
+        foreach ( $subcats as $subcat ) {
+            $thumbnail_id = get_term_meta( $subcat->term_id, 'thumbnail_id', true );
+            $image = $thumbnail_id ? wp_get_attachment_image( $thumbnail_id, 'woocommerce_thumbnail' ) : wc_placeholder_img( 'woocommerce_thumbnail' );
+            $link = get_term_link( $subcat );
+            if ( is_wp_error( $link ) ) continue;
+            ?>
+            <li class="product-category product">
+                <a href="<?php echo esc_url( $link ); ?>">
+                    <?php echo $image; ?>
+                    <h2 class="woocommerce-loop-category__title"><?php echo esc_html( $subcat->name ); ?></h2>
+                </a>
+            </li>
+            <?php
+        }
+
+        woocommerce_product_loop_end();
+    }
+
+    public function hide_products( $q ) {
         if ( null === $this->override_display ) return;
         if ( 'subcategories' !== $this->override_display ) return;
 
         $q->set( 'post__in', [ 0 ] );
-    }
-
-    public function show_hidden_subcats( $hide ) {
-        if ( null === $this->override_display ) return $hide;
-        return false;
     }
 
     private function do_check( $term_id ) {
