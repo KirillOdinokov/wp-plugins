@@ -3,7 +3,7 @@
  * Plugin Name: Odinokov Table View
  * Plugin URI:  https://github.com/KirillOdinokov/wp-plugins
  * Description: Автоматический табличный вид для категорий WooCommerce с однотипными товарами. Управление выводом подкатегорий/товаров. Совместим с Porto.
- * Version:     1.0.23
+ * Version:     1.0.24
  * Author:      Odinokov
  * Author URI:  https://github.com/KirillOdinokov/wp-plugins
  * Text Domain: odinokov-table-view
@@ -11,7 +11,7 @@
 
 if ( ! defined( 'ABSPATH' ) ) exit;
 
-define( 'OTV_VERSION', '1.0.23' );
+define( 'OTV_VERSION', '1.0.24' );
 define( 'OTV_DIR', plugin_dir_path( __FILE__ ) );
 define( 'OTV_URL', plugin_dir_url( __FILE__ ) );
 
@@ -147,6 +147,10 @@ class Odinokov_Table_View {
             $this->is_table_view = $result['table'];
             $this->override_display = $result['display'];
         }
+
+        if ( ! empty( $this->override_display ) ) {
+            $this->write_display_type( $this->current_term_id, $this->override_display );
+        }
     }
 
     public function control_products( $q ) {
@@ -166,6 +170,35 @@ class Odinokov_Table_View {
     public function show_hidden_subcats( $hide ) {
         if ( null === $this->override_display ) return $hide;
         return false;
+    }
+
+    private function write_display_type( $term_id, $value ) {
+        global $wpdb;
+
+        update_term_meta( $term_id, 'display_type', $value );
+
+        $table = $wpdb->prefix . 'product_catmeta';
+        $exists = $wpdb->get_var( $wpdb->prepare(
+            "SELECT meta_id FROM `$table` WHERE product_cat_id = %d AND meta_key = %s",
+            $term_id, 'display_type'
+        ) );
+
+        if ( $exists ) {
+            $wpdb->update( $table,
+                [ 'meta_value' => $value ],
+                [ 'product_cat_id' => $term_id, 'meta_key' => 'display_type' ]
+            );
+        } else {
+            $wpdb->insert( $table, [
+                'product_cat_id' => $term_id,
+                'meta_key'       => 'display_type',
+                'meta_value'     => $value,
+            ] );
+        }
+
+        wp_cache_delete( $term_id, 'product_cat_meta' );
+        wp_cache_delete( 'product_cat_' . $term_id, 'term_meta' );
+        clean_term_cache( $term_id, 'product_cat' );
     }
 
     private function do_check( $term_id ) {
