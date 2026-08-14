@@ -3,7 +3,7 @@
  * Plugin Name: Odinokov Table View
  * Plugin URI:  https://github.com/KirillOdinokov/wp-plugins
  * Description: Автоматический табличный вид для категорий WooCommerce с однотипными товарами. Управление выводом подкатегорий/товаров. Совместим с Porto.
- * Version:     1.0.5
+ * Version:     1.0.6
  * Author:      Odinokov
  * Author URI:  https://github.com/KirillOdinokov/wp-plugins
  * Text Domain: odinokov-table-view
@@ -11,7 +11,7 @@
 
 if ( ! defined( 'ABSPATH' ) ) exit;
 
-define( 'OTV_VERSION', '1.0.5' );
+define( 'OTV_VERSION', '1.0.6' );
 define( 'OTV_DIR', plugin_dir_path( __FILE__ ) );
 define( 'OTV_URL', plugin_dir_url( __FILE__ ) );
 
@@ -258,17 +258,24 @@ class Odinokov_Table_View {
         if ( count( $product_ids ) < 2 ) return false;
 
         $image_counts = [];
+        $no_image = 0;
         foreach ( $product_ids as $pid ) {
             $thumb_id = get_post_thumbnail_id( $pid );
-            $key = $thumb_id ? (int) $thumb_id : 'none';
+            if ( ! $thumb_id ) {
+                $no_image++;
+                continue;
+            }
+            $key = (int) $thumb_id;
             $image_counts[ $key ] = ( $image_counts[ $key ] ?? 0 ) + 1;
         }
 
-        $max_count = max( $image_counts );
-        $total = count( $product_ids );
-        $ratio = $max_count / $total;
+        if ( empty( $image_counts ) ) return false;
 
-        return $ratio >= 0.8;
+        $max_count = max( $image_counts );
+        $total_with_images = array_sum( $image_counts );
+        $ratio = $max_count / $total_with_images;
+
+        return $ratio >= 0.6;
     }
 }
 
