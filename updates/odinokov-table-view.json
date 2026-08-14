@@ -6,5 +6,5 @@
     "version":  "1.0.3",
     "requires_php":  "7.2",
     "homepage":  "https://raw.githubusercontent.com/KirillOdinokov/wp-plugins/main",
-    "changelog":  "= 1.0.3 =\n* CSS-трансформация грида в таблицу (работает с Porto и любой темой)\n* Фильтр get_product_cat_metadata для view_mode"
+    "changelog":  "= 1.0.3 =\n* JS DOM-трансформация грида в таблицу (работает с любой темой)"
 }

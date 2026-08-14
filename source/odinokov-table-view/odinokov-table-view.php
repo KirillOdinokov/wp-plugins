@@ -47,8 +47,6 @@ class Odinokov_Table_View {
         add_action( 'wp_enqueue_scripts', [ $this, 'enqueue_assets' ] );
         add_filter( 'get_product_cat_metadata', [ $this, 'override_view_mode_meta' ], 20, 4 );
         add_filter( 'get_woocommerce_term_metadata', [ $this, 'override_display_type_meta' ], 20, 4 );
-        add_action( 'woocommerce_before_shop_loop', [ $this, 'table_header' ], 1 );
-        add_filter( 'body_class', [ $this, 'body_class' ] );
     }
 
     public function add_admin_menu() {
@@ -113,6 +111,7 @@ class Odinokov_Table_View {
     public function enqueue_assets() {
         if ( ! $this->is_table_view ) return;
         wp_enqueue_style( 'otv-table', OTV_URL . 'assets/css/table.css', [], OTV_VERSION );
+        wp_enqueue_script( 'otv-table', OTV_URL . 'assets/js/table.js', [], OTV_VERSION, true );
     }
 
     public function body_class( $classes ) {
