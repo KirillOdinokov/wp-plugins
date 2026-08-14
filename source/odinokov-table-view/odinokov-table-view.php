@@ -43,7 +43,7 @@ class Odinokov_Table_View {
     private function __construct() {
         add_action( 'admin_menu', [ $this, 'add_admin_menu' ] );
         add_action( 'admin_post_otv_force_check', [ $this, 'force_check' ] );
-        add_action( 'template_redirect', [ $this, 'check_category' ], 5 );
+        add_action( 'wp', [ $this, 'check_category' ], 1 );
         add_action( 'wp_enqueue_scripts', [ $this, 'enqueue_assets' ] );
         add_filter( 'get_product_cat_metadata', [ $this, 'override_view_mode_meta' ], 20, 4 );
         add_filter( 'get_woocommerce_term_metadata', [ $this, 'override_display_type_meta' ], 20, 4 );
@@ -109,7 +109,14 @@ class Odinokov_Table_View {
     }
 
     public function enqueue_assets() {
-        if ( ! $this->is_table_view ) return;
+        if ( ! is_product_category() ) return;
+
+        $term = get_queried_object();
+        if ( ! $term || ! isset( $term->term_id ) ) return;
+
+        $cached = get_transient( 'otv_check_' . $term->term_id );
+        if ( false === $cached || empty( $cached['table'] ) ) return;
+
         wp_enqueue_style( 'otv-table', OTV_URL . 'assets/css/table.css', [], OTV_VERSION );
         wp_enqueue_script( 'otv-table', OTV_URL . 'assets/js/table.js', [], OTV_VERSION, true );
     }
