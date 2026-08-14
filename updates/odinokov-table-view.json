@@ -3,8 +3,8 @@
     "download_url":  "https://raw.githubusercontent.com/KirillOdinokov/wp-plugins/main/repo/odinokov-table-view.zip",
     "last_updated":  "2026-08-14",
     "tested":  "6.7",
-    "version":  "1.0.32",
+    "version":  "1.0.34",
     "requires_php":  "7.2",
     "homepage":  "https://raw.githubusercontent.com/KirillOdinokov/wp-plugins/main",
-    "changelog":  "= 1.0.32 =\n* Porto сам рендерит подкатегории (subcat_args + hide_products)"
+    "changelog":  "= 1.0.34 =\n* Porto-шаблон content-product_cat + wp_doing_ajax защита"
 }

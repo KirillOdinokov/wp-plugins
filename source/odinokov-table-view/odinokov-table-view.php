@@ -3,7 +3,7 @@
  * Plugin Name: Odinokov Table View
  * Plugin URI:  https://github.com/KirillOdinokov/wp-plugins
  * Description: Автоматический табличный вид для категорий WooCommerce с однотипными товарами. Управление выводом подкатегорий/товаров. Совместим с Porto.
- * Version:     1.0.32
+ * Version:     1.0.34
  * Author:      Odinokov
  * Author URI:  https://github.com/KirillOdinokov/wp-plugins
  * Text Domain: odinokov-table-view
@@ -11,7 +11,7 @@
 
 if ( ! defined( 'ABSPATH' ) ) exit;
 
-define( 'OTV_VERSION', '1.0.32' );
+define( 'OTV_VERSION', '1.0.34' );
 define( 'OTV_DIR', plugin_dir_path( __FILE__ ) );
 define( 'OTV_URL', plugin_dir_url( __FILE__ ) );
 
@@ -34,6 +34,7 @@ class Odinokov_Table_View {
     private static $instance = null;
     private $is_table_view = false;
     private $override_display = null;
+    private $subcats_rendered = false;
 
     public static function get_instance() {
         if ( null === self::$instance ) self::$instance = new self();
@@ -46,7 +47,7 @@ class Odinokov_Table_View {
         add_action( 'wp', [ $this, 'check_category' ], 0 );
         add_action( 'wp_enqueue_scripts', [ $this, 'enqueue_assets' ] );
         add_filter( 'body_class', [ $this, 'body_class' ] );
-        add_filter( 'woocommerce_product_subcategories_args', [ $this, 'subcat_args' ], 99 );
+        add_action( 'woocommerce_before_shop_loop', [ $this, 'render_subcategories' ], 5 );
         add_action( 'woocommerce_product_query', [ $this, 'hide_products' ], 99 );
     }
 
@@ -149,12 +150,35 @@ class Odinokov_Table_View {
         $this->override_display = $result['display'];
     }
 
-    public function subcat_args( $args ) {
-        if ( null === $this->override_display ) return $args;
-        if ( 'subcategories' === $this->override_display || 'both' === $this->override_display ) {
-            $args['hide_empty'] = false;
+    public function render_subcategories() {
+        if ( null === $this->override_display ) return;
+        if ( ! is_product_category() ) return;
+        if ( wp_doing_ajax() ) return;
+        if ( $this->subcats_rendered ) return;
+        $this->subcats_rendered = true;
+
+        $term = get_queried_object();
+        if ( ! $term || ! isset( $term->term_id ) ) return;
+
+        $subcats = get_terms( [
+            'taxonomy'   => 'product_cat',
+            'parent'     => $term->term_id,
+            'hide_empty' => false,
+        ] );
+
+        if ( empty( $subcats ) || is_wp_error( $subcats ) ) return;
+
+        global $woocommerce_loop;
+        $woocommerce_loop['category-view'] = 'grid';
+        wc_set_loop_prop( 'columns', 4 );
+
+        woocommerce_product_loop_start();
+
+        foreach ( $subcats as $subcat ) {
+            wc_get_template( 'content-product_cat.php', [ 'category' => $subcat ] );
         }
-        return $args;
+
+        woocommerce_product_loop_end();
     }
 
     public function hide_products( $q ) {
