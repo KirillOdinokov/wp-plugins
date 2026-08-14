@@ -3,7 +3,7 @@
  * Plugin Name: Odinokov Table View
  * Plugin URI:  https://github.com/KirillOdinokov/wp-plugins
  * Description: Автоматический табличный вид для категорий WooCommerce с однотипными товарами. Управление выводом подкатегорий/товаров. Совместим с Porto.
- * Version:     1.0.24
+ * Version:     1.0.25
  * Author:      Odinokov
  * Author URI:  https://github.com/KirillOdinokov/wp-plugins
  * Text Domain: odinokov-table-view
@@ -11,7 +11,7 @@
 
 if ( ! defined( 'ABSPATH' ) ) exit;
 
-define( 'OTV_VERSION', '1.0.24' );
+define( 'OTV_VERSION', '1.0.25' );
 define( 'OTV_DIR', plugin_dir_path( __FILE__ ) );
 define( 'OTV_URL', plugin_dir_url( __FILE__ ) );
 
@@ -44,9 +44,10 @@ class Odinokov_Table_View {
     private function __construct() {
         add_action( 'admin_menu', [ $this, 'add_admin_menu' ] );
         add_action( 'admin_post_otv_force_check', [ $this, 'force_check' ] );
-        add_action( 'parse_request', [ $this, 'detect_category' ], 0 );
+        add_action( 'wp', [ $this, 'detect_category' ], 0 );
         add_action( 'wp_enqueue_scripts', [ $this, 'enqueue_assets' ] );
         add_filter( 'body_class', [ $this, 'body_class' ] );
+        add_filter( 'get_product_cat_metadata', [ $this, 'override_display_type_meta' ], 1, 4 );
         add_action( 'woocommerce_product_query', [ $this, 'control_products' ], 99 );
         add_filter( 'woocommerce_product_subcategories_hide_empty', [ $this, 'show_hidden_subcats' ], 99 );
     }
@@ -123,12 +124,11 @@ class Odinokov_Table_View {
         return $classes;
     }
 
-    public function detect_category( $wp ) {
-        if ( empty( $wp->query_vars['product_cat'] ) ) return;
+    public function detect_category() {
+        if ( ! is_product_category() ) return;
 
-        $slug = $wp->query_vars['product_cat'];
-        $term = get_term_by( 'slug', $slug, 'product_cat' );
-        if ( ! $term || is_wp_error( $term ) ) return;
+        $term = get_queried_object();
+        if ( ! $term || ! isset( $term->term_id ) ) return;
 
         $this->current_term_id = $term->term_id;
         $cache_key = 'otv_check_' . $this->current_term_id;
@@ -149,8 +149,18 @@ class Odinokov_Table_View {
         }
 
         if ( ! empty( $this->override_display ) ) {
-            $this->write_display_type( $this->current_term_id, $this->override_display );
+            update_term_meta( $this->current_term_id, 'display_type', $this->override_display );
+            update_metadata( 'product_cat', $this->current_term_id, 'display_type', $this->override_display );
         }
+    }
+
+    public function override_display_type_meta( $value, $object_id, $meta_key, $single ) {
+        if ( $meta_key !== 'display_type' ) return $value;
+        if ( null === $this->override_display ) return $value;
+        if ( null === $this->current_term_id ) return $value;
+        if ( (int) $object_id !== (int) $this->current_term_id ) return $value;
+
+        return $single ? $this->override_display : [ $this->override_display ];
     }
 
     public function control_products( $q ) {
@@ -170,35 +180,6 @@ class Odinokov_Table_View {
     public function show_hidden_subcats( $hide ) {
         if ( null === $this->override_display ) return $hide;
         return false;
-    }
-
-    private function write_display_type( $term_id, $value ) {
-        global $wpdb;
-
-        update_term_meta( $term_id, 'display_type', $value );
-
-        $table = $wpdb->prefix . 'product_catmeta';
-        $exists = $wpdb->get_var( $wpdb->prepare(
-            "SELECT meta_id FROM `$table` WHERE product_cat_id = %d AND meta_key = %s",
-            $term_id, 'display_type'
-        ) );
-
-        if ( $exists ) {
-            $wpdb->update( $table,
-                [ 'meta_value' => $value ],
-                [ 'product_cat_id' => $term_id, 'meta_key' => 'display_type' ]
-            );
-        } else {
-            $wpdb->insert( $table, [
-                'product_cat_id' => $term_id,
-                'meta_key'       => 'display_type',
-                'meta_value'     => $value,
-            ] );
-        }
-
-        wp_cache_delete( $term_id, 'product_cat_meta' );
-        wp_cache_delete( 'product_cat_' . $term_id, 'term_meta' );
-        clean_term_cache( $term_id, 'product_cat' );
     }
 
     private function do_check( $term_id ) {
