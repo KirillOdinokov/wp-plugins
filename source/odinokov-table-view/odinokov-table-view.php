@@ -3,7 +3,7 @@
  * Plugin Name: Odinokov Table View
  * Plugin URI:  https://github.com/KirillOdinokov/wp-plugins
  * Description: Автоматический табличный вид для категорий WooCommerce с однотипными товарами. Управление выводом подкатегорий/товаров. Совместим с Porto.
- * Version:     1.0.7
+ * Version:     1.0.8
  * Author:      Odinokov
  * Author URI:  https://github.com/KirillOdinokov/wp-plugins
  * Text Domain: odinokov-table-view
@@ -11,7 +11,7 @@
 
 if ( ! defined( 'ABSPATH' ) ) exit;
 
-define( 'OTV_VERSION', '1.0.7' );
+define( 'OTV_VERSION', '1.0.8' );
 define( 'OTV_DIR', plugin_dir_path( __FILE__ ) );
 define( 'OTV_URL', plugin_dir_url( __FILE__ ) );
 
@@ -33,7 +33,6 @@ class Odinokov_Table_View {
 
     private static $instance = null;
     private $is_table_view = false;
-    private $override_display = null;
 
     public static function get_instance() {
         if ( null === self::$instance ) self::$instance = new self();
@@ -43,11 +42,8 @@ class Odinokov_Table_View {
     private function __construct() {
         add_action( 'admin_menu', [ $this, 'add_admin_menu' ] );
         add_action( 'admin_post_otv_force_check', [ $this, 'force_check' ] );
-        add_action( 'wp', [ $this, 'check_category' ], 1 );
+        add_action( 'wp', [ $this, 'check_category' ], 0 );
         add_action( 'wp_enqueue_scripts', [ $this, 'enqueue_assets' ] );
-        add_filter( 'get_product_cat_metadata', [ $this, 'override_view_mode_meta' ], 20, 4 );
-        add_filter( 'woocommerce_product_subcategories_hide_empty', [ $this, 'show_empty_subcats' ], 20 );
-        add_action( 'woocommerce_before_shop_loop', [ $this, 'force_display_type' ], 1 );
         add_filter( 'body_class', [ $this, 'body_class' ] );
     }
 
@@ -83,7 +79,7 @@ class Odinokov_Table_View {
                 <ul style="list-style:disc;padding-left:20px;">
                     <li><?php esc_html_e( 'Категория конечная или содержит не более 2 дочерних подкатегорий (без внуков)', 'odinokov-table-view' ); ?></li>
                     <li><?php esc_html_e( 'Более 5 товаров в категории', 'odinokov-table-view' ); ?></li>
-                    <li><?php esc_html_e( 'Не менее 80% товаров имеют одинаковое изображение', 'odinokov-table-view' ); ?></li>
+                    <li><?php esc_html_e( 'Не менее 60% товаров имеют одинаковое изображение', 'odinokov-table-view' ); ?></li>
                 </ul>
                 <p><?php esc_html_e( 'Также управляет выводом подкатегорий/товаров:', 'odinokov-table-view' ); ?></p>
                 <ul style="list-style:disc;padding-left:20px;">
@@ -111,25 +107,7 @@ class Odinokov_Table_View {
     }
 
     public function enqueue_assets() {
-        if ( ! is_product_category() ) return;
-
-        $term = get_queried_object();
-        if ( ! $term || ! isset( $term->term_id ) ) return;
-
-        $term_id = $term->term_id;
-        $cache_key = 'otv_check_' . $term_id;
-        $cached = get_transient( $cache_key );
-
-        if ( false === $cached ) {
-            $cached = $this->do_check( $term_id );
-            set_transient( $cache_key, $cached, HOUR_IN_SECONDS );
-        }
-
-        if ( empty( $cached['table'] ) ) return;
-
-        $this->is_table_view = true;
-        $this->override_display = $cached['display'] ?? null;
-
+        if ( ! $this->is_table_view ) return;
         wp_enqueue_style( 'otv-table', OTV_URL . 'assets/css/table.css', [], OTV_VERSION );
         wp_enqueue_script( 'otv-table', OTV_URL . 'assets/js/table.js', [], OTV_VERSION, true );
     }
@@ -139,46 +117,6 @@ class Odinokov_Table_View {
             $classes[] = 'otv-table-view';
         }
         return $classes;
-    }
-
-    public function override_view_mode_meta( $value, $object_id, $meta_key, $single ) {
-        if ( $meta_key !== 'view_mode' ) return $value;
-        if ( ! $this->is_table_view ) return $value;
-        if ( ! is_product_category() ) return $value;
-
-        $term = get_queried_object();
-        if ( ! $term || (int) $term->term_id !== (int) $object_id ) return $value;
-
-        return $single ? 'table' : [ 'table' ];
-    }
-
-    public function show_empty_subcats( $hide ) {
-        if ( null !== $this->override_display ) return false;
-        return $hide;
-    }
-
-    public function force_display_type() {
-        if ( null === $this->override_display ) return;
-
-        $term = get_queried_object();
-        if ( ! $term || ! isset( $term->term_id ) ) return;
-
-        if ( 'subcategories' === $this->override_display ) {
-            remove_action( 'woocommerce_before_shop_loop', 'woocommerce_product_loop_start', 20 );
-            remove_action( 'woocommerce_after_shop_loop', 'woocommerce_product_loop_end', 10 );
-            add_filter( 'woocommerce_show_page_title', '__return_false' );
-        }
-    }
-
-    public function override_display_type_meta( $value, $object_id, $meta_key, $single ) {
-        if ( $meta_key !== 'display_type' ) return $value;
-        if ( null === $this->override_display ) return $value;
-        if ( ! is_product_category() ) return $value;
-
-        $term = get_queried_object();
-        if ( ! $term || (int) $term->term_id !== (int) $object_id ) return $value;
-
-        return $single ? $this->override_display : [ $this->override_display ];
     }
 
     public function check_category() {
@@ -197,7 +135,9 @@ class Odinokov_Table_View {
         $cached = get_transient( $cache_key );
         if ( false !== $cached ) {
             $this->is_table_view = ! empty( $cached['table'] );
-            $this->override_display = $cached['display'] ?? null;
+            if ( ! empty( $cached['display'] ) ) {
+                update_metadata( 'product_cat', $term_id, 'display_type', $cached['display'] );
+            }
             return;
         }
 
@@ -205,7 +145,10 @@ class Odinokov_Table_View {
         set_transient( $cache_key, $result, HOUR_IN_SECONDS );
 
         $this->is_table_view = $result['table'];
-        $this->override_display = $result['display'];
+
+            if ( ! empty( $result['display'] ) ) {
+                update_metadata( 'product_cat', $term_id, 'display_type', $result['display'] );
+            }
     }
 
     private function do_check( $term_id ) {
@@ -282,13 +225,9 @@ class Odinokov_Table_View {
         if ( count( $product_ids ) < 2 ) return false;
 
         $image_counts = [];
-        $no_image = 0;
         foreach ( $product_ids as $pid ) {
             $thumb_id = get_post_thumbnail_id( $pid );
-            if ( ! $thumb_id ) {
-                $no_image++;
-                continue;
-            }
+            if ( ! $thumb_id ) continue;
             $key = (int) $thumb_id;
             $image_counts[ $key ] = ( $image_counts[ $key ] ?? 0 ) + 1;
         }
