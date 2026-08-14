@@ -3,7 +3,7 @@
  * Plugin Name: Odinokov Table View
  * Plugin URI:  https://github.com/KirillOdinokov/wp-plugins
  * Description: Автоматический табличный вид для категорий WooCommerce с однотипными товарами. Управление выводом подкатегорий/товаров. Совместим с Porto.
- * Version:     1.0.0
+ * Version:     1.0.1
  * Author:      Odinokov
  * Author URI:  https://github.com/KirillOdinokov/wp-plugins
  * Text Domain: odinokov-table-view
@@ -11,7 +11,7 @@
 
 if ( ! defined( 'ABSPATH' ) ) exit;
 
-define( 'OTV_VERSION', '1.0.0' );
+define( 'OTV_VERSION', '1.0.1' );
 define( 'OTV_DIR', plugin_dir_path( __FILE__ ) );
 define( 'OTV_URL', plugin_dir_url( __FILE__ ) );
 
@@ -47,10 +47,12 @@ class Odinokov_Table_View {
         add_action( 'wp_enqueue_scripts', [ $this, 'enqueue_assets' ] );
 
         add_filter( 'porto_ct_category_view_mode', [ $this, 'add_table_view_option' ], 20 );
-        add_filter( 'get_woocommerce_term_metadata', [ $this, 'override_view_mode_meta' ], 20, 4 );
+        add_filter( 'get_product_cat_metadata', [ $this, 'override_view_mode_meta' ], 20, 4 );
         add_filter( 'get_woocommerce_term_metadata', [ $this, 'override_display_type_meta' ], 20, 4 );
+        add_action( 'woocommerce_before_shop_loop', [ $this, 'apply_table_view' ], 1 );
         add_filter( 'wc_get_template_part', [ $this, 'override_template' ], 20, 3 );
         add_filter( 'wc_get_template', [ $this, 'override_loop_template' ], 20, 3 );
+        add_filter( 'porto_get_template_part', [ $this, 'override_template' ], 20, 3 );
     }
 
     public function add_admin_menu() {
@@ -246,6 +248,13 @@ class Odinokov_Table_View {
         if ( ! $term || (int) $term->term_id !== (int) $object_id ) return $value;
 
         return $single ? $this->override_display : [ $this->override_display ];
+    }
+
+    public function apply_table_view() {
+        if ( ! $this->is_table_view ) return;
+
+        global $woocommerce_loop;
+        $woocommerce_loop['category-view'] = 'table';
     }
 
     public function override_template( $template, $slug, $name ) {
