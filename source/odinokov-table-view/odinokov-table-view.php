@@ -3,7 +3,7 @@
  * Plugin Name: Odinokov Table View
  * Plugin URI:  https://github.com/KirillOdinokov/wp-plugins
  * Description: Автоматический табличный вид для категорий WooCommerce с однотипными товарами. Управление выводом подкатегорий/товаров. Совместим с Porto.
- * Version:     1.0.25
+ * Version:     1.0.26
  * Author:      Odinokov
  * Author URI:  https://github.com/KirillOdinokov/wp-plugins
  * Text Domain: odinokov-table-view
@@ -11,7 +11,7 @@
 
 if ( ! defined( 'ABSPATH' ) ) exit;
 
-define( 'OTV_VERSION', '1.0.25' );
+define( 'OTV_VERSION', '1.0.26' );
 define( 'OTV_DIR', plugin_dir_path( __FILE__ ) );
 define( 'OTV_URL', plugin_dir_url( __FILE__ ) );
 
@@ -34,7 +34,6 @@ class Odinokov_Table_View {
     private static $instance = null;
     private $is_table_view = false;
     private $override_display = null;
-    private $current_term_id = null;
 
     public static function get_instance() {
         if ( null === self::$instance ) self::$instance = new self();
@@ -44,12 +43,9 @@ class Odinokov_Table_View {
     private function __construct() {
         add_action( 'admin_menu', [ $this, 'add_admin_menu' ] );
         add_action( 'admin_post_otv_force_check', [ $this, 'force_check' ] );
-        add_action( 'wp', [ $this, 'detect_category' ], 0 );
+        add_action( 'pre_get_posts', [ $this, 'handle_category' ], 0 );
         add_action( 'wp_enqueue_scripts', [ $this, 'enqueue_assets' ] );
         add_filter( 'body_class', [ $this, 'body_class' ] );
-        add_filter( 'get_product_cat_metadata', [ $this, 'override_display_type_meta' ], 1, 4 );
-        add_action( 'woocommerce_product_query', [ $this, 'control_products' ], 99 );
-        add_filter( 'woocommerce_product_subcategories_hide_empty', [ $this, 'show_hidden_subcats' ], 99 );
     }
 
     public function add_admin_menu() {
@@ -124,14 +120,16 @@ class Odinokov_Table_View {
         return $classes;
     }
 
-    public function detect_category() {
-        if ( ! is_product_category() ) return;
+    public function handle_category( $query ) {
+        if ( is_admin() ) return;
+        if ( ! $query->is_main_query() ) return;
+        if ( ! $query->is_tax( 'product_cat' ) ) return;
 
         $term = get_queried_object();
         if ( ! $term || ! isset( $term->term_id ) ) return;
 
-        $this->current_term_id = $term->term_id;
-        $cache_key = 'otv_check_' . $this->current_term_id;
+        $term_id = $term->term_id;
+        $cache_key = 'otv_check_' . $term_id;
 
         if ( isset( $_GET['otv_clear'] ) && current_user_can( 'manage_options' ) ) {
             delete_transient( $cache_key );
@@ -142,44 +140,20 @@ class Odinokov_Table_View {
             $this->is_table_view = ! empty( $cached['table'] );
             $this->override_display = $cached['display'] ?? null;
         } else {
-            $result = $this->do_check( $this->current_term_id );
+            $result = $this->do_check( $term_id );
             set_transient( $cache_key, $result, HOUR_IN_SECONDS );
             $this->is_table_view = $result['table'];
             $this->override_display = $result['display'];
         }
 
-        if ( ! empty( $this->override_display ) ) {
-            update_term_meta( $this->current_term_id, 'display_type', $this->override_display );
-            update_metadata( 'product_cat', $this->current_term_id, 'display_type', $this->override_display );
+        if ( null !== $this->override_display ) {
+            if ( 'subcategories' === $this->override_display ) {
+                $query->set( 'posts_per_page', 0 );
+                add_filter( 'woocommerce_product_subcategories_hide_empty', '__return_false', 99 );
+            } elseif ( 'both' === $this->override_display ) {
+                add_filter( 'woocommerce_product_subcategories_hide_empty', '__return_false', 99 );
+            }
         }
-    }
-
-    public function override_display_type_meta( $value, $object_id, $meta_key, $single ) {
-        if ( $meta_key !== 'display_type' ) return $value;
-        if ( null === $this->override_display ) return $value;
-        if ( null === $this->current_term_id ) return $value;
-        if ( (int) $object_id !== (int) $this->current_term_id ) return $value;
-
-        return $single ? $this->override_display : [ $this->override_display ];
-    }
-
-    public function control_products( $q ) {
-        if ( null === $this->override_display ) return;
-        if ( 'subcategories' !== $this->override_display ) return;
-
-        $tax_query = (array) $q->get( 'tax_query' );
-        $tax_query[] = [
-            'taxonomy' => 'product_cat',
-            'field'    => 'term_id',
-            'terms'    => [ PHP_INT_MAX ],
-            'operator' => 'IN',
-        ];
-        $q->set( 'tax_query', $tax_query );
-    }
-
-    public function show_hidden_subcats( $hide ) {
-        if ( null === $this->override_display ) return $hide;
-        return false;
     }
 
     private function do_check( $term_id ) {
