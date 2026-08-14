@@ -3,8 +3,8 @@
     "download_url":  "https://raw.githubusercontent.com/KirillOdinokov/wp-plugins/main/repo/odinokov-table-view.zip",
     "last_updated":  "2026-08-14",
     "tested":  "6.7",
-    "version":  "1.0.1",
+    "version":  "1.0.2",
     "requires_php":  "7.2",
     "homepage":  "https://raw.githubusercontent.com/KirillOdinokov/wp-plugins/main",
-    "changelog":  "= 1.0.1 =\n* Исправлена совместимость с Porto (get_product_cat_metadata + porto_get_template_part)\n* Прямая установка category-view через woocommerce_before_shop_loop"
+    "changelog":  "= 1.0.2 =\n* Полная переработка: таблица через WooCommerce хуки (remove_action + add_action)\n* Совместимость с Porto и любыми темами"
 }
