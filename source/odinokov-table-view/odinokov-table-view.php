@@ -3,7 +3,7 @@
  * Plugin Name: Odinokov Table View
  * Plugin URI:  https://github.com/KirillOdinokov/wp-plugins
  * Description: Автоматический табличный вид для категорий WooCommerce с однотипными товарами. Управление выводом подкатегорий/товаров. Совместим с Porto.
- * Version:     1.0.2
+ * Version:     1.0.3
  * Author:      Odinokov
  * Author URI:  https://github.com/KirillOdinokov/wp-plugins
  * Text Domain: odinokov-table-view
@@ -11,7 +11,7 @@
 
 if ( ! defined( 'ABSPATH' ) ) exit;
 
-define( 'OTV_VERSION', '1.0.2' );
+define( 'OTV_VERSION', '1.0.3' );
 define( 'OTV_DIR', plugin_dir_path( __FILE__ ) );
 define( 'OTV_URL', plugin_dir_url( __FILE__ ) );
 
@@ -45,7 +45,10 @@ class Odinokov_Table_View {
         add_action( 'admin_post_otv_force_check', [ $this, 'force_check' ] );
         add_action( 'wp', [ $this, 'check_category' ], 5 );
         add_action( 'wp_enqueue_scripts', [ $this, 'enqueue_assets' ] );
-        add_action( 'woocommerce_before_shop_loop', [ $this, 'apply_table_view' ], 1 );
+        add_filter( 'get_product_cat_metadata', [ $this, 'override_view_mode_meta' ], 20, 4 );
+        add_filter( 'get_woocommerce_term_metadata', [ $this, 'override_display_type_meta' ], 20, 4 );
+        add_action( 'woocommerce_before_shop_loop', [ $this, 'table_header' ], 1 );
+        add_filter( 'body_class', [ $this, 'body_class' ] );
     }
 
     public function add_admin_menu() {
@@ -110,6 +113,35 @@ class Odinokov_Table_View {
     public function enqueue_assets() {
         if ( ! $this->is_table_view ) return;
         wp_enqueue_style( 'otv-table', OTV_URL . 'assets/css/table.css', [], OTV_VERSION );
+    }
+
+    public function body_class( $classes ) {
+        if ( $this->is_table_view ) {
+            $classes[] = 'otv-table-view';
+        }
+        return $classes;
+    }
+
+    public function override_view_mode_meta( $value, $object_id, $meta_key, $single ) {
+        if ( $meta_key !== 'view_mode' ) return $value;
+        if ( ! $this->is_table_view ) return $value;
+        if ( ! is_product_category() ) return $value;
+
+        $term = get_queried_object();
+        if ( ! $term || (int) $term->term_id !== (int) $object_id ) return $value;
+
+        return $single ? 'table' : [ 'table' ];
+    }
+
+    public function override_display_type_meta( $value, $object_id, $meta_key, $single ) {
+        if ( $meta_key !== 'display_type' ) return $value;
+        if ( null === $this->override_display ) return $value;
+        if ( ! is_product_category() ) return $value;
+
+        $term = get_queried_object();
+        if ( ! $term || (int) $term->term_id !== (int) $object_id ) return $value;
+
+        return $single ? $this->override_display : [ $this->override_display ];
     }
 
     public function check_category() {
@@ -216,91 +248,9 @@ class Odinokov_Table_View {
         return $ratio >= 0.8;
     }
 
-    public function apply_table_view() {
+    public function table_header() {
         if ( ! $this->is_table_view ) return;
-
-        global $woocommerce_loop;
-        $woocommerce_loop['category-view'] = 'table';
-
-        remove_action( 'woocommerce_before_shop_loop_item', 'woocommerce_template_loop_product_link_open', 10 );
-        remove_action( 'woocommerce_after_shop_loop_item', 'woocommerce_template_loop_product_link_close', 5 );
-        remove_action( 'woocommerce_after_shop_loop_item', 'woocommerce_template_loop_add_to_cart', 10 );
-        remove_action( 'woocommerce_before_shop_loop_item_title', 'woocommerce_template_loop_product_thumbnail', 10 );
-        remove_action( 'woocommerce_shop_loop_item_title', 'woocommerce_template_loop_product_title', 10 );
-        remove_action( 'woocommerce_after_shop_loop_item_title', 'woocommerce_template_loop_price', 10 );
-        remove_action( 'woocommerce_after_shop_loop_item_title', 'woocommerce_template_loop_rating', 5 );
-
-        add_action( 'woocommerce_before_shop_loop_item', [ $this, 'table_row_open' ], 1 );
-        add_action( 'woocommerce_before_shop_loop_item', [ $this, 'table_cell_image' ], 5 );
-        add_action( 'woocommerce_before_shop_loop_item', [ $this, 'table_cell_name_open' ], 10 );
-        add_action( 'woocommerce_shop_loop_item_title', 'woocommerce_template_loop_product_title', 10 );
-        add_action( 'woocommerce_after_shop_loop_item_title', [ $this, 'table_cell_name_close' ], 1 );
-        add_action( 'woocommerce_after_shop_loop_item_title', [ $this, 'table_cell_price' ], 5 );
-        add_action( 'woocommerce_after_shop_loop_item', [ $this, 'table_cell_cart' ], 5 );
-        add_action( 'woocommerce_after_shop_loop_item', [ $this, 'table_row_close' ], 15 );
-
-        add_action( 'woocommerce_before_shop_loop', [ $this, 'table_open' ], 0 );
-        add_action( 'woocommerce_after_shop_loop', [ $this, 'table_close' ], 999 );
-    }
-
-    public function table_open() {
-        echo '<table class="otv-products-table"><thead><tr>';
-        echo '<th class="otv-th-img">' . esc_html__( 'Фото', 'odinokov-table-view' ) . '</th>';
-        echo '<th class="otv-th-name">' . esc_html__( 'Наименование', 'odinokov-table-view' ) . '</th>';
-        echo '<th class="otv-th-price">' . esc_html__( 'Цена', 'odinokov-table-view' ) . '</th>';
-        echo '<th class="otv-th-cart">' . esc_html__( 'В корзину', 'odinokov-table-view' ) . '</th>';
-        echo '</tr></thead><tbody>';
-    }
-
-    public function table_close() {
-        echo '</tbody></table>';
-    }
-
-    public function table_row_open() {
-        global $product;
-        $classes = $product && is_a( $product, 'WC_Product' ) ? wc_get_product_class( '', $product ) : '';
-        echo '<tr class="' . esc_attr( implode( ' ', $classes ) ) . '">';
-    }
-
-    public function table_cell_image() {
-        global $product;
-        if ( ! $product || ! is_a( $product, 'WC_Product' ) ) return;
-        echo '<td class="otv-td-img" data-title="' . esc_attr__( 'Фото', 'odinokov-table-view' ) . '">';
-        echo '<a href="' . esc_url( $product->get_permalink() ) . '">';
-        echo $product->get_image( 'thumbnail', [ 'class' => 'otv-table-img', 'loading' => 'lazy' ] );
-        echo '</a>';
-        echo '</td>';
-    }
-
-    public function table_cell_name_open() {
-        global $product;
-        echo '<td class="otv-td-name" data-title="' . esc_attr__( 'Наименование', 'odinokov-table-view' ) . '">';
-        echo '<a href="' . esc_url( $product->get_permalink() ) . '" class="otv-table-link">';
-    }
-
-    public function table_cell_name_close() {
-        global $product;
-        echo '</a>';
-        if ( $product && is_a( $product, 'WC_Product' ) && $product->get_sku() ) {
-            echo '<span class="otv-sku">' . esc_html( $product->get_sku() ) . '</span>';
-        }
-        echo '</td>';
-    }
-
-    public function table_cell_price() {
-        echo '<td class="otv-td-price" data-title="' . esc_attr__( 'Цена', 'odinokov-table-view' ) . '">';
-        woocommerce_template_loop_price();
-        echo '</td>';
-    }
-
-    public function table_cell_cart() {
-        echo '<td class="otv-td-cart">';
-        woocommerce_template_loop_add_to_cart();
-        echo '</td>';
-    }
-
-    public function table_row_close() {
-        echo '</tr>';
+        echo '<div class="otv-table-header"><div class="otv-th otv-th-img">' . esc_html__( 'Фото', 'odinokov-table-view' ) . '</div><div class="otv-th otv-th-name">' . esc_html__( 'Наименование', 'odinokov-table-view' ) . '</div><div class="otv-th otv-th-price">' . esc_html__( 'Цена', 'odinokov-table-view' ) . '</div><div class="otv-th otv-th-cart">' . esc_html__( 'В корзину', 'odinokov-table-view' ) . '</div></div>';
     }
 }
 
