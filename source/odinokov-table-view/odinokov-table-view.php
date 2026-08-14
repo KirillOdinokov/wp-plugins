@@ -3,7 +3,7 @@
  * Plugin Name: Odinokov Table View
  * Plugin URI:  https://github.com/KirillOdinokov/wp-plugins
  * Description: Автоматический табличный вид для категорий WooCommerce с однотипными товарами. Управление выводом подкатегорий/товаров. Совместим с Porto.
- * Version:     1.0.4
+ * Version:     1.0.5
  * Author:      Odinokov
  * Author URI:  https://github.com/KirillOdinokov/wp-plugins
  * Text Domain: odinokov-table-view
@@ -11,7 +11,7 @@
 
 if ( ! defined( 'ABSPATH' ) ) exit;
 
-define( 'OTV_VERSION', '1.0.4' );
+define( 'OTV_VERSION', '1.0.5' );
 define( 'OTV_DIR', plugin_dir_path( __FILE__ ) );
 define( 'OTV_URL', plugin_dir_url( __FILE__ ) );
 
@@ -111,6 +111,24 @@ class Odinokov_Table_View {
 
     public function enqueue_assets() {
         if ( ! is_product_category() ) return;
+
+        $term = get_queried_object();
+        if ( ! $term || ! isset( $term->term_id ) ) return;
+
+        $term_id = $term->term_id;
+        $cache_key = 'otv_check_' . $term_id;
+        $cached = get_transient( $cache_key );
+
+        if ( false === $cached ) {
+            $cached = $this->do_check( $term_id );
+            set_transient( $cache_key, $cached, HOUR_IN_SECONDS );
+        }
+
+        if ( empty( $cached['table'] ) ) return;
+
+        $this->is_table_view = true;
+        $this->override_display = $cached['display'] ?? null;
+
         wp_enqueue_style( 'otv-table', OTV_URL . 'assets/css/table.css', [], OTV_VERSION );
         wp_enqueue_script( 'otv-table', OTV_URL . 'assets/js/table.js', [], OTV_VERSION, true );
     }
@@ -159,6 +177,14 @@ class Odinokov_Table_View {
             return;
         }
 
+        $result = $this->do_check( $term_id );
+        set_transient( $cache_key, $result, HOUR_IN_SECONDS );
+
+        $this->is_table_view = $result['table'];
+        $this->override_display = $result['display'];
+    }
+
+    private function do_check( $term_id ) {
         $result = [ 'table' => false, 'display' => null ];
 
         $subcats = get_terms( [
@@ -205,10 +231,7 @@ class Odinokov_Table_View {
             }
         }
 
-        set_transient( $cache_key, $result, HOUR_IN_SECONDS );
-
-        $this->is_table_view = $result['table'];
-        $this->override_display = $result['display'];
+        return $result;
     }
 
     private function get_product_count( $term_id ) {

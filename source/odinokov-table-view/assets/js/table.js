@@ -2,6 +2,8 @@
     'use strict';
 
     function init() {
+        if (!document.body.classList.contains('otv-table-view')) return;
+
         var products = document.querySelector('ul.products');
         if (!products) return;
 
