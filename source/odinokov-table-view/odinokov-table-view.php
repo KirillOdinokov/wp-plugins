@@ -43,7 +43,7 @@ class Odinokov_Table_View {
     private function __construct() {
         add_action( 'admin_menu', [ $this, 'add_admin_menu' ] );
         add_action( 'admin_post_otv_force_check', [ $this, 'force_check' ] );
-        add_action( 'wp', [ $this, 'check_category' ], 5 );
+        add_action( 'template_redirect', [ $this, 'check_category' ], 5 );
         add_action( 'wp_enqueue_scripts', [ $this, 'enqueue_assets' ] );
         add_filter( 'get_product_cat_metadata', [ $this, 'override_view_mode_meta' ], 20, 4 );
         add_filter( 'get_woocommerce_term_metadata', [ $this, 'override_display_type_meta' ], 20, 4 );

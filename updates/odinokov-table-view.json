@@ -6,5 +6,5 @@
     "version":  "1.0.3",
     "requires_php":  "7.2",
     "homepage":  "https://raw.githubusercontent.com/KirillOdinokov/wp-plugins/main",
-    "changelog":  "= 1.0.3 =\n* JS DOM-трансформация грида в таблицу (работает с любой темой)"
+    "changelog":  "= 1.0.3 =\n* JS DOM-трансформация грида в таблицу\n* Исправлен порядок хуков (template_redirect)"
 }
