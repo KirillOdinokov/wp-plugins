@@ -3,8 +3,8 @@
     "download_url":  "https://raw.githubusercontent.com/KirillOdinokov/wp-plugins/main/repo/odinokov-table-view.zip",
     "last_updated":  "2026-08-14",
     "tested":  "6.7",
-    "version":  "1.0.6",
+    "version":  "1.0.7",
     "requires_php":  "7.2",
     "homepage":  "https://raw.githubusercontent.com/KirillOdinokov/wp-plugins/main",
-    "changelog":  "= 1.0.6 =\n* Порог схожести снижен до 60%\n* Товары без картинок исключены из расчёта"
+    "changelog":  "= 1.0.7 =\n* ?otv_clear=1 сбрасывает кеш для админов\n* Прямой контроль display_type через хуки"
 }
