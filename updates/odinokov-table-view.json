@@ -3,8 +3,8 @@
     "download_url":  "https://raw.githubusercontent.com/KirillOdinokov/wp-plugins/main/repo/odinokov-table-view.zip",
     "last_updated":  "2026-08-14",
     "tested":  "6.7",
-    "version":  "1.0.10",
+    "version":  "1.0.15",
     "requires_php":  "7.2",
     "homepage":  "https://raw.githubusercontent.com/KirillOdinokov/wp-plugins/main",
-    "changelog":  "= 1.0.10 =\n* display_type через WC-фильтры (subcat_args + tax_query)"
+    "changelog":  "= 1.0.15 =\n* display_type через pre_get_posts (post__in=[0] для subcategories)"
 }
