@@ -3,8 +3,8 @@
     "download_url":  "https://raw.githubusercontent.com/KirillOdinokov/wp-plugins/main/repo/odinokov-table-view.zip",
     "last_updated":  "2026-08-14",
     "tested":  "6.7",
-    "version":  "1.0.30",
+    "version":  "1.0.31",
     "requires_php":  "7.2",
     "homepage":  "https://raw.githubusercontent.com/KirillOdinokov/wp-plugins/main",
-    "changelog":  "= 1.0.30 =\n* Подкатегории через woocommerce_archive_description (один вызов)\n* Флаг subcats_output для защиты от дублирования"
+    "changelog":  "= 1.0.31 =\n* Подкатегории через Porto-шаблон content-product_cat.php"
 }

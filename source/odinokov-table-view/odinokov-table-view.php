@@ -3,7 +3,7 @@
  * Plugin Name: Odinokov Table View
  * Plugin URI:  https://github.com/KirillOdinokov/wp-plugins
  * Description: Автоматический табличный вид для категорий WooCommerce с однотипными товарами. Управление выводом подкатегорий/товаров. Совместим с Porto.
- * Version:     1.0.30
+ * Version:     1.0.31
  * Author:      Odinokov
  * Author URI:  https://github.com/KirillOdinokov/wp-plugins
  * Text Domain: odinokov-table-view
@@ -11,7 +11,7 @@
 
 if ( ! defined( 'ABSPATH' ) ) exit;
 
-define( 'OTV_VERSION', '1.0.30' );
+define( 'OTV_VERSION', '1.0.31' );
 define( 'OTV_DIR', plugin_dir_path( __FILE__ ) );
 define( 'OTV_URL', plugin_dir_url( __FILE__ ) );
 
@@ -167,22 +167,17 @@ class Odinokov_Table_View {
 
         if ( empty( $subcats ) || is_wp_error( $subcats ) ) return;
 
-        echo '<ul class="products columns-4 otv-subcat-list">';
+        wc_set_loop_prop( 'columns', 4 );
+        woocommerce_product_loop_start();
+
         foreach ( $subcats as $subcat ) {
-            $thumbnail_id = get_term_meta( $subcat->term_id, 'thumbnail_id', true );
-            $image = $thumbnail_id ? wp_get_attachment_image( $thumbnail_id, 'woocommerce_thumbnail' ) : wc_placeholder_img( 'woocommerce_thumbnail' );
-            $link = get_term_link( $subcat );
-            if ( is_wp_error( $link ) ) continue;
-            ?>
-            <li class="product-category product">
-                <a href="<?php echo esc_url( $link ); ?>" class="woocommerce-loop-category__link">
-                    <?php echo $image; ?>
-                    <h2 class="woocommerce-loop-category__title"><?php echo esc_html( $subcat->name ); ?></h2>
-                </a>
-            </li>
-            <?php
+            $args = [
+                'category' => $subcat,
+            ];
+            wc_get_template( 'content-product_cat.php', $args );
         }
-        echo '</ul>';
+
+        woocommerce_product_loop_end();
     }
 
     public function hide_products( $q ) {
