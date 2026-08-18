@@ -1,10 +1,10 @@
 ﻿{
     "requires":  "5.8",
-    "download_url":  "https://raw.githubusercontent.com/KirillOdinokov/wp-plugins/main/repo/order-share-odinokov.zip",
-    "last_updated":  "2026-08-03",
+    "download_url":  "https://raw.githubusercontent.com/KirillOdinokov/wp-plugins/main/repo/odinokov-table-view.zip",
+    "last_updated":  "2026-08-18",
     "tested":  "6.7",
-    "version":  "1.0.9",
+    "version":  "1.0.10",
     "requires_php":  "7.2",
     "homepage":  "https://raw.githubusercontent.com/KirillOdinokov/wp-plugins/main",
-    "changelog":  "= 1.0.9 =\n* Раздельная настройка размера иконки для товара и категории\n* Исправлено сохранение размера иконки\n* Убран жёсткий CSS 18px для кнопки заявки"
+    "changelog":  "= 1.0.10 =\n* Добавлен набор иконок blue"
 }
