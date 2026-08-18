@@ -3,7 +3,7 @@
  * Plugin Name: Odinokov Table View
  * Plugin URI:  https://github.com/KirillOdinokov/wp-plugins
  * Description: Автоматический табличный вид для категорий WooCommerce с однотипными товарами. Управление выводом подкатегорий/товаров. Совместим с Porto.
- * Version:     1.0.34
+ * Version:     1.0.54
  * Author:      Odinokov
  * Author URI:  https://github.com/KirillOdinokov/wp-plugins
  * Text Domain: odinokov-table-view
@@ -11,7 +11,7 @@
 
 if ( ! defined( 'ABSPATH' ) ) exit;
 
-define( 'OTV_VERSION', '1.0.34' );
+define( 'OTV_VERSION', '1.0.54' );
 define( 'OTV_DIR', plugin_dir_path( __FILE__ ) );
 define( 'OTV_URL', plugin_dir_url( __FILE__ ) );
 
@@ -34,7 +34,9 @@ class Odinokov_Table_View {
     private static $instance = null;
     private $is_table_view = false;
     private $override_display = null;
+    private $show_hover_desc = false;
     private $subcats_rendered = false;
+    private $order_buttons = [];
 
     public static function get_instance() {
         if ( null === self::$instance ) self::$instance = new self();
@@ -47,8 +49,10 @@ class Odinokov_Table_View {
         add_action( 'wp', [ $this, 'check_category' ], 0 );
         add_action( 'wp_enqueue_scripts', [ $this, 'enqueue_assets' ] );
         add_filter( 'body_class', [ $this, 'body_class' ] );
-        add_action( 'woocommerce_before_shop_loop', [ $this, 'render_subcategories' ], 5 );
+        add_action( 'woocommerce_before_shop_loop', [ $this, 'render_subcategories' ], 85 );
         add_action( 'woocommerce_product_query', [ $this, 'hide_products' ], 99 );
+        add_action( 'woocommerce_after_shop_loop_item', [ $this, 'output_product_short_desc' ], 20 );
+        add_filter( 'woocommerce_get_price_html', [ $this, 'extract_order_button' ], 30, 2 );
     }
 
     public function add_admin_menu() {
@@ -111,19 +115,56 @@ class Odinokov_Table_View {
     }
 
     public function enqueue_assets() {
-        if ( ! $this->is_table_view ) return;
+        if ( ! $this->is_table_view && null === $this->override_display && ! $this->show_hover_desc ) return;
+
         wp_enqueue_style( 'otv-table', OTV_URL . 'assets/css/table.css', [], OTV_VERSION );
         wp_enqueue_script( 'otv-table', OTV_URL . 'assets/js/table.js', [], OTV_VERSION, true );
+
+        $subcat_descs = [];
+
+        if ( null !== $this->override_display ) {
+            $term = get_queried_object();
+            if ( $term && isset( $term->term_id ) ) {
+                $subcats = get_terms( [
+                    'taxonomy'   => 'product_cat',
+                    'parent'     => $term->term_id,
+                    'hide_empty' => false,
+                ] );
+                if ( ! empty( $subcats ) && ! is_wp_error( $subcats ) ) {
+                    foreach ( $subcats as $sc ) {
+                        $desc = term_description( $sc->term_id );
+                        $desc = wp_strip_all_tags( $desc, true );
+                        $desc = trim( $desc );
+                        if ( ! empty( $desc ) ) {
+                            $subcat_descs[ $sc->slug ] = mb_substr( $desc, 0, 200 );
+                        }
+                    }
+                }
+            }
+        }
+
+        wp_localize_script( 'otv-table', 'otvData', [
+            'subcatDescs' => $subcat_descs,
+            'isTable'     => $this->is_table_view,
+        ] );
     }
 
     public function body_class( $classes ) {
         if ( $this->is_table_view ) {
             $classes[] = 'otv-table-view';
         }
+        if ( null !== $this->override_display || $this->show_hover_desc ) {
+            $classes[] = 'otv-active';
+        }
         return $classes;
     }
 
     public function check_category() {
+        if ( is_product_tag() ) {
+            $this->show_hover_desc = true;
+            return;
+        }
+
         if ( ! is_product_category() ) return;
 
         $term = get_queried_object();
@@ -140,6 +181,7 @@ class Odinokov_Table_View {
         if ( false !== $cached ) {
             $this->is_table_view = ! empty( $cached['table'] );
             $this->override_display = $cached['display'] ?? null;
+            $this->show_hover_desc = ! $this->is_table_view;
             return;
         }
 
@@ -148,6 +190,7 @@ class Odinokov_Table_View {
 
         $this->is_table_view = $result['table'];
         $this->override_display = $result['display'];
+        $this->show_hover_desc = ! $this->is_table_view;
     }
 
     public function render_subcategories() {
@@ -168,6 +211,8 @@ class Odinokov_Table_View {
 
         if ( empty( $subcats ) || is_wp_error( $subcats ) ) return;
 
+        echo '<div class="otv-subcategories-wrapper">';
+
         global $woocommerce_loop;
         $woocommerce_loop['category-view'] = 'grid';
         wc_set_loop_prop( 'columns', 4 );
@@ -179,6 +224,8 @@ class Odinokov_Table_View {
         }
 
         woocommerce_product_loop_end();
+
+        echo '</div>';
     }
 
     public function hide_products( $q ) {
@@ -186,6 +233,48 @@ class Odinokov_Table_View {
         if ( 'subcategories' !== $this->override_display ) return;
 
         $q->set( 'post__in', [ 0 ] );
+    }
+
+    public function extract_order_button( $price_html, $product ) {
+        if ( $this->is_table_view ) return $price_html;
+        if ( null === $this->override_display && ! $this->show_hover_desc ) return $price_html;
+        if ( ! $product instanceof WC_Product ) return $price_html;
+
+        if ( preg_match( '/<div class="oso-order-btn-wrap">.*?<\/div>/s', $price_html, $m ) ) {
+            $this->order_buttons[ $product->get_id() ] = $m[0];
+            $price_html = str_replace( $m[0], '', $price_html );
+        }
+
+        return $price_html;
+    }
+
+    public function output_product_short_desc() {
+        if ( $this->is_table_view ) return;
+        if ( null === $this->override_display && ! $this->show_hover_desc ) return;
+
+        global $product;
+        if ( ! is_a( $product, 'WC_Product' ) ) return;
+
+        $desc = $product->get_short_description();
+        $desc = wp_strip_all_tags( $desc, true );
+        $desc = trim( $desc );
+
+        $button_html = $this->order_buttons[ $product->get_id() ] ?? '';
+
+        if ( empty( $desc ) ) {
+            if ( $button_html ) {
+                echo $button_html;
+            }
+            return;
+        }
+
+        $desc = mb_substr( $desc, 0, 200 );
+        $link = get_permalink( $product->get_id() );
+        echo '<div class="otv-hover-desc">' . esc_html( $desc ) . ' <a href="' . esc_url( $link ) . '" class="otv-read-more">читать далее &gt;</a>';
+        if ( $button_html ) {
+            echo '<div class="otv-hover-actions">' . $button_html . '</div>';
+        }
+        echo '</div>';
     }
 
     private function do_check( $term_id ) {

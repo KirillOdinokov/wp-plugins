@@ -24,12 +24,84 @@
 .otv-td-name { min-width: 200px; }
 .otv-table-link { font-weight: 500; color: #333; text-decoration: none; }
 .otv-table-link:hover { color: #0073aa; }
-.otv-th-price, .otv-td-price { white-space: nowrap; min-width: 100px; text-align: right; }
+.otv-products-table thead th.otv-th-price,
+.otv-td-price { white-space: nowrap; min-width: 100px; text-align: right; }
 .otv-td-price .price { margin: 0; font-weight: 600; }
-.otv-th-cart, .otv-td-cart { white-space: nowrap; text-align: center; min-width: 120px; }
+.otv-products-table thead th.otv-th-cart,
+.otv-td-cart { white-space: nowrap; text-align: center; min-width: 120px; }
 .otv-td-cart .add_to_cart_button,
 .otv-td-cart .ajax_add_to_cart,
 .otv-td-cart .button { display: inline-block; padding: 6px 14px; font-size: 13px; font-weight: 500; border-radius: 4px; }
+
+.otv-hover-desc {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(255,255,255,0.97);
+    color: #333;
+    font-size: 13px;
+    line-height: 1.5;
+    padding: 12px 14px;
+    border-top: 1px solid #eee;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.25s ease;
+    z-index: 20;
+}
+.otv-hover-desc .otv-read-more {
+    display: inline;
+    color: #0073aa;
+    font-weight: 500;
+    white-space: nowrap;
+    pointer-events: auto;
+    text-decoration: none;
+}
+.otv-hover-desc .otv-read-more:hover {
+    text-decoration: underline;
+}
+.otv-hover-desc .otv-hover-actions {
+    margin-top: 8px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    z-index: 30;
+    pointer-events: auto;
+}
+.otv-hover-desc .otv-hover-actions .oso-order-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    pointer-events: auto;
+    cursor: pointer;
+}
+body.otv-table-view .shop-loop-before,
+body.otv-table-view .shop-loop-before.clearfix,
+.otv-table-view .shop-loop-before { display: none !important; }
+
+body.otv-active .otv-subcategories-wrapper .product-category:hover .otv-hover-desc,
+body.otv-active .otv-subcategories-wrapper .product:hover .otv-hover-desc,
+body.otv-active ul.products li.product:hover > .otv-hover-desc,
+body.otv-active ul.products li.product:hover .product-inner > .otv-hover-desc,
+body.otv-active ul.products li.product:hover .product-content > .otv-hover-desc {
+    opacity: 1;
+    pointer-events: auto;
+}
+body.otv-active .otv-subcategories-wrapper .product-category,
+body.otv-active .otv-subcategories-wrapper .product,
+body.otv-active ul.products li.product {
+    position: relative;
+    overflow: visible !important;
+}
+body.otv-active ul.products li.product .product-inner,
+body.otv-active ul.products li.product .product-image,
+body.otv-active ul.products li.product .product-content {
+    overflow: visible !important;
+}
+
 @media (max-width: 767px) {
     .otv-products-table thead { display: none; }
     .otv-products-table tbody td { display: block; text-align: right; padding: 8px 12px; }
