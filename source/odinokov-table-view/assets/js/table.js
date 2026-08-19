@@ -54,10 +54,7 @@
         var subcatDescs = otvData.subcatDescs;
         if (!subcatDescs || Object.keys(subcatDescs).length === 0) return;
 
-        var wrapper = document.querySelector('.otv-subcategories-wrapper');
-        if (!wrapper) return;
-
-        var catItems = wrapper.querySelectorAll('.product-category');
+        var catItems = document.querySelectorAll('.product-category');
         catItems.forEach(function(item) {
             if (item.querySelector('.otv-hover-desc')) return;
             var link = item.querySelector('a[href]');
