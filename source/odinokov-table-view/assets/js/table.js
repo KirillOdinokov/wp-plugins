@@ -56,19 +56,47 @@
 
         var catItems = document.querySelectorAll('.product-category');
         catItems.forEach(function(item) {
-            if (item.querySelector('.otv-hover-desc')) return;
-            var link = item.querySelector('a[href]');
-            if (!link) return;
-            var href = link.getAttribute('href');
-            var parts = href.replace(/\/+$/, '').split('/');
-            var slug = parts[parts.length - 1];
-            if (!slug || !subcatDescs[slug]) return;
-
-            var descDiv = document.createElement('div');
-            descDiv.className = 'otv-hover-desc';
-            descDiv.textContent = subcatDescs[slug];
-            item.appendChild(descDiv);
+            injectDescIntoItem(item, subcatDescs);
         });
+    }
+
+    function injectDescIntoItem(item, subcatDescs) {
+        if (item.querySelector('.otv-hover-desc')) return;
+        var link = item.querySelector('a[href]');
+        if (!link) return;
+        var href = link.getAttribute('href');
+        var parts = href.replace(/\/+$/, '').split('/');
+        var slug = parts[parts.length - 1];
+        if (!slug || !subcatDescs[slug]) return;
+
+        var descDiv = document.createElement('div');
+        descDiv.className = 'otv-hover-desc';
+        descDiv.textContent = subcatDescs[slug];
+        item.appendChild(descDiv);
+    }
+
+    function watchSubcatHoverDescs() {
+        if (!window.otvData) return;
+        var subcatDescs = otvData.subcatDescs;
+        if (!subcatDescs || Object.keys(subcatDescs).length === 0) return;
+
+        var observer = new MutationObserver(function(mutations) {
+            mutations.forEach(function(m) {
+                m.addedNodes.forEach(function(node) {
+                    if (node.nodeType !== 1) return;
+                    if (node.classList && node.classList.contains('product-category')) {
+                        injectDescIntoItem(node, subcatDescs);
+                    }
+                    if (node.querySelectorAll) {
+                        var cats = node.querySelectorAll('.product-category');
+                        for (var i = 0; i < cats.length; i++) {
+                            injectDescIntoItem(cats[i], subcatDescs);
+                        }
+                    }
+                });
+            });
+        });
+        observer.observe(document.body, { childList: true, subtree: true });
     }
 
     function buildTable() {
@@ -162,6 +190,7 @@
         hideShopLoopBefore();
         watchShopLoopBefore();
         injectSubcatHoverDescs();
+        watchSubcatHoverDescs();
         buildTable();
     }
 
