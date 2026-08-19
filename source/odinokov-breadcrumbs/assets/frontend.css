@@ -92,6 +92,7 @@
 /* Родительский контейнер хлебных крошек — relative для позиционирования */
 .obm-breadcrumb-wrapper {
     position: relative;
+    z-index: 9999;
 }
 
 /* Подсветка активного пункта */
