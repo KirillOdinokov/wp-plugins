@@ -3,8 +3,8 @@
     "download_url":  "https://raw.githubusercontent.com/KirillOdinokov/wp-plugins/main/repo/odinokov-breadcrumbs.zip",
     "last_updated":  "2026-08-19",
     "tested":  "6.7",
-    "version":  "1.1.5",
+    "version":  "1.1.6",
     "requires_php":  "7.2",
     "homepage":  "https://raw.githubusercontent.com/KirillOdinokov/wp-plugins/main",
-    "changelog":  "= 1.1.5 =\n* Исправлен z-index: wide-меню больше не уходит под контент"
+    "changelog":  "= 1.1.6 =\n* Меню вынесено в body + позиционирование через getBoundingClientRect (фикс stacking context)"
 }

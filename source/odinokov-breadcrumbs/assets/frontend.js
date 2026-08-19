@@ -22,7 +22,7 @@
         menuEl.className = 'obm-mega-menu';
         menuEl.setAttribute('role', 'menu');
         menuEl.setAttribute('aria-hidden', 'true');
-        wrapper.appendChild(menuEl);
+        document.body.appendChild(menuEl);
 
         menuEl.addEventListener('mouseenter', function() {
             clearTimeout(hideTimer);
@@ -211,9 +211,18 @@
     }
 
     function positionMenu(li) {
-        menuEl.style.left = '0';
-        menuEl.style.right = '0';
-        menuEl.style.width = '100%';
+        var wrapper = li.closest('.obm-breadcrumb-wrapper');
+        if (!wrapper) return;
+
+        var rect = wrapper.getBoundingClientRect();
+        var scrollX = window.pageXOffset || document.documentElement.scrollLeft || 0;
+        var scrollY = window.pageYOffset || document.documentElement.scrollTop || 0;
+
+        menuEl.style.position = 'absolute';
+        menuEl.style.left = (rect.left + scrollX) + 'px';
+        menuEl.style.top = (rect.bottom + scrollY + 4) + 'px';
+        menuEl.style.width = rect.width + 'px';
+        menuEl.style.right = 'auto';
     }
 
     function setActive(li) {

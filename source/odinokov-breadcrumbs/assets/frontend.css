@@ -2,9 +2,8 @@
     display: none;
     position: absolute;
     left: 0;
-    right: 0;
-    top: 100%;
-    z-index: 9999;
+    top: 0;
+    z-index: 2147483647;
     background: #fff;
     border: 1px solid #e0e0e0;
     border-radius: 4px;
@@ -92,7 +91,6 @@
 /* Родительский контейнер хлебных крошек — relative для позиционирования */
 .obm-breadcrumb-wrapper {
     position: relative;
-    z-index: 9999;
 }
 
 /* Подсветка активного пункта */
@@ -135,10 +133,11 @@
 @media (max-width: 767px) {
     .obm-mega-menu {
         position: fixed;
-        left: 10px;
-        right: 10px;
-        top: auto;
+        left: 10px !important;
+        right: 10px !important;
+        top: auto !important;
         bottom: 10px;
+        width: auto !important;
         max-height: 60vh;
         overflow-y: auto;
         border-radius: 8px;
