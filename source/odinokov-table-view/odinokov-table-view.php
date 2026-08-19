@@ -3,7 +3,7 @@
  * Plugin Name: Odinokov Table View
  * Plugin URI:  https://github.com/KirillOdinokov/wp-plugins
  * Description: Автоматический табличный вид для категорий WooCommerce с однотипными товарами. Управление выводом подкатегорий/товаров. Совместим с Porto.
- * Version:     1.0.54
+ * Version:     1.0.55
  * Author:      Odinokov
  * Author URI:  https://github.com/KirillOdinokov/wp-plugins
  * Text Domain: odinokov-table-view
@@ -11,7 +11,7 @@
 
 if ( ! defined( 'ABSPATH' ) ) exit;
 
-define( 'OTV_VERSION', '1.0.54' );
+define( 'OTV_VERSION', '1.0.55' );
 define( 'OTV_DIR', plugin_dir_path( __FILE__ ) );
 define( 'OTV_URL', plugin_dir_url( __FILE__ ) );
 
@@ -202,6 +202,13 @@ class Odinokov_Table_View {
 
         $term = get_queried_object();
         if ( ! $term || ! isset( $term->term_id ) ) return;
+
+        // Если Porto уже рендерит подкатегории нативно (display_type = subcategories/both),
+        // пропускаем ручной вывод, чтобы не дублировать.
+        $native_display = get_term_meta( $term->term_id, 'display_type', true );
+        if ( 'subcategories' === $native_display || 'both' === $native_display ) {
+            return;
+        }
 
         $subcats = get_terms( [
             'taxonomy'   => 'product_cat',
