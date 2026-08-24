@@ -3,7 +3,7 @@
  * Plugin Name: Odinokov Tag Cat
  * Plugin URI:  https://github.com/KirillOdinokov/wp-plugins
  * Description: Выводит теги товаров категории после описания категории в WooCommerce. Настраиваемый визуал беджей.
- * Version:     1.0.2
+ * Version:     1.0.3
  * Author:      Odinokov
  * Author URI:  https://github.com/KirillOdinokov/wp-plugins
  * Text Domain: odinokov-tag-cat
@@ -11,7 +11,7 @@
 
 if ( ! defined( 'ABSPATH' ) ) exit;
 
-define( 'OTC_VERSION', '1.0.2' );
+define( 'OTC_VERSION', '1.0.3' );
 define( 'OTC_DIR', plugin_dir_path( __FILE__ ) );
 define( 'OTC_URL', plugin_dir_url( __FILE__ ) );
 
@@ -261,7 +261,7 @@ class Odinokov_Tag_Cat {
         $term = get_queried_object();
         if ( ! $term || ! isset( $term->term_id ) ) return;
 
-        $cache_key = 'otc_tags_' . $term->term_id;
+        $cache_key = 'otc_tags_' . $term->term_id . '_v2';
         $tags = get_transient( $cache_key );
 
         if ( false === $tags ) {
@@ -273,7 +273,7 @@ class Odinokov_Tag_Cat {
                     'taxonomy'         => 'product_cat',
                     'field'            => 'term_id',
                     'terms'            => $term->term_id,
-                    'include_children' => false,
+                    'include_children' => true,
                 ] ],
                 'fields'         => 'ids',
             ] );
