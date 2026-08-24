@@ -99,6 +99,17 @@
         observer.observe(document.body, { childList: true, subtree: true });
     }
 
+    function isZeroPrice(priceEl) {
+        if (!priceEl) return true;
+        var text = priceEl.textContent || '';
+        text = text.replace(/\u00a0/g, ' ').replace(/\s+/g, ' ').trim();
+        if (text === '') return true;
+        var digits = text.replace(/[^0-9.,]/g, '');
+        if (digits === '') return true;
+        var num = parseFloat(digits.replace(',', '.'));
+        return (!isNaN(num) && num === 0);
+    }
+
     function buildTable() {
         if (!window.otvData || !otvData.isTable) return;
         if (!document.body.classList.contains('otv-table-view')) return;
@@ -162,7 +173,12 @@
                 }
             }
 
-            var priceHtml = price ? price.innerHTML : '';
+            var priceHtml = '';
+            if (price && !isZeroPrice(price)) {
+                priceHtml = price.innerHTML;
+            } else {
+                priceHtml = '<span class="otv-price-on-request">Цена по запросу</span>';
+            }
 
             var row = document.createElement('tr');
             row.innerHTML =

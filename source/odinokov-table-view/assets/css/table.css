@@ -27,6 +27,11 @@
 .otv-products-table thead th.otv-th-price,
 .otv-td-price { white-space: nowrap; min-width: 100px; text-align: right; }
 .otv-td-price .price { margin: 0; font-weight: 600; }
+.otv-price-on-request {
+    color: #888;
+    font-style: italic;
+    white-space: nowrap;
+}
 .otv-products-table thead th.otv-th-cart,
 .otv-td-cart { white-space: nowrap; text-align: center; min-width: 120px; }
 .otv-td-cart .add_to_cart_button,
