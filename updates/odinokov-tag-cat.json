@@ -3,8 +3,8 @@
     "download_url":  "https://raw.githubusercontent.com/KirillOdinokov/wp-plugins/main/repo/odinokov-tag-cat.zip",
     "last_updated":  "2026-08-24",
     "tested":  "6.7",
-    "version":  "1.0.4",
+    "version":  "1.0.5",
     "requires_php":  "7.2",
     "homepage":  "https://raw.githubusercontent.com/KirillOdinokov/wp-plugins/main",
-    "changelog":  "= 1.0.4 =\n* Доп. хук woocommerce_archive_description для Porto-блоков + защита от дублей"
+    "changelog":  "= 1.0.5 =\n* Fallback-хук woocommerce_after_main_content для Porto-блоков"
 }
