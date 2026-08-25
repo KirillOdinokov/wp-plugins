@@ -3,8 +3,8 @@
     "download_url":  "https://raw.githubusercontent.com/KirillOdinokov/wp-plugins/main/repo/odinokov-table-view.zip",
     "last_updated":  "2026-08-25",
     "tested":  "6.7",
-    "version":  "1.0.66",
+    "version":  "1.0.67",
     "requires_php":  "7.2",
     "homepage":  "https://raw.githubusercontent.com/KirillOdinokov/wp-plugins/main",
-    "changelog":  "= 1.0.66 =\n* Кнопка order-share больше не извлекается из цены (фикс потери кнопки на Porto-блоках)"
+    "changelog":  "= 1.0.67 =\n* Кнопка «Оставить заявку»: клонирование вместо удаления + z-index поверх hover"
 }

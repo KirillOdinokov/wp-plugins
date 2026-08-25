@@ -225,9 +225,9 @@
             var orderWrap = null;
             var orderBtn = item.querySelector('.oso-order-btn');
             if (orderBtn) {
-                orderWrap = orderBtn.closest('.oso-order-btn-wrap');
-                if (orderWrap) {
-                    orderWrap.remove();
+                var wrap = orderBtn.closest('.oso-order-btn-wrap');
+                if (wrap) {
+                    orderWrap = wrap.cloneNode(true);
                 }
             }
 

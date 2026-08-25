@@ -94,7 +94,7 @@ body.otv-active ul.products li.product:hover > .otv-hover-desc,
 body.otv-active ul.products li.product:hover .product-inner > .otv-hover-desc,
 body.otv-active ul.products li.product:hover .product-content > .otv-hover-desc {
     opacity: 1;
-    pointer-events: auto;
+    pointer-events: none;
 }
 body.otv-active .product-category,
 body.otv-active .product,
@@ -102,6 +102,13 @@ body.otv-active .porto-tb-item.product,
 body.otv-active ul.products li.product {
     position: relative;
     overflow: visible !important;
+}
+/* Кнопка «Оставить заявку» поверх hover-описания */
+body.otv-active .oso-order-btn-wrap,
+body.otv-active .oso-order-btn {
+    position: relative;
+    z-index: 40;
+    pointer-events: auto;
 }
 body.otv-active ul.products li.product .product-inner,
 body.otv-active ul.products li.product .product-image,
