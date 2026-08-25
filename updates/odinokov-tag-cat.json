@@ -1,10 +1,10 @@
 ﻿{
     "requires":  "5.8",
     "download_url":  "https://raw.githubusercontent.com/KirillOdinokov/wp-plugins/main/repo/odinokov-tag-cat.zip",
-    "last_updated":  "2026-08-24",
+    "last_updated":  "2026-08-25",
     "tested":  "6.7",
-    "version":  "1.0.5",
+    "version":  "1.0.6",
     "requires_php":  "7.2",
     "homepage":  "https://raw.githubusercontent.com/KirillOdinokov/wp-plugins/main",
-    "changelog":  "= 1.0.5 =\n* Fallback-хук woocommerce_after_main_content для Porto-блоков"
+    "changelog":  "= 1.0.6 =\n* Метки перемещаются под term-description через JS"
 }
