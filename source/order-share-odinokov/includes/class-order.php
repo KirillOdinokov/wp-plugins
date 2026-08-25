@@ -5,6 +5,8 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 class OSO_Order {
 
+    private static $is_order_screen = null;
+
     public function __construct() {
         add_action( 'wp_enqueue_scripts', array( $this, 'enqueue_assets' ), 5 );
         add_action( 'wp_ajax_oso_order_submit', array( $this, 'handle_submit' ) );
@@ -13,13 +15,21 @@ class OSO_Order {
         add_action( 'wp_ajax_nopriv_oso_refresh_captcha', array( $this, 'ajax_refresh_captcha' ) );
 
         add_action( 'wp', array( $this, 'maybe_disable_add_to_cart' ), 99 );
+        add_action( 'template_redirect', array( $this, 'cache_screen' ), 1 );
 
         add_filter( 'woocommerce_get_price_html', array( $this, 'append_button_to_price' ), 20, 2 );
         add_action( 'woocommerce_after_shop_loop_item_title', array( $this, 'render_button_fallback' ), 20 );
         add_action( 'wp_footer', array( $this, 'render_popup' ), 1 );
     }
 
+    public function cache_screen() {
+        self::$is_order_screen = is_shop() || is_product_taxonomy() || ( function_exists( 'is_product' ) && is_product() );
+    }
+
     private function is_order_screen() {
+        if ( null !== self::$is_order_screen ) {
+            return self::$is_order_screen;
+        }
         return is_shop() || is_product_taxonomy() || ( function_exists( 'is_product' ) && is_product() );
     }
 
