@@ -3,8 +3,8 @@
     "download_url":  "https://raw.githubusercontent.com/KirillOdinokov/wp-plugins/main/repo/odinokov-table-view.zip",
     "last_updated":  "2026-08-25",
     "tested":  "6.7",
-    "version":  "1.0.68",
+    "version":  "1.0.69",
     "requires_php":  "7.2",
     "homepage":  "https://raw.githubusercontent.com/KirillOdinokov/wp-plugins/main",
-    "changelog":  "= 1.0.68 =\n* Убран дубль кнопки «Оставить заявку» в таблице (кнопка из цены переносится в корзину)"
+    "changelog":  "= 1.0.69 =\n* Кнопка «Оставить заявку» переносится внутрь hover-описания (внизу)"
 }

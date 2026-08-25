@@ -104,6 +104,16 @@
         var descDiv = document.createElement('div');
         descDiv.className = 'otv-hover-desc';
         descDiv.innerHTML = escapeHtml(productDescs[pid]) + ' <a href="' + escapeHtml(href) + '" class="otv-read-more">читать далее &gt;</a>';
+
+        // Переносим кнопку «Оставить заявку» внутрь hover-описания (внизу)
+        var orderWrap = item.querySelector('.oso-order-btn-wrap');
+        if (orderWrap) {
+            var actions = document.createElement('div');
+            actions.className = 'otv-hover-actions';
+            actions.appendChild(orderWrap);
+            descDiv.appendChild(actions);
+        }
+
         item.appendChild(descDiv);
     }
 

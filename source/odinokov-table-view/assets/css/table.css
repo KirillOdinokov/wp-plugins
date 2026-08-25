@@ -103,13 +103,6 @@ body.otv-active ul.products li.product {
     position: relative;
     overflow: visible !important;
 }
-/* Кнопка «Оставить заявку» поверх hover-описания */
-body.otv-active .oso-order-btn-wrap,
-body.otv-active .oso-order-btn {
-    position: relative;
-    z-index: 40;
-    pointer-events: auto;
-}
 body.otv-active ul.products li.product .product-inner,
 body.otv-active ul.products li.product .product-image,
 body.otv-active ul.products li.product .product-content {
