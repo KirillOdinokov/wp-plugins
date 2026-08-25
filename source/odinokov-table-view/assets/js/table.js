@@ -234,6 +234,14 @@
             var priceHtml = '';
             if (price && !isZeroPrice(price)) {
                 priceHtml = price.innerHTML;
+                // Убираем кнопку order-share из цены — она переносится в ячейку корзины
+                var tmp = document.createElement('div');
+                tmp.innerHTML = priceHtml;
+                var btnInPrice = tmp.querySelector('.oso-order-btn-wrap');
+                if (btnInPrice) {
+                    btnInPrice.remove();
+                }
+                priceHtml = tmp.innerHTML;
             } else {
                 priceHtml = '<span class="otv-price-on-request">Цена по запросу</span>';
             }
