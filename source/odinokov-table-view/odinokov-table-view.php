@@ -3,7 +3,7 @@
  * Plugin Name: Odinokov Table View
  * Plugin URI:  https://github.com/KirillOdinokov/wp-plugins
  * Description: Автоматический табличный вид для категорий WooCommerce с однотипными товарами. Управление выводом подкатегорий/товаров. Совместим с Porto.
- * Version:     1.0.65
+ * Version:     1.0.66
  * Author:      Odinokov
  * Author URI:  https://github.com/KirillOdinokov/wp-plugins
  * Text Domain: odinokov-table-view
@@ -11,7 +11,7 @@
 
 if ( ! defined( 'ABSPATH' ) ) exit;
 
-define( 'OTV_VERSION', '1.0.65' );
+define( 'OTV_VERSION', '1.0.66' );
 define( 'OTV_DIR', plugin_dir_path( __FILE__ ) );
 define( 'OTV_URL', plugin_dir_url( __FILE__ ) );
 
@@ -327,15 +327,9 @@ class Odinokov_Table_View {
     }
 
     public function extract_order_button( $price_html, $product ) {
-        if ( $this->is_table_view ) return $price_html;
-        if ( null === $this->override_display && ! $this->show_hover_desc ) return $price_html;
-        if ( ! $product instanceof WC_Product ) return $price_html;
-
-        if ( preg_match( '/<div class="oso-order-btn-wrap">.*?<\/div>/s', $price_html, $m ) ) {
-            $this->order_buttons[ $product->get_id() ] = $m[0];
-            $price_html = str_replace( $m[0], '', $price_html );
-        }
-
+        // Не трогаем кнопку order-share — она должна оставаться в цене.
+        // (Раньше кнопка извлекалась и перевыводилась через woocommerce_after_shop_loop_item,
+        //  но на Porto-блоках этот хук не срабатывает, и кнопка терялась.)
         return $price_html;
     }
 
