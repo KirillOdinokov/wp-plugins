@@ -3,7 +3,7 @@
  * Plugin Name: Odinokov Table View
  * Plugin URI:  https://github.com/KirillOdinokov/wp-plugins
  * Description: Автоматический табличный вид для категорий WooCommerce с однотипными товарами. Управление выводом подкатегорий/товаров. Совместим с Porto.
- * Version:     1.0.59
+ * Version:     1.0.60
  * Author:      Odinokov
  * Author URI:  https://github.com/KirillOdinokov/wp-plugins
  * Text Domain: odinokov-table-view
@@ -11,7 +11,7 @@
 
 if ( ! defined( 'ABSPATH' ) ) exit;
 
-define( 'OTV_VERSION', '1.0.59' );
+define( 'OTV_VERSION', '1.0.60' );
 define( 'OTV_DIR', plugin_dir_path( __FILE__ ) );
 define( 'OTV_URL', plugin_dir_url( __FILE__ ) );
 
@@ -55,6 +55,47 @@ class Odinokov_Table_View {
         add_filter( 'woocommerce_get_price_html', [ $this, 'extract_order_button' ], 30, 2 );
         add_filter( 'woocommerce_get_price_html', [ $this, 'replace_zero_price' ], 1, 2 );
         add_filter( 'woocommerce_empty_price_html', [ $this, 'replace_empty_price' ], 10, 2 );
+
+        add_action( 'product_cat_add_form_fields', [ $this, 'add_category_field' ] );
+        add_action( 'product_cat_edit_form_fields', [ $this, 'edit_category_field' ] );
+        add_action( 'created_product_cat', [ $this, 'save_category_field' ] );
+        add_action( 'edited_product_cat', [ $this, 'save_category_field' ] );
+    }
+
+    public function add_category_field() {
+        ?>
+        <div class="form-field">
+            <label for="otv_force_table">
+                <input type="checkbox" name="otv_force_table" id="otv_force_table" value="1">
+                <?php esc_html_e( 'Table View (табличный вид)', 'odinokov-table-view' ); ?>
+            </label>
+            <p class="description"><?php esc_html_e( 'Принудительно включить табличный вид для этой категории.', 'odinokov-table-view' ); ?></p>
+        </div>
+        <?php
+    }
+
+    public function edit_category_field( $term ) {
+        $value = get_term_meta( $term->term_id, 'otv_force_table', true );
+        ?>
+        <tr class="form-field">
+            <th scope="row"><label for="otv_force_table"><?php esc_html_e( 'Table View', 'odinokov-table-view' ); ?></label></th>
+            <td>
+                <label>
+                    <input type="checkbox" name="otv_force_table" id="otv_force_table" value="1" <?php checked( $value, '1' ); ?>>
+                    <?php esc_html_e( 'Принудительно включить табличный вид для этой категории.', 'odinokov-table-view' ); ?>
+                </label>
+            </td>
+        </tr>
+        <?php
+    }
+
+    public function save_category_field( $term_id ) {
+        if ( ! current_user_can( 'manage_product_terms' ) ) return;
+        if ( isset( $_POST['otv_force_table'] ) ) {
+            update_term_meta( $term_id, 'otv_force_table', '1' );
+        } else {
+            delete_term_meta( $term_id, 'otv_force_table' );
+        }
     }
 
     public function add_admin_menu() {
@@ -177,6 +218,14 @@ class Odinokov_Table_View {
 
         if ( isset( $_GET['otv_clear'] ) && current_user_can( 'manage_options' ) ) {
             delete_transient( $cache_key );
+        }
+
+        // Ручное принудительное включение table view
+        if ( '1' === get_term_meta( $term_id, 'otv_force_table', true ) ) {
+            $this->is_table_view = true;
+            $this->override_display = null;
+            $this->show_hover_desc = false;
+            return;
         }
 
         $cached = get_transient( $cache_key );
