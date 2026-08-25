@@ -246,14 +246,18 @@
         observer.observe(document.body, { childList: true, subtree: true });
     }
 
-    function hidePagination() {
-        if (!window.otvData || !otvData.isTable) return;
-        var id = 'otv-hide-pagination';
-        if (document.getElementById(id)) return;
-        var s = document.createElement('style');
-        s.id = id;
-        s.textContent = '.otv-table-view .woocommerce-pagination, .otv-table-view .pagination, .otv-table-view .shop-loop-after, .otv-table-view .page-links { display: none !important; }';
-        document.head.appendChild(s);
+    function moveSubcategoriesToTop() {
+        var wrapper = document.querySelector('.otv-subcategories-wrapper');
+        if (!wrapper) return;
+
+        // Ищем контейнер товаров (Porto block или стандартный)
+        var target = document.querySelector('.porto-posts-grid, .archive-products, ul.products');
+        if (!target) return;
+
+        // Если wrapper уже перед target — ничего не делаем
+        if (target.previousElementSibling === wrapper) return;
+
+        target.parentNode.insertBefore(wrapper, target);
     }
 
     function init() {
@@ -262,7 +266,7 @@
         watchShopLoopBefore();
         injectSubcatHoverDescs();
         watchSubcatHoverDescs();
-        hidePagination();
+        moveSubcategoriesToTop();
         buildTable();
         watchProductsForRebuild();
     }
