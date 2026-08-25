@@ -3,8 +3,8 @@
     "download_url":  "https://raw.githubusercontent.com/KirillOdinokov/wp-plugins/main/repo/odinokov-table-view.zip",
     "last_updated":  "2026-08-25",
     "tested":  "6.7",
-    "version":  "1.0.61",
+    "version":  "1.0.62",
     "requires_php":  "7.2",
     "homepage":  "https://raw.githubusercontent.com/KirillOdinokov/wp-plugins/main",
-    "changelog":  "= 1.0.61 =\n* Поддержка Porto-блоков (porto-posts-grid / porto-tb-item) для табличного вида"
+    "changelog":  "= 1.0.62 =\n* Перестроение таблицы при AJAX-пагинации + скрытие пагинации"
 }

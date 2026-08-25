@@ -140,6 +140,12 @@
 
         if (!items || items.length === 0) return;
 
+        // Удаляем старую таблицу, если она есть
+        var oldTable = document.querySelector('.otv-products-table');
+        if (oldTable) {
+            oldTable.remove();
+        }
+
         var table = document.createElement('table');
         table.className = 'otv-products-table';
 
@@ -214,13 +220,51 @@
         products.style.display = 'none';
     }
 
+    function watchProductsForRebuild() {
+        if (!window.otvData || !otvData.isTable) return;
+
+        var observer = new MutationObserver(function(mutations) {
+            var shouldRebuild = false;
+            mutations.forEach(function(m) {
+                m.addedNodes.forEach(function(node) {
+                    if (node.nodeType !== 1) return;
+                    if (node.classList && (node.classList.contains('product') || node.classList.contains('porto-tb-item'))) {
+                        shouldRebuild = true;
+                    }
+                    if (node.querySelectorAll) {
+                        if (node.querySelectorAll('.product, .porto-tb-item').length > 0) {
+                            shouldRebuild = true;
+                        }
+                    }
+                });
+            });
+            if (shouldRebuild) {
+                buildTable();
+            }
+        });
+
+        observer.observe(document.body, { childList: true, subtree: true });
+    }
+
+    function hidePagination() {
+        if (!window.otvData || !otvData.isTable) return;
+        var id = 'otv-hide-pagination';
+        if (document.getElementById(id)) return;
+        var s = document.createElement('style');
+        s.id = id;
+        s.textContent = '.otv-table-view .woocommerce-pagination, .otv-table-view .pagination, .otv-table-view .shop-loop-after, .otv-table-view .page-links { display: none !important; }';
+        document.head.appendChild(s);
+    }
+
     function init() {
         injectShopLoopBeforeStyle();
         hideShopLoopBefore();
         watchShopLoopBefore();
         injectSubcatHoverDescs();
         watchSubcatHoverDescs();
+        hidePagination();
         buildTable();
+        watchProductsForRebuild();
     }
 
     if (document.readyState === 'loading') {
