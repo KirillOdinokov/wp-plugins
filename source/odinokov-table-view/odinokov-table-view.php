@@ -3,7 +3,7 @@
  * Plugin Name: Odinokov Table View
  * Plugin URI:  https://github.com/KirillOdinokov/wp-plugins
  * Description: Автоматический табличный вид для категорий WooCommerce с однотипными товарами. Управление выводом подкатегорий/товаров. Совместим с Porto.
- * Version:     1.0.64
+ * Version:     1.0.65
  * Author:      Odinokov
  * Author URI:  https://github.com/KirillOdinokov/wp-plugins
  * Text Domain: odinokov-table-view
@@ -11,7 +11,7 @@
 
 if ( ! defined( 'ABSPATH' ) ) exit;
 
-define( 'OTV_VERSION', '1.0.64' );
+define( 'OTV_VERSION', '1.0.65' );
 define( 'OTV_DIR', plugin_dir_path( __FILE__ ) );
 define( 'OTV_URL', plugin_dir_url( __FILE__ ) );
 
@@ -166,8 +166,9 @@ class Odinokov_Table_View {
         wp_enqueue_script( 'otv-table', OTV_URL . 'assets/js/table.js', [], OTV_VERSION, true );
 
         $subcat_descs = [];
+        $product_descs = [];
 
-        if ( null !== $this->override_display ) {
+        if ( is_product_category() ) {
             $term = get_queried_object();
             if ( $term && isset( $term->term_id ) ) {
                 $subcats = get_terms( [
@@ -185,12 +186,39 @@ class Odinokov_Table_View {
                         }
                     }
                 }
+
+                $product_ids = get_posts( [
+                    'post_type'      => 'product',
+                    'posts_per_page' => -1,
+                    'post_status'    => 'publish',
+                    'tax_query'      => [ [
+                        'taxonomy'         => 'product_cat',
+                        'field'            => 'term_id',
+                        'terms'            => $term->term_id,
+                        'include_children' => true,
+                    ] ],
+                    'fields'         => 'ids',
+                ] );
+
+                if ( ! empty( $product_ids ) ) {
+                    foreach ( $product_ids as $pid ) {
+                        $p = wc_get_product( $pid );
+                        if ( ! $p ) continue;
+                        $desc = $p->get_short_description();
+                        $desc = wp_strip_all_tags( $desc, true );
+                        $desc = trim( $desc );
+                        if ( ! empty( $desc ) ) {
+                            $product_descs[ $pid ] = mb_substr( $desc, 0, 200 );
+                        }
+                    }
+                }
             }
         }
 
         wp_localize_script( 'otv-table', 'otvData', [
-            'subcatDescs' => $subcat_descs,
-            'isTable'     => $this->is_table_view,
+            'subcatDescs'  => $subcat_descs,
+            'productDescs' => $product_descs,
+            'isTable'      => $this->is_table_view,
         ] );
     }
 
@@ -247,10 +275,13 @@ class Odinokov_Table_View {
     }
 
     public function render_subcategories() {
-        if ( null === $this->override_display ) return;
         if ( ! is_product_category() ) return;
         if ( wp_doing_ajax() ) return;
         if ( $this->subcats_rendered ) return;
+
+        // Выводим подкатегории если: задан display (subcategories/both) ИЛИ включён table view
+        if ( null === $this->override_display && ! $this->is_table_view ) return;
+
         $this->subcats_rendered = true;
 
         $term = get_queried_object();
