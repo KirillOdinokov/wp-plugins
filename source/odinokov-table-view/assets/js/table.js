@@ -114,18 +114,31 @@
         if (!window.otvData || !otvData.isTable) return;
         if (!document.body.classList.contains('otv-table-view')) return;
 
-        var allProducts = document.querySelectorAll('ul.products');
         var products = null;
+        var items = null;
+
+        // Вариант 1: стандартный WooCommerce ul.products li.product
+        var allProducts = document.querySelectorAll('ul.products');
         for (var i = 0; i < allProducts.length; i++) {
             if (!allProducts[i].closest('.otv-subcategories-wrapper')) {
                 products = allProducts[i];
                 break;
             }
         }
-        if (!products) return;
+        if (products) {
+            items = products.querySelectorAll('li.product');
+        }
 
-        var items = products.querySelectorAll('li.product');
-        if (items.length === 0) return;
+        // Вариант 2: Porto block (porto-posts-grid) — .porto-tb-item.product
+        if (!items || items.length === 0) {
+            var grid = document.querySelector('.porto-posts-grid, .archive-products');
+            if (grid) {
+                items = grid.querySelectorAll('.porto-tb-item.product, .product.product-col');
+                products = grid;
+            }
+        }
+
+        if (!items || items.length === 0) return;
 
         var table = document.createElement('table');
         table.className = 'otv-products-table';
@@ -141,9 +154,9 @@
 
         items.forEach(function(item) {
             var img = item.querySelector('img');
-            var title = item.querySelector('.woocommerce-loop-product__title, h3, .product-loop-title, .product_title');
+            var title = item.querySelector('.woocommerce-loop-product__title, h3, .product-loop-title, .product_title, .porto-heading, .post-title');
             var price = item.querySelector('.price');
-            var cart = item.querySelector('.add_to_cart_button, .ajax_add_to_cart, .button.product_type_simple');
+            var cart = item.querySelector('.add_to_cart_button, .ajax_add_to_cart, .button.product_type_simple, .porto-tb-addcart');
             var link = item.querySelector('a[href]');
 
             var imgHtml = '';
