@@ -3,8 +3,8 @@
     "download_url":  "https://raw.githubusercontent.com/KirillOdinokov/wp-plugins/main/repo/order-share-odinokov.zip",
     "last_updated":  "2026-08-26",
     "tested":  "6.7",
-    "version":  "1.0.12",
+    "version":  "1.0.13",
     "requires_php":  "7.4",
     "homepage":  "https://raw.githubusercontent.com/KirillOdinokov/wp-plugins/main",
-    "changelog":  "= 1.0.12 =\n* Добавлен заголовок From и настройка email отправителя (фикс недоставки писем)"
+    "changelog":  "= 1.0.13 =\n* SMTP с авторизацией (phpmailer_init) + настройки в админке\n* Лог отправки писем для диагностики"
 }

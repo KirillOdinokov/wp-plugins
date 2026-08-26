@@ -366,6 +366,8 @@ class OSO_Order {
             }
         }
 
+        oso_log_mail( $to, $subject, $sent, $product_name );
+
         if ( ! $sent ) {
             wp_send_json_error( array( 'errors' => array( 'general' => __( 'Ошибка при отправке письма. Попробуйте позже.', 'order-share-odinokov' ) ) ) );
         }

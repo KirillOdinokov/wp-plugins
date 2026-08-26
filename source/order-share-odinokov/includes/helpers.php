@@ -89,3 +89,22 @@ function oso_share_is_done() {
     global $oso_share_done;
     return ! empty( $oso_share_done );
 }
+
+function oso_log_mail( $to, $subject, $sent, $product_name = '' ) {
+    $upload_dir = wp_upload_dir();
+    $dir        = trailingslashit( $upload_dir['basedir'] ) . 'oso-mail-log/';
+    if ( ! file_exists( $dir ) ) {
+        wp_mkdir_p( $dir );
+        file_put_contents( $dir . 'index.php', '<?php // Silence is golden.' );
+        file_put_contents( $dir . '.htaccess', 'Deny from all' );
+    }
+    $line = sprintf(
+        "[%s] to=%s subject=%s sent=%s product=%s\n",
+        current_time( 'mysql' ),
+        $to,
+        $subject,
+        $sent ? 'YES' : 'NO',
+        $product_name
+    );
+    @file_put_contents( $dir . 'log.txt', $line, FILE_APPEND );
+}

@@ -3,7 +3,7 @@
  * Plugin Name:       Order Share Odinokov
  * Plugin URI:        https://github.com/KirillOdinokov/wp-plugins
  * Description:       Объединённый плагин: кнопки «Отправить» (Web Share API), «Сохранить PDF» (Print) и «Оставить заявку» (PopUp форма) на страницах товара WooCommerce. Полная настройка стиля всех трёх кнопок из админки. Защита от ботов, капча, отключение add-to-cart. Шорткод [sert-request] — форма запроса документации.
- * Version:           1.0.12
+ * Version:           1.0.13
  * Author:            Odinokov
  * Author URI:        https://github.com/KirillOdinokov/wp-plugins
  * License:           GPL-2.0-or-later
@@ -20,7 +20,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 if ( ! defined( 'OSO_VERSION' ) ) {
-    define( 'OSO_VERSION', '1.0.12' );
+    define( 'OSO_VERSION', '1.0.13' );
 }
 if ( ! defined( 'OSO_FILE' ) ) {
     define( 'OSO_FILE', __FILE__ );
@@ -294,6 +294,63 @@ function oso_register_settings() {
         'type'              => 'string',
         'sanitize_callback' => 'sanitize_email',
     ) );
+    register_setting( 'oso_settings_group', 'oso_smtp', array(
+        'type'              => 'array',
+        'sanitize_callback' => 'oso_sanitize_smtp',
+        'default'           => array(),
+    ) );
+}
+
+function oso_sanitize_smtp( $input ) {
+    $input = is_array( $input ) ? $input : array();
+    $out   = array();
+    $out['enabled']  = ! empty( $input['enabled'] ) ? 1 : 0;
+    $out['host']     = isset( $input['host'] ) ? sanitize_text_field( wp_unslash( $input['host'] ) ) : '';
+    $out['port']     = isset( $input['port'] ) ? (int) $input['port'] : 465;
+    $out['username'] = isset( $input['username'] ) ? sanitize_text_field( wp_unslash( $input['username'] ) ) : '';
+    $out['password'] = isset( $input['password'] ) ? (string) $input['password'] : '';
+    $out['secure']   = isset( $input['secure'] ) && in_array( $input['secure'], array( 'ssl', 'tls', 'none' ), true ) ? $input['secure'] : 'ssl';
+    $out['from_email'] = isset( $input['from_email'] ) ? sanitize_email( wp_unslash( $input['from_email'] ) ) : '';
+    $out['from_name']  = isset( $input['from_name'] ) ? sanitize_text_field( wp_unslash( $input['from_name'] ) ) : '';
+    return $out;
+}
+
+function oso_get_smtp() {
+    $defaults = array(
+        'enabled'    => 0,
+        'host'       => '',
+        'port'       => 465,
+        'username'   => '',
+        'password'   => '',
+        'secure'     => 'ssl',
+        'from_email' => '',
+        'from_name'  => '',
+    );
+    $opts = get_option( 'oso_smtp', array() );
+    if ( ! is_array( $opts ) ) {
+        $opts = array();
+    }
+    return array_merge( $defaults, $opts );
+}
+
+add_action( 'phpmailer_init', 'oso_phpmailer_init' );
+function oso_phpmailer_init( $phpmailer ) {
+    $smtp = oso_get_smtp();
+    if ( empty( $smtp['enabled'] ) || empty( $smtp['host'] ) ) {
+        return;
+    }
+    $phpmailer->isSMTP();
+    $phpmailer->Host       = $smtp['host'];
+    $phpmailer->Port       = (int) $smtp['port'];
+    $phpmailer->SMTPAuth   = true;
+    $phpmailer->Username   = $smtp['username'];
+    $phpmailer->Password   = $smtp['password'];
+    $phpmailer->SMTPSecure = ( 'none' === $smtp['secure'] ) ? '' : $smtp['secure'];
+    $phpmailer->CharSet    = 'UTF-8';
+
+    if ( ! empty( $smtp['from_email'] ) && is_email( $smtp['from_email'] ) ) {
+        $phpmailer->setFrom( $smtp['from_email'], $smtp['from_name'] ? $smtp['from_name'] : get_bloginfo( 'name' ) );
+    }
 }
 
 function oso_force_check() {
@@ -449,6 +506,7 @@ function oso_render_settings_page() {
     $s     = oso_get_settings();
     $email = get_option( 'oso_email_to', get_option( 'admin_email' ) );
     $from  = get_option( 'oso_email_from', '' );
+    $smtp  = oso_get_smtp();
     ?>
     <div class="wrap oso-admin">
         <h1><?php echo esc_html__( 'Order Share Odinokov — настройки', 'order-share-odinokov' ); ?></h1>
@@ -686,6 +744,48 @@ function oso_render_settings_page() {
                         <input type="email" class="regular-text" name="oso_email_from" value="<?php echo esc_attr( $from ); ?>" placeholder="no-reply@vodoluk.ru">
                         <p class="description"><?php esc_html_e( 'Адрес, от которого отправляются письма. Должен существовать на домене сайта, иначе письма попадут в спам или не дойдут. Пусто — no-reply@домен.', 'order-share-odinokov' ); ?></p>
                     </td>
+                </tr>
+            </table>
+
+            <h2><?php esc_html_e( 'SMTP (отправка через почтовый сервер)', 'order-share-odinokov' ); ?></h2>
+            <table class="form-table" role="presentation">
+                <tr>
+                    <th scope="row"><?php esc_html_e( 'Включить SMTP', 'order-share-odinokov' ); ?></th>
+                    <td><label><input type="checkbox" name="oso_smtp[enabled]" value="1" <?php checked( $smtp['enabled'], 1 ); ?>> <?php esc_html_e( 'Отправлять письма через SMTP с авторизацией', 'order-share-odinokov' ); ?></label></td>
+                </tr>
+                <tr>
+                    <th scope="row"><?php esc_html_e( 'SMTP-хост', 'order-share-odinokov' ); ?></th>
+                    <td><input type="text" class="regular-text" name="oso_smtp[host]" value="<?php echo esc_attr( $smtp['host'] ); ?>" placeholder="smtp.yandex.ru"></td>
+                </tr>
+                <tr>
+                    <th scope="row"><?php esc_html_e( 'Порт', 'order-share-odinokov' ); ?></th>
+                    <td><input type="number" min="1" max="65535" name="oso_smtp[port]" value="<?php echo esc_attr( $smtp['port'] ); ?>"></td>
+                </tr>
+                <tr>
+                    <th scope="row"><?php esc_html_e( 'Шифрование', 'order-share-odinokov' ); ?></th>
+                    <td>
+                        <select name="oso_smtp[secure]">
+                            <option value="ssl" <?php selected( $smtp['secure'], 'ssl' ); ?>>SSL (порт 465)</option>
+                            <option value="tls" <?php selected( $smtp['secure'], 'tls' ); ?>>TLS (порт 587)</option>
+                            <option value="none" <?php selected( $smtp['secure'], 'none' ); ?>><?php esc_html_e( 'Без шифрования', 'order-share-odinokov' ); ?></option>
+                        </select>
+                    </td>
+                </tr>
+                <tr>
+                    <th scope="row"><?php esc_html_e( 'Логин (email)', 'order-share-odinokov' ); ?></th>
+                    <td><input type="text" class="regular-text" name="oso_smtp[username]" value="<?php echo esc_attr( $smtp['username'] ); ?>" placeholder="info@vodoluk.ru"></td>
+                </tr>
+                <tr>
+                    <th scope="row"><?php esc_html_e( 'Пароль', 'order-share-odinokov' ); ?></th>
+                    <td><input type="password" class="regular-text" name="oso_smtp[password]" value="<?php echo esc_attr( $smtp['password'] ); ?>" autocomplete="new-password"></td>
+                </tr>
+                <tr>
+                    <th scope="row"><?php esc_html_e( 'From email (SMTP)', 'order-share-odinokov' ); ?></th>
+                    <td><input type="email" class="regular-text" name="oso_smtp[from_email]" value="<?php echo esc_attr( $smtp['from_email'] ); ?>" placeholder="info@vodoluk.ru"></td>
+                </tr>
+                <tr>
+                    <th scope="row"><?php esc_html_e( 'From имя (SMTP)', 'order-share-odinokov' ); ?></th>
+                    <td><input type="text" class="regular-text" name="oso_smtp[from_name]" value="<?php echo esc_attr( $smtp['from_name'] ); ?>" placeholder="<?php echo esc_attr( get_bloginfo( 'name' ) ); ?>"></td>
                 </tr>
             </table>
 
