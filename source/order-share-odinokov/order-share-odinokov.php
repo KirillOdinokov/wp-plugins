@@ -3,7 +3,7 @@
  * Plugin Name:       Order Share Odinokov
  * Plugin URI:        https://github.com/KirillOdinokov/wp-plugins
  * Description:       Объединённый плагин: кнопки «Отправить» (Web Share API), «Сохранить PDF» (Print) и «Оставить заявку» (PopUp форма) на страницах товара WooCommerce. Полная настройка стиля всех трёх кнопок из админки. Защита от ботов, капча, отключение add-to-cart. Шорткод [sert-request] — форма запроса документации.
- * Version:           1.0.11
+ * Version:           1.0.12
  * Author:            Odinokov
  * Author URI:        https://github.com/KirillOdinokov/wp-plugins
  * License:           GPL-2.0-or-later
@@ -20,7 +20,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 if ( ! defined( 'OSO_VERSION' ) ) {
-    define( 'OSO_VERSION', '1.0.11' );
+    define( 'OSO_VERSION', '1.0.12' );
 }
 if ( ! defined( 'OSO_FILE' ) ) {
     define( 'OSO_FILE', __FILE__ );
@@ -290,6 +290,10 @@ function oso_register_settings() {
         'type'              => 'string',
         'sanitize_callback' => 'sanitize_email',
     ) );
+    register_setting( 'oso_settings_group', 'oso_email_from', array(
+        'type'              => 'string',
+        'sanitize_callback' => 'sanitize_email',
+    ) );
 }
 
 function oso_force_check() {
@@ -444,6 +448,7 @@ function oso_render_settings_page() {
     }
     $s     = oso_get_settings();
     $email = get_option( 'oso_email_to', get_option( 'admin_email' ) );
+    $from  = get_option( 'oso_email_from', '' );
     ?>
     <div class="wrap oso-admin">
         <h1><?php echo esc_html__( 'Order Share Odinokov — настройки', 'order-share-odinokov' ); ?></h1>
@@ -673,6 +678,13 @@ function oso_render_settings_page() {
                     <td>
                         <input type="email" class="regular-text" name="oso_email_to" value="<?php echo esc_attr( $email ); ?>">
                         <p class="description"><?php esc_html_e( 'Сюда будут приходить письма с заявками.', 'order-share-odinokov' ); ?></p>
+                    </td>
+                </tr>
+                <tr>
+                    <th scope="row"><?php esc_html_e( 'Email отправителя (From)', 'order-share-odinokov' ); ?></th>
+                    <td>
+                        <input type="email" class="regular-text" name="oso_email_from" value="<?php echo esc_attr( $from ); ?>" placeholder="no-reply@vodoluk.ru">
+                        <p class="description"><?php esc_html_e( 'Адрес, от которого отправляются письма. Должен существовать на домене сайта, иначе письма попадут в спам или не дойдут. Пусто — no-reply@домен.', 'order-share-odinokov' ); ?></p>
                     </td>
                 </tr>
             </table>

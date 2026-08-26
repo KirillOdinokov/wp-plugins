@@ -284,6 +284,12 @@ class OSO_Order {
             $to = get_option( 'admin_email' );
         }
 
+        $from_email = get_option( 'oso_email_from', '' );
+        if ( empty( $from_email ) || ! is_email( $from_email ) ) {
+            $from_email = 'no-reply@' . wp_parse_url( home_url(), PHP_URL_HOST );
+        }
+        $from_name = get_bloginfo( 'name' );
+
         $subject = sprintf( __( 'Новая заявка: %s', 'order-share-odinokov' ), $product_name );
 
         $message  = __( 'Новая заявка на сайте', 'order-share-odinokov' ) . "\r\n\r\n";
@@ -304,7 +310,11 @@ class OSO_Order {
         }
         $message .= "\r\n" . __( '--- Отправлено с сайта ---', 'order-share-odinokov' );
 
-        $headers = array( 'Content-Type: text/plain; charset=UTF-8', 'Reply-To: ' . $email );
+        $headers = array(
+            'Content-Type: text/plain; charset=UTF-8',
+            'Reply-To: ' . $email,
+            'From: ' . $from_name . ' <' . $from_email . '>',
+        );
 
         $attachments = array();
         if ( ! empty( $s['field_files'] ) && ! empty( $_FILES['files'] ) ) {
