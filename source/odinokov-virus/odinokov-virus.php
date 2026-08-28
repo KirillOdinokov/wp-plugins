@@ -3,7 +3,7 @@
  * Plugin Name: Odinokov Virus
  * Plugin URI:  https://github.com/KirillOdinokov/wp-plugins
  * Description: Комплексная защита от взлома: блокировка вредоносных User-Agent, путей шеллов, защита REST API, XML-RPC, wp-login от брутфорса, блокировка сканирования уязвимостей. Яндекс-боты не блокируются. + Автоочистка БД.
- * Version:     1.2.3
+ * Version:     1.3.0
  * Author:      Odinokov
  * Author URI:  https://github.com/KirillOdinokov/wp-plugins
  * License:     GPL v2 or later
@@ -14,7 +14,7 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
-define('ODINOKOV_VIRUS_VERSION', '1.2.3');
+define('ODINOKOV_VIRUS_VERSION', '1.3.0');
 define('ODINOKOV_VIRUS_DIR', plugin_dir_path(__FILE__));
 define('ODINOKOV_VIRUS_CRON_HOOK', 'odinokov_virus_weekly_cleanup');
 
@@ -86,9 +86,41 @@ class Odinokov_Virus {
         add_action('wp_login_failed', [$this, 'log_login_failure']);
         add_action('send_headers', [$this, 'add_security_headers']);
 
+        add_action('shutdown', [$this, 'record_visit']);
+        add_action('wp_ajax_odinokov_visits_data', [$this, 'ajax_visits_data']);
+        add_action('admin_enqueue_scripts', [$this, 'enqueue_chart_assets']);
+
         if (!wp_next_scheduled(ODINOKOV_VIRUS_CRON_HOOK)) {
             wp_schedule_event(time(), 'weekly', ODINOKOV_VIRUS_CRON_HOOK);
         }
+
+        $this->maybe_create_visits_table();
+    }
+
+    public function maybe_create_visits_table() {
+        if (get_option('odinokov_virus_db_version') === ODINOKOV_VIRUS_VERSION) {
+            return;
+        }
+        self::create_visits_table();
+        update_option('odinokov_virus_db_version', ODINOKOV_VIRUS_VERSION);
+    }
+
+    public static function create_visits_table() {
+        global $wpdb;
+        $table = $wpdb->prefix . 'odinokov_visits';
+        $charset = $wpdb->get_charset_collate();
+        $sql = "CREATE TABLE {$table} (
+            id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+            visit_time DATETIME NOT NULL,
+            is_bot TINYINT(1) NOT NULL DEFAULT 0,
+            status_code SMALLINT NOT NULL DEFAULT 200,
+            PRIMARY KEY  (id),
+            KEY visit_time (visit_time),
+            KEY is_bot (is_bot),
+            KEY status_code (status_code)
+        ) {$charset};";
+        require_once ABSPATH . 'wp-admin/includes/upgrade.php';
+        dbDelta($sql);
     }
 
     /* ========== Security Headers ========== */
@@ -232,6 +264,20 @@ class Odinokov_Virus {
         <div class="wrap">
             <h1>Odinokov Virus — Журнал защиты</h1>
 
+            <h2>Посещения сайта</h2>
+            <div style="margin-bottom:12px;">
+                <label for="odv-visit-range">Период:</label>
+                <select id="odv-visit-range">
+                    <option value="24h">Последние 24 часа</option>
+                    <option value="7d">Последние 7 дней</option>
+                    <option value="30d">Последние 30 дней</option>
+                </select>
+            </div>
+            <div style="max-width:100%;height:320px;margin-bottom:16px;">
+                <canvas id="odv-visits-chart"></canvas>
+            </div>
+            <div id="odv-status-checkboxes" style="margin-bottom:20px;"></div>
+
             <h2>Активные защиты</h2>
             <ul style="list-style:disc;padding-left:20px;">
                 <li>Блокировка вредоносных User-Agent (wp2shell, python-httpx, сканеры уязвимостей)</li>
@@ -276,6 +322,106 @@ class Odinokov_Virus {
                 echo empty($log_lines) ? 'Лог пуст.' : esc_textarea(implode("\n", $log_lines));
             ?></textarea>
         </div>
+        <script>
+        (function() {
+            var nonce = <?php echo wp_json_encode(wp_create_nonce('odinokov_visits_nonce')); ?>;
+            var ajaxUrl = <?php echo wp_json_encode(admin_url('admin-ajax.php')); ?>;
+            var chart = null;
+            var statusColors = ['#2271b1', '#d63638', '#996800', '#008a20', '#826eb4', '#00a0d2', '#f56e28', '#72aee6', '#c3c4c7', '#46b450'];
+
+            function loadData() {
+                var range = document.getElementById('odv-visit-range').value;
+                var url = ajaxUrl + '?action=odinokov_visits_data&nonce=' + encodeURIComponent(nonce) + '&range=' + encodeURIComponent(range);
+                fetch(url, { credentials: 'same-origin' })
+                    .then(function(r) { return r.json(); })
+                    .then(function(res) {
+                        if (!res || !res.success) return;
+                        var d = res.data;
+                        renderChart(d);
+                        renderCheckboxes(d);
+                    })
+                    .catch(function() {});
+            }
+
+            function renderCheckboxes(d) {
+                var box = document.getElementById('odv-status-checkboxes');
+                box.innerHTML = '<strong>Коды ответов сервера:</strong> ';
+                d.status_codes.forEach(function(code, i) {
+                    var label = document.createElement('label');
+                    label.style.marginRight = '14px';
+                    var cb = document.createElement('input');
+                    cb.type = 'checkbox';
+                    cb.value = code;
+                    cb.checked = true;
+                    cb.dataset.idx = i;
+                    cb.addEventListener('change', function() {
+                        if (chart) {
+                            chart.data.datasets[i + 2].hidden = !this.checked;
+                            chart.update();
+                        }
+                    });
+                    label.appendChild(cb);
+                    label.appendChild(document.createTextNode(' ' + code));
+                    box.appendChild(label);
+                });
+            }
+
+            function renderChart(d) {
+                var ctx = document.getElementById('odv-visits-chart').getContext('2d');
+                var datasets = [
+                    {
+                        label: 'Люди',
+                        data: d.human,
+                        borderColor: '#2271b1',
+                        backgroundColor: 'rgba(34,113,177,0.1)',
+                        fill: true,
+                        tension: 0.3
+                    },
+                    {
+                        label: 'Яндекс-боты',
+                        data: d.bots,
+                        borderColor: '#d63638',
+                        backgroundColor: 'rgba(214,54,56,0.1)',
+                        fill: true,
+                        tension: 0.3
+                    }
+                ];
+
+                d.status_series.forEach(function(s, i) {
+                    datasets.push({
+                        label: 'Код ' + s.code,
+                        data: s.data,
+                        borderColor: statusColors[i % statusColors.length],
+                        backgroundColor: 'transparent',
+                        fill: false,
+                        tension: 0.3,
+                        borderDash: [5, 3]
+                    });
+                });
+
+                if (chart) {
+                    chart.destroy();
+                }
+
+                chart = new Chart(ctx, {
+                    type: 'line',
+                    data: { labels: d.labels, datasets: datasets },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        interaction: { mode: 'index', intersect: false },
+                        scales: {
+                            x: { title: { display: true, text: 'Время' } },
+                            y: { title: { display: true, text: 'Количество посещений' }, beginAtZero: true }
+                        }
+                    }
+                });
+            }
+
+            document.getElementById('odv-visit-range').addEventListener('change', loadData);
+            loadData();
+        })();
+        </script>
         <?php
     }
 
@@ -310,6 +456,153 @@ class Odinokov_Virus {
         $ua = $this->get_user_agent();
         foreach ($this->yandex_ua_patterns as $p) { if (stripos($ua, $p) !== false) return true; }
         return false;
+    }
+
+    /* ========== Visit tracking ========== */
+
+    public function record_visit() {
+        if (is_admin()) {
+            return;
+        }
+        if (defined('DOING_AJAX') && DOING_AJAX) {
+            return;
+        }
+        if (defined('DOING_CRON') && DOING_CRON) {
+            return;
+        }
+
+        $is_bot = $this->is_yandex_bot() ? 1 : 0;
+        $status = function_exists('http_response_code') ? http_response_code() : 200;
+        if (empty($status)) {
+            $status = 200;
+        }
+
+        global $wpdb;
+        $table = $wpdb->prefix . 'odinokov_visits';
+        $wpdb->insert(
+            $table,
+            array(
+                'visit_time'  => current_time('mysql'),
+                'is_bot'      => $is_bot,
+                'status_code' => (int) $status,
+            ),
+            array('%s', '%d', '%d')
+        );
+    }
+
+    public function enqueue_chart_assets($hook) {
+        if (false === strpos($hook, 'odinokov-virus')) {
+            return;
+        }
+        wp_enqueue_script(
+            'odinokov-chartjs',
+            'https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js',
+            array(),
+            '4.4.1',
+            true
+        );
+    }
+
+    public function ajax_visits_data() {
+        if (!current_user_can('manage_options')) {
+            wp_send_json_error(array('message' => 'Access denied.'));
+        }
+        check_ajax_referer('odinokov_visits_nonce', 'nonce');
+
+        $range = isset($_GET['range']) ? sanitize_text_field(wp_unslash($_GET['range'])) : '24h';
+        $interval = isset($_GET['interval']) ? sanitize_text_field(wp_unslash($_GET['interval'])) : 'hour';
+
+        $now = current_time('timestamp');
+        switch ($range) {
+            case '7d':
+                $start = $now - 7 * DAY_IN_SECONDS;
+                break;
+            case '30d':
+                $start = $now - 30 * DAY_IN_SECONDS;
+                break;
+            default:
+                $start = $now - DAY_IN_SECONDS;
+                $range = '24h';
+        }
+
+        $group = 'hour';
+        $format = '%Y-%m-%d %H:00:00';
+        if ('7d' === $range) {
+            $group = 'day';
+            $format = '%Y-%m-%d 00:00:00';
+        } elseif ('30d' === $range) {
+            $group = 'day';
+            $format = '%Y-%m-%d 00:00:00';
+        }
+
+        global $wpdb;
+        $table = $wpdb->prefix . 'odinokov_visits';
+
+        $rows = $wpdb->get_results($wpdb->prepare(
+            "SELECT DATE_FORMAT(visit_time, %s) AS bucket, is_bot, status_code, COUNT(*) AS cnt
+             FROM {$table}
+             WHERE visit_time >= %s
+             GROUP BY bucket, is_bot, status_code
+             ORDER BY bucket ASC",
+            $format,
+            date('Y-m-d H:i:s', $start)
+        ));
+
+        $buckets = array();
+        $human = array();
+        $bots = array();
+        $statuses = array();
+
+        foreach ($rows as $r) {
+            $b = $r->bucket;
+            if (!isset($buckets[$b])) {
+                $buckets[$b] = true;
+            }
+            if ($r->is_bot) {
+                if (!isset($bots[$b])) $bots[$b] = 0;
+                $bots[$b] += (int) $r->cnt;
+            } else {
+                if (!isset($human[$b])) $human[$b] = 0;
+                $human[$b] += (int) $r->cnt;
+            }
+            $sc = (int) $r->status_code;
+            if (!isset($statuses[$sc])) $statuses[$sc] = array();
+            if (!isset($statuses[$sc][$b])) $statuses[$sc][$b] = 0;
+            $statuses[$sc][$b] += (int) $r->cnt;
+        }
+
+        $labels = array_keys($buckets);
+        sort($labels);
+
+        $human_data = array();
+        $bot_data = array();
+        foreach ($labels as $l) {
+            $human_data[] = isset($human[$l]) ? $human[$l] : 0;
+            $bot_data[] = isset($bots[$l]) ? $bots[$l] : 0;
+        }
+
+        $status_codes = array_keys($statuses);
+        sort($status_codes);
+
+        $status_series = array();
+        foreach ($status_codes as $sc) {
+            $series = array();
+            foreach ($labels as $l) {
+                $series[] = isset($statuses[$sc][$l]) ? $statuses[$sc][$l] : 0;
+            }
+            $status_series[] = array(
+                'code' => $sc,
+                'data' => $series,
+            );
+        }
+
+        wp_send_json_success(array(
+            'labels'        => $labels,
+            'human'         => $human_data,
+            'bots'          => $bot_data,
+            'status_codes'  => $status_codes,
+            'status_series' => $status_series,
+        ));
     }
 
     private function block_and_log($reason, $detail) {
@@ -415,6 +708,8 @@ class Odinokov_Virus {
 
     public static function activate() {
         if (!wp_next_scheduled(ODINOKOV_VIRUS_CRON_HOOK)) wp_schedule_event(time(), 'weekly', ODINOKOV_VIRUS_CRON_HOOK);
+        self::create_visits_table();
+        update_option('odinokov_virus_db_version', ODINOKOV_VIRUS_VERSION);
     }
 
     public static function deactivate() {
