@@ -3,7 +3,7 @@
  * Plugin Name:       Order Share Odinokov
  * Plugin URI:        https://github.com/KirillOdinokov/wp-plugins
  * Description:       Объединённый плагин: кнопки «Отправить» (Web Share API), «Сохранить PDF» (Print) и «Оставить заявку» (PopUp форма) на страницах товара WooCommerce. Полная настройка стиля всех трёх кнопок из админки. Защита от ботов, капча, отключение add-to-cart. Шорткод [sert-request] — форма запроса документации.
- * Version:           1.0.16
+ * Version:           1.0.17
  * Author:            Odinokov
  * Author URI:        https://github.com/KirillOdinokov/wp-plugins
  * License:           GPL-2.0-or-later
@@ -20,7 +20,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 if ( ! defined( 'OSO_VERSION' ) ) {
-    define( 'OSO_VERSION', '1.0.16' );
+    define( 'OSO_VERSION', '1.0.17' );
 }
 if ( ! defined( 'OSO_FILE' ) ) {
     define( 'OSO_FILE', __FILE__ );
@@ -66,6 +66,7 @@ function oso_init() {
     if ( get_option( 'oso_db_version' ) !== OSO_VERSION ) {
         OSO_Order::create_table();
         OSO_Director_Request::ensure_page();
+        oso_migrate_client_email();
         update_option( 'oso_db_version', OSO_VERSION );
     }
 }
@@ -99,6 +100,19 @@ register_uninstall_hook( __FILE__, 'oso_uninstall' );
 function oso_uninstall() {
     delete_option( 'oso_settings' );
     delete_option( 'oso_email_to' );
+}
+
+function oso_migrate_client_email() {
+    $opts = get_option( 'oso_settings', array() );
+    if ( ! is_array( $opts ) ) {
+        $opts = array();
+    }
+    $old = 'Здравствуйте! Ваша заявка успешно создана и находится в обработке. Мы свяжемся с Вами в ближайшее время.';
+    if ( isset( $opts['client_email_message'] ) && $opts['client_email_message'] === $old ) {
+        $defaults = oso_defaults();
+        $opts['client_email_message'] = $defaults['client_email_message'];
+        update_option( 'oso_settings', $opts );
+    }
 }
 
 function oso_defaults() {
@@ -149,7 +163,7 @@ function oso_defaults() {
 
         'client_email_enabled'    => 1,
         'client_email_subject'    => 'Ваша заявка принята',
-        'client_email_message'    => 'Здравствуйте! Ваша заявка успешно создана и находится в обработке. Мы свяжемся с Вами в ближайшее время.',
+        'client_email_message'    => '<p>Добрый день!</p><p>Мы получили Вашу заявку, спасибо! Мы ценим Ваше доверие и сделаем всё чтобы его оправдать!</p><p>Мы работаем с понедельника по пятницу с 9:00 до 18:00 в МСК. Заявки, полученные в выходные дни или нерабочее время будут обработаны в первые рабочие часы следующего рабочего дня!</p><p>Отвечаем на заявки в рабочее время в течении часа.</p><p style="font-size:16px;"><b>Не получили ответ? Слишком долго ждать? Не понравилось обслуживание? Есть предложение по работе компании? <a href="{director_url}">Напишите директору</a></b></p>',
         'client_email_signature'  => '',
     );
 }
@@ -184,7 +198,7 @@ function oso_get_settings() {
     $merged['pdf_text']        = oso_sanitize_text( $merged['pdf_text'] );
     $merged['order_text']      = oso_sanitize_text( $merged['order_text'] );
     $merged['client_email_subject'] = oso_sanitize_text( $merged['client_email_subject'] );
-    $merged['client_email_message'] = sanitize_textarea_field( wp_unslash( $merged['client_email_message'] ) );
+    $merged['client_email_message'] = wp_kses_post( wp_unslash( $merged['client_email_message'] ) );
     $merged['client_email_signature'] = wp_kses_post( wp_unslash( $merged['client_email_signature'] ) );
     $merged['share_icon']      = oso_sanitize_icon_class( $merged['share_icon'] );
     $merged['pdf_icon']        = oso_sanitize_icon_class( $merged['pdf_icon'] );
@@ -416,7 +430,7 @@ function oso_sanitize_settings( $input ) {
     if ( '' === $out['client_email_subject'] ) {
         $out['client_email_subject'] = $defaults['client_email_subject'];
     }
-    $out['client_email_message'] = isset( $input['client_email_message'] ) ? sanitize_textarea_field( wp_unslash( $input['client_email_message'] ) ) : $defaults['client_email_message'];
+    $out['client_email_message'] = isset( $input['client_email_message'] ) ? wp_kses_post( wp_unslash( $input['client_email_message'] ) ) : $defaults['client_email_message'];
     $out['client_email_signature'] = isset( $input['client_email_signature'] ) ? wp_kses_post( wp_unslash( $input['client_email_signature'] ) ) : $defaults['client_email_signature'];
 
     $out['share_icon']       = oso_sanitize_icon_class( $input['share_icon'] ?? $defaults['share_icon'] );
@@ -831,10 +845,10 @@ function oso_render_settings_page() {
                     <td><input type="text" class="regular-text" name="oso_settings[client_email_subject]" value="<?php echo esc_attr( $s['client_email_subject'] ); ?>"></td>
                 </tr>
                 <tr>
-                    <th scope="row"><?php esc_html_e( 'Текст сообщения', 'order-share-odinokov' ); ?></th>
+                    <th scope="row"><?php esc_html_e( 'Текст сообщения (HTML)', 'order-share-odinokov' ); ?></th>
                     <td>
-                        <textarea name="oso_settings[client_email_message]" rows="5" class="large-text"><?php echo esc_textarea( $s['client_email_message'] ); ?></textarea>
-                        <p class="description"><?php esc_html_e( 'Текст письма, которое получит клиент. Поддерживаются плейсхолдеры: {name} — имя, {product} — материал.', 'order-share-odinokov' ); ?></p>
+                        <textarea name="oso_settings[client_email_message]" rows="10" class="large-text"><?php echo esc_textarea( $s['client_email_message'] ); ?></textarea>
+                        <p class="description"><?php esc_html_e( 'Текст письма в формате HTML. Поддерживаются плейсхолдеры: {name} — имя, {product} — материал, {director_url} — ссылка на страницу «Написать директору».', 'order-share-odinokov' ); ?></p>
                     </td>
                 </tr>
                 <tr>

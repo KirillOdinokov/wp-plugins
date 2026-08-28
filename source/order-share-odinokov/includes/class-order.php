@@ -451,13 +451,14 @@ class OSO_Order {
         $subject = $s['client_email_subject'];
 
         $message_text = $s['client_email_message'];
-        $message_text = str_replace( '{name}', $name, $message_text );
-        $message_text = str_replace( '{product}', $product_name, $message_text );
+        $message_text = str_replace( '{name}', esc_html( $name ), $message_text );
+        $message_text = str_replace( '{product}', esc_html( $product_name ), $message_text );
+        $message_text = str_replace( '{director_url}', esc_url( home_url( '/napisat-directoru/' ) ), $message_text );
 
         $signature = $s['client_email_signature'];
 
         $body  = '<html><body style="font-family:Arial,sans-serif;font-size:14px;color:#333;line-height:1.6;">';
-        $body .= '<p>' . nl2br( esc_html( $message_text ) ) . '</p>';
+        $body .= $message_text;
         if ( '' !== $signature ) {
             $body .= '<div style="margin-top:20px;padding-top:15px;border-top:1px solid #eee;">' . $signature . '</div>';
         }
