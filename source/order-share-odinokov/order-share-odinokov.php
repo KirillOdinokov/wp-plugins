@@ -3,7 +3,7 @@
  * Plugin Name:       Order Share Odinokov
  * Plugin URI:        https://github.com/KirillOdinokov/wp-plugins
  * Description:       Объединённый плагин: кнопки «Отправить» (Web Share API), «Сохранить PDF» (Print) и «Оставить заявку» (PopUp форма) на страницах товара WooCommerce. Полная настройка стиля всех трёх кнопок из админки. Защита от ботов, капча, отключение add-to-cart. Шорткод [sert-request] — форма запроса документации.
- * Version:           1.0.15
+ * Version:           1.0.16
  * Author:            Odinokov
  * Author URI:        https://github.com/KirillOdinokov/wp-plugins
  * License:           GPL-2.0-or-later
@@ -20,7 +20,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 if ( ! defined( 'OSO_VERSION' ) ) {
-    define( 'OSO_VERSION', '1.0.15' );
+    define( 'OSO_VERSION', '1.0.16' );
 }
 if ( ! defined( 'OSO_FILE' ) ) {
     define( 'OSO_FILE', __FILE__ );
@@ -36,6 +36,7 @@ require_once OSO_DIR . 'includes/helpers.php';
 require_once OSO_DIR . 'includes/class-order.php';
 require_once OSO_DIR . 'includes/class-share.php';
 require_once OSO_DIR . 'includes/class-sert-request.php';
+require_once OSO_DIR . 'includes/class-director-request.php';
 require_once OSO_DIR . 'includes/class-oso-updater.php';
 
 new OSO_Plugin_Updater(
@@ -60,9 +61,11 @@ function oso_init() {
     new OSO_Order();
     new OSO_Share();
     new OSO_Sert_Request();
+    new OSO_Director_Request();
 
     if ( get_option( 'oso_db_version' ) !== OSO_VERSION ) {
         OSO_Order::create_table();
+        OSO_Director_Request::ensure_page();
         update_option( 'oso_db_version', OSO_VERSION );
     }
 }
@@ -86,6 +89,9 @@ function oso_activate() {
     }
     if ( class_exists( 'OSO_Order' ) ) {
         OSO_Order::create_table();
+    }
+    if ( class_exists( 'OSO_Director_Request' ) ) {
+        OSO_Director_Request::ensure_page();
     }
 }
 
