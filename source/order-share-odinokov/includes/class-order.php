@@ -443,6 +443,11 @@ class OSO_Order {
         }
         $from_name = get_bloginfo( 'name' );
 
+        $reply_to = get_option( 'oso_email_to', get_option( 'admin_email' ) );
+        if ( empty( $reply_to ) || ! is_email( $reply_to ) ) {
+            $reply_to = get_option( 'admin_email' );
+        }
+
         $subject = $s['client_email_subject'];
 
         $message_text = $s['client_email_message'];
@@ -461,6 +466,7 @@ class OSO_Order {
         $headers = array(
             'Content-Type: text/html; charset=UTF-8',
             'From: ' . $from_name . ' <' . $from_email . '>',
+            'Reply-To: ' . $reply_to,
         );
 
         return wp_mail( $email, $subject, $body, $headers );
