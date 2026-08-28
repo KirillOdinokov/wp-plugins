@@ -22,6 +22,47 @@ class OSO_Order {
         add_action( 'wp_footer', array( $this, 'render_popup' ), 1 );
     }
 
+    public static function create_table() {
+        global $wpdb;
+        $table = $wpdb->prefix . 'oso_orders';
+        $charset = $wpdb->get_charset_collate();
+        $sql = "CREATE TABLE {$table} (
+            id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+            product_name VARCHAR(255) NOT NULL DEFAULT '',
+            inn VARCHAR(64) NOT NULL DEFAULT '',
+            name VARCHAR(255) NOT NULL DEFAULT '',
+            email VARCHAR(255) NOT NULL DEFAULT '',
+            accessories TEXT NULL,
+            delivery VARCHAR(8) NOT NULL DEFAULT 'no',
+            delivery_address TEXT NULL,
+            created_at DATETIME NOT NULL,
+            PRIMARY KEY  (id),
+            KEY email (email),
+            KEY created_at (created_at)
+        ) {$charset};";
+        require_once ABSPATH . 'wp-admin/includes/upgrade.php';
+        dbDelta( $sql );
+    }
+
+    private function save_order( $data ) {
+        global $wpdb;
+        $table = $wpdb->prefix . 'oso_orders';
+        $wpdb->insert(
+            $table,
+            array(
+                'product_name'     => $data['product_name'],
+                'inn'              => $data['inn'],
+                'name'             => $data['name'],
+                'email'            => $data['email'],
+                'accessories'      => $data['accessories'],
+                'delivery'         => $data['delivery'],
+                'delivery_address' => $data['delivery_address'],
+                'created_at'       => current_time( 'mysql' ),
+            ),
+            array( '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s' )
+        );
+    }
+
     public function cache_screen() {
         self::$is_order_screen = is_shop() || is_product_taxonomy() || ( function_exists( 'is_product' ) && is_product() );
     }
@@ -366,6 +407,18 @@ class OSO_Order {
             }
         }
 
+        $this->save_order( array(
+            'product_name'     => $product_name,
+            'inn'              => $inn,
+            'name'             => $name,
+            'email'            => $email,
+            'accessories'      => $accessories,
+            'delivery'         => $delivery,
+            'delivery_address' => $delivery_addr,
+        ) );
+
+        $client_sent = $this->send_client_email( $email, $name, $product_name );
+
         oso_log_mail( $to, $subject, $sent, $product_name );
 
         if ( ! $sent ) {
@@ -373,5 +426,43 @@ class OSO_Order {
         }
 
         wp_send_json_success( array( 'message' => __( 'Заявка отправлена! Мы свяжемся с Вами в ближайшее время.', 'order-share-odinokov' ) ) );
+    }
+
+    private function send_client_email( $email, $name, $product_name ) {
+        $s = oso_get_settings();
+        if ( empty( $s['client_email_enabled'] ) ) {
+            return false;
+        }
+        if ( empty( $email ) || ! is_email( $email ) ) {
+            return false;
+        }
+
+        $from_email = get_option( 'oso_email_from', '' );
+        if ( empty( $from_email ) || ! is_email( $from_email ) ) {
+            $from_email = 'no-reply@' . wp_parse_url( home_url(), PHP_URL_HOST );
+        }
+        $from_name = get_bloginfo( 'name' );
+
+        $subject = $s['client_email_subject'];
+
+        $message_text = $s['client_email_message'];
+        $message_text = str_replace( '{name}', $name, $message_text );
+        $message_text = str_replace( '{product}', $product_name, $message_text );
+
+        $signature = $s['client_email_signature'];
+
+        $body  = '<html><body style="font-family:Arial,sans-serif;font-size:14px;color:#333;line-height:1.6;">';
+        $body .= '<p>' . nl2br( esc_html( $message_text ) ) . '</p>';
+        if ( '' !== $signature ) {
+            $body .= '<div style="margin-top:20px;padding-top:15px;border-top:1px solid #eee;">' . $signature . '</div>';
+        }
+        $body .= '</body></html>';
+
+        $headers = array(
+            'Content-Type: text/html; charset=UTF-8',
+            'From: ' . $from_name . ' <' . $from_email . '>',
+        );
+
+        return wp_mail( $email, $subject, $body, $headers );
     }
 }

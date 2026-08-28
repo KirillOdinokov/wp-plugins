@@ -3,7 +3,7 @@
  * Plugin Name:       Order Share Odinokov
  * Plugin URI:        https://github.com/KirillOdinokov/wp-plugins
  * Description:       Объединённый плагин: кнопки «Отправить» (Web Share API), «Сохранить PDF» (Print) и «Оставить заявку» (PopUp форма) на страницах товара WooCommerce. Полная настройка стиля всех трёх кнопок из админки. Защита от ботов, капча, отключение add-to-cart. Шорткод [sert-request] — форма запроса документации.
- * Version:           1.0.13
+ * Version:           1.0.14
  * Author:            Odinokov
  * Author URI:        https://github.com/KirillOdinokov/wp-plugins
  * License:           GPL-2.0-or-later
@@ -20,7 +20,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 if ( ! defined( 'OSO_VERSION' ) ) {
-    define( 'OSO_VERSION', '1.0.13' );
+    define( 'OSO_VERSION', '1.0.14' );
 }
 if ( ! defined( 'OSO_FILE' ) ) {
     define( 'OSO_FILE', __FILE__ );
@@ -60,6 +60,11 @@ function oso_init() {
     new OSO_Order();
     new OSO_Share();
     new OSO_Sert_Request();
+
+    if ( get_option( 'oso_db_version' ) !== OSO_VERSION ) {
+        OSO_Order::create_table();
+        update_option( 'oso_db_version', OSO_VERSION );
+    }
 }
 
 function oso_wc_missing_notice() {
@@ -78,6 +83,9 @@ function oso_activate() {
     }
     if ( ! get_option( 'oso_email_to' ) ) {
         update_option( 'oso_email_to', get_option( 'admin_email' ) );
+    }
+    if ( class_exists( 'OSO_Order' ) ) {
+        OSO_Order::create_table();
     }
 }
 
@@ -132,6 +140,11 @@ function oso_defaults() {
         'field_files'             => 1,
         'field_delivery'          => 1,
         'field_captcha'           => 1,
+
+        'client_email_enabled'    => 1,
+        'client_email_subject'    => 'Ваша заявка принята',
+        'client_email_message'    => 'Здравствуйте! Ваша заявка успешно создана и находится в обработке. Мы свяжемся с Вами в ближайшее время.',
+        'client_email_signature'  => '',
     );
 }
 
@@ -149,6 +162,7 @@ function oso_get_settings() {
     foreach ( array( 'field_inn', 'field_name', 'field_email', 'field_accessories', 'field_files', 'field_delivery', 'field_captcha' ) as $k ) {
         $merged[ $k ] = ! empty( $merged[ $k ] ) ? 1 : 0;
     }
+    $merged['client_email_enabled'] = ! empty( $merged['client_email_enabled'] ) ? 1 : 0;
 
     $merged['font_size']       = max( 8, min( 60, (int) $merged['font_size'] ) );
     $merged['icon_size_product']  = max( 12, min( 80, (int) $merged['icon_size_product'] ) );
@@ -163,6 +177,9 @@ function oso_get_settings() {
     $merged['share_text']      = oso_sanitize_text( $merged['share_text'] );
     $merged['pdf_text']        = oso_sanitize_text( $merged['pdf_text'] );
     $merged['order_text']      = oso_sanitize_text( $merged['order_text'] );
+    $merged['client_email_subject'] = oso_sanitize_text( $merged['client_email_subject'] );
+    $merged['client_email_message'] = sanitize_textarea_field( wp_unslash( $merged['client_email_message'] ) );
+    $merged['client_email_signature'] = wp_kses_post( wp_unslash( $merged['client_email_signature'] ) );
     $merged['share_icon']      = oso_sanitize_icon_class( $merged['share_icon'] );
     $merged['pdf_icon']        = oso_sanitize_icon_class( $merged['pdf_icon'] );
     $merged['order_icon']      = oso_sanitize_icon_class( $merged['order_icon'] );
@@ -371,6 +388,7 @@ function oso_sanitize_settings( $input ) {
         'enable_share_product', 'enable_share_post', 'enable_order_product', 'enable_order_category',
         'disable_add_to_cart', 'print_button', 'uppercase',
         'field_inn', 'field_name', 'field_email', 'field_accessories', 'field_files', 'field_delivery', 'field_captcha',
+        'client_email_enabled',
     ) as $b ) {
         $out[ $b ] = ! empty( $input[ $b ] ) ? 1 : 0;
     }
@@ -387,6 +405,13 @@ function oso_sanitize_settings( $input ) {
     if ( '' === $out['order_text'] ) {
         $out['order_text'] = $defaults['order_text'];
     }
+
+    $out['client_email_subject'] = oso_sanitize_text( $input['client_email_subject'] ?? $defaults['client_email_subject'] );
+    if ( '' === $out['client_email_subject'] ) {
+        $out['client_email_subject'] = $defaults['client_email_subject'];
+    }
+    $out['client_email_message'] = isset( $input['client_email_message'] ) ? sanitize_textarea_field( wp_unslash( $input['client_email_message'] ) ) : $defaults['client_email_message'];
+    $out['client_email_signature'] = isset( $input['client_email_signature'] ) ? wp_kses_post( wp_unslash( $input['client_email_signature'] ) ) : $defaults['client_email_signature'];
 
     $out['share_icon']       = oso_sanitize_icon_class( $input['share_icon'] ?? $defaults['share_icon'] );
     $out['pdf_icon']         = oso_sanitize_icon_class( $input['pdf_icon'] ?? $defaults['pdf_icon'] );
@@ -786,6 +811,32 @@ function oso_render_settings_page() {
                 <tr>
                     <th scope="row"><?php esc_html_e( 'From имя (SMTP)', 'order-share-odinokov' ); ?></th>
                     <td><input type="text" class="regular-text" name="oso_smtp[from_name]" value="<?php echo esc_attr( $smtp['from_name'] ); ?>" placeholder="<?php echo esc_attr( get_bloginfo( 'name' ) ); ?>"></td>
+                </tr>
+            </table>
+
+            <h2><?php esc_html_e( 'Письмо клиенту', 'order-share-odinokov' ); ?></h2>
+            <table class="form-table" role="presentation">
+                <tr>
+                    <th scope="row"><?php esc_html_e( 'Отправлять письмо клиенту', 'order-share-odinokov' ); ?></th>
+                    <td><label><input type="checkbox" name="oso_settings[client_email_enabled]" value="1" <?php checked( $s['client_email_enabled'], 1 ); ?>> <?php esc_html_e( 'Отправлять клиенту подтверждение о создании заявки', 'order-share-odinokov' ); ?></label></td>
+                </tr>
+                <tr>
+                    <th scope="row"><?php esc_html_e( 'Тема письма', 'order-share-odinokov' ); ?></th>
+                    <td><input type="text" class="regular-text" name="oso_settings[client_email_subject]" value="<?php echo esc_attr( $s['client_email_subject'] ); ?>"></td>
+                </tr>
+                <tr>
+                    <th scope="row"><?php esc_html_e( 'Текст сообщения', 'order-share-odinokov' ); ?></th>
+                    <td>
+                        <textarea name="oso_settings[client_email_message]" rows="5" class="large-text"><?php echo esc_textarea( $s['client_email_message'] ); ?></textarea>
+                        <p class="description"><?php esc_html_e( 'Текст письма, которое получит клиент. Поддерживаются плейсхолдеры: {name} — имя, {product} — материал.', 'order-share-odinokov' ); ?></p>
+                    </td>
+                </tr>
+                <tr>
+                    <th scope="row"><?php esc_html_e( 'Подпись (HTML)', 'order-share-odinokov' ); ?></th>
+                    <td>
+                        <textarea name="oso_settings[client_email_signature]" rows="5" class="large-text"><?php echo esc_textarea( $s['client_email_signature'] ); ?></textarea>
+                        <p class="description"><?php esc_html_e( 'Подпись в формате HTML (например: <strong>Компания</strong>, телефон, email).', 'order-share-odinokov' ); ?></p>
+                    </td>
                 </tr>
             </table>
 

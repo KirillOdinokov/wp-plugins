@@ -1,10 +1,10 @@
 ﻿{
     "requires":  "5.8",
     "download_url":  "https://raw.githubusercontent.com/KirillOdinokov/wp-plugins/main/repo/order-share-odinokov.zip",
-    "last_updated":  "2026-08-26",
+    "last_updated":  "2026-08-28",
     "tested":  "6.7",
-    "version":  "1.0.13",
+    "version":  "1.0.14",
     "requires_php":  "7.4",
     "homepage":  "https://raw.githubusercontent.com/KirillOdinokov/wp-plugins/main",
-    "changelog":  "= 1.0.13 =\n* SMTP с авторизацией (phpmailer_init) + настройки в админке\n* Лог отправки писем для диагностики"
+    "changelog":  "= 1.0.14 =\n* Письмо клиенту о создании заявки (настраиваемый текст + HTML-подпись)\n* Отдельная таблица БД для хранения заявок"
 }
