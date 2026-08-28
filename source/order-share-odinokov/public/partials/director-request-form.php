@@ -31,8 +31,8 @@ if ( ! defined( 'ABSPATH' ) ) {
         <div class="oso-director-captcha-row">
             <span class="oso-director-captcha-question"></span>
             <a href="#" class="oso-director-captcha-refresh"><?php esc_html_e( 'Обновить', 'order-share-odinokov' ); ?></a>
-            <input type="number" id="oso-director-captcha-answer" placeholder="?" required>
-            <input type="hidden" id="oso-director-captcha-key" value="">
+            <input type="number" id="oso-director-captcha-answer" name="captcha_answer" placeholder="?" required>
+            <input type="hidden" id="oso-director-captcha-key" name="captcha_key" value="">
         </div>
 
         <button type="submit" class="oso-director-submit"><?php esc_html_e( 'Отправить', 'order-share-odinokov' ); ?></button>

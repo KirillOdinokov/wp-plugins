@@ -3,8 +3,8 @@
     "download_url":  "https://raw.githubusercontent.com/KirillOdinokov/wp-plugins/main/repo/order-share-odinokov.zip",
     "last_updated":  "2026-08-28",
     "tested":  "6.7",
-    "version":  "1.0.17",
+    "version":  "1.0.18",
     "requires_php":  "7.4",
     "homepage":  "https://raw.githubusercontent.com/KirillOdinokov/wp-plugins/main",
-    "changelog":  "= 1.0.17 =\n* Письмо клиенту теперь в HTML с дефолтным текстом и ссылкой «Написать директору»"
+    "changelog":  "= 1.0.18 =\n* Исправлена капча на странице «Написать директору» (добавлены name у полей)"
 }
