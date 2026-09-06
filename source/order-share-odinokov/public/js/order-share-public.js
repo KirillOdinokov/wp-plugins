@@ -195,6 +195,19 @@
     function bindForm() {
         var f = document.getElementById('oso-order-form');
         if (!f) return;
+        f.addEventListener('click', function(e) {
+            var t = e.target;
+            if (t && t.classList && t.classList.contains('oso-qty-btn')) {
+                e.preventDefault();
+                var qty = document.getElementById('oso-quantity');
+                if (!qty) return;
+                var delta = parseInt(t.getAttribute('data-delta'), 10) || 0;
+                var val = parseInt(qty.value, 10);
+                if (isNaN(val)) val = 1;
+                val = Math.max(1, val + delta);
+                qty.value = val;
+            }
+        });
         f.addEventListener('change', function(e) {
             var t = e.target;
             if (t && t.name === 'delivery') {

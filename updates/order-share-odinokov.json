@@ -1,10 +1,10 @@
 ﻿{
     "requires":  "5.8",
     "download_url":  "https://raw.githubusercontent.com/KirillOdinokov/wp-plugins/main/repo/order-share-odinokov.zip",
-    "last_updated":  "2026-08-28",
+    "last_updated":  "2026-09-06",
     "tested":  "6.7",
-    "version":  "1.0.18",
+    "version":  "1.0.19",
     "requires_php":  "7.4",
     "homepage":  "https://raw.githubusercontent.com/KirillOdinokov/wp-plugins/main",
-    "changelog":  "= 1.0.18 =\n* Исправлена капча на странице «Написать директору» (добавлены name у полей)"
+    "changelog":  "= 1.0.19 =\n* Добавлено поле количества товара в форме заявки\n* Поле «Комплектующие» переименовано в «Комплектующие и расходники»\n* Placeholder адреса доставки"
 }

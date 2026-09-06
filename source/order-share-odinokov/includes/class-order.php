@@ -29,6 +29,7 @@ class OSO_Order {
         $sql = "CREATE TABLE {$table} (
             id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
             product_name VARCHAR(255) NOT NULL DEFAULT '',
+            quantity INT UNSIGNED NOT NULL DEFAULT 1,
             inn VARCHAR(64) NOT NULL DEFAULT '',
             name VARCHAR(255) NOT NULL DEFAULT '',
             email VARCHAR(255) NOT NULL DEFAULT '',
@@ -51,6 +52,7 @@ class OSO_Order {
             $table,
             array(
                 'product_name'     => $data['product_name'],
+                'quantity'         => $data['quantity'],
                 'inn'              => $data['inn'],
                 'name'             => $data['name'],
                 'email'            => $data['email'],
@@ -59,7 +61,7 @@ class OSO_Order {
                 'delivery_address' => $data['delivery_address'],
                 'created_at'       => current_time( 'mysql' ),
             ),
-            array( '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s' )
+            array( '%s', '%d', '%s', '%s', '%s', '%s', '%s', '%s', '%s' )
         );
     }
 
@@ -291,6 +293,7 @@ class OSO_Order {
         $errors = array();
 
         $product_name   = isset( $_POST['product_name'] ) ? sanitize_text_field( wp_unslash( $_POST['product_name'] ) ) : '';
+        $quantity       = isset( $_POST['quantity'] ) ? max( 1, (int) $_POST['quantity'] ) : 1;
         $inn            = isset( $_POST['inn'] ) ? sanitize_text_field( wp_unslash( $_POST['inn'] ) ) : '';
         $name           = isset( $_POST['name'] ) ? sanitize_text_field( wp_unslash( $_POST['name'] ) ) : '';
         $email          = isset( $_POST['email'] ) ? sanitize_email( wp_unslash( $_POST['email'] ) ) : '';
@@ -335,13 +338,14 @@ class OSO_Order {
 
         $message  = __( 'Новая заявка на сайте', 'order-share-odinokov' ) . "\r\n\r\n";
         $message .= __( 'Материал:', 'order-share-odinokov' ) . ' ' . $product_name . "\r\n";
+        $message .= __( 'Количество:', 'order-share-odinokov' ) . ' ' . $quantity . "\r\n";
         if ( ! empty( $s['field_inn'] ) ) {
             $message .= __( 'ИНН:', 'order-share-odinokov' ) . ' ' . ( $inn ?: __( 'Физическое лицо', 'order-share-odinokov' ) ) . "\r\n";
         }
         $message .= __( 'Имя:', 'order-share-odinokov' ) . ' ' . $name . "\r\n";
         $message .= __( 'Email:', 'order-share-odinokov' ) . ' ' . $email . "\r\n";
         if ( ! empty( $s['field_accessories'] ) && $accessories ) {
-            $message .= __( 'Комплектующие:', 'order-share-odinokov' ) . "\r\n" . $accessories . "\r\n";
+            $message .= __( 'Комплектующие и расходники:', 'order-share-odinokov' ) . "\r\n" . $accessories . "\r\n";
         }
         if ( ! empty( $s['field_delivery'] ) ) {
             $message .= __( 'Доставка:', 'order-share-odinokov' ) . ' ' . ( 'yes' === $delivery ? __( 'Да', 'order-share-odinokov' ) : __( 'Нет', 'order-share-odinokov' ) ) . "\r\n";
@@ -409,6 +413,7 @@ class OSO_Order {
 
         $this->save_order( array(
             'product_name'     => $product_name,
+            'quantity'         => $quantity,
             'inn'              => $inn,
             'name'             => $name,
             'email'            => $email,

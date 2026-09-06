@@ -118,6 +118,36 @@
 .oso-required {
     color: #e00;
 }
+.oso-quantity-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.oso-quantity-row .oso-qty-btn {
+    width: 40px;
+    height: 40px;
+    border: 1px solid #ccc;
+    background: #f7f7f7;
+    color: #333;
+    font-size: 20px;
+    line-height: 1;
+    border-radius: 4px;
+    cursor: pointer;
+    flex-shrink: 0;
+}
+.oso-quantity-row .oso-qty-btn:hover {
+    background: #eee;
+}
+.oso-quantity-row input[type="number"] {
+    width: 80px;
+    text-align: center;
+    -moz-appearance: textfield;
+}
+.oso-quantity-row input[type="number"]::-webkit-outer-spin-button,
+.oso-quantity-row input[type="number"]::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
 .oso-hint {
     font-size: 12px;
     color: #666;

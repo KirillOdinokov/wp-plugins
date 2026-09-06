@@ -14,6 +14,15 @@ $s = oso_get_settings();
             <input type="hidden" name="product_name" id="oso-product-name" value="">
             <input type="hidden" name="captcha_key" id="oso-captcha-key" value="">
 
+            <div class="oso-form-group">
+                <label for="oso-quantity"><?php esc_html_e( 'Количество', 'order-share-odinokov' ); ?></label>
+                <div class="oso-quantity-row">
+                    <button type="button" class="oso-qty-btn" data-delta="-1" aria-label="<?php esc_attr_e( 'Уменьшить', 'order-share-odinokov' ); ?>">&minus;</button>
+                    <input type="number" name="quantity" id="oso-quantity" value="1" min="1" step="1">
+                    <button type="button" class="oso-qty-btn" data-delta="1" aria-label="<?php esc_attr_e( 'Увеличить', 'order-share-odinokov' ); ?>">&plus;</button>
+                </div>
+            </div>
+
             <?php if ( ! empty( $s['field_inn'] ) ) : ?>
             <div class="oso-form-group">
                 <label for="oso-inn"><?php esc_html_e( 'ИНН компании', 'order-share-odinokov' ); ?></label>
@@ -37,7 +46,7 @@ $s = oso_get_settings();
 
             <?php if ( ! empty( $s['field_accessories'] ) ) : ?>
             <div class="oso-form-group">
-                <label for="oso-accessories"><?php esc_html_e( 'Комплектующие', 'order-share-odinokov' ); ?></label>
+                <label for="oso-accessories"><?php esc_html_e( 'Комплектующие и расходники', 'order-share-odinokov' ); ?></label>
                 <textarea name="accessories" id="oso-accessories" rows="3" placeholder="<?php esc_attr_e( 'Напишите в простой форме, если ещё что-то нужно', 'order-share-odinokov' ); ?>"></textarea>
             </div>
             <?php endif; ?>
@@ -58,7 +67,7 @@ $s = oso_get_settings();
             </div>
             <div class="oso-form-group oso-delivery-address" style="display:none;">
                 <label for="oso-delivery-address"><?php esc_html_e( 'Адрес доставки', 'order-share-odinokov' ); ?></label>
-                <textarea name="delivery_address" id="oso-delivery-address" rows="2"></textarea>
+                <textarea name="delivery_address" id="oso-delivery-address" rows="2" placeholder="<?php esc_attr_e( 'Напишите куда нужна доставка, нужно ли её отобразить в счете обязательно', 'order-share-odinokov' ); ?>"></textarea>
             </div>
             <?php endif; ?>
 
