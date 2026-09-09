@@ -3,7 +3,7 @@
  * Plugin Name:       Order Share Odinokov Extended
  * Plugin URI:        https://github.com/KirillOdinokov/wp-plugins
  * Description:       Расширенная версия Order Share Odinokov: дополнительный блок «Сопровождение проекта» с кнопками «Заказать образец», «Провести испытания», «Заказать выезд на объект» и PopUp-формами.
- * Version:           1.0.0
+ * Version:           1.0.1
  * Author:            Odinokov
  * Author URI:        https://github.com/KirillOdinokov/wp-plugins
  * License:           GPL-2.0-or-later
@@ -19,7 +19,7 @@ if ( ! defined( 'ABSPATH' ) ) {
     exit;
 }
 
-define( 'OSOE_VERSION', '1.0.0' );
+define( 'OSOE_VERSION', '1.0.1' );
 define( 'OSOE_FILE', __FILE__ );
 define( 'OSOE_DIR', plugin_dir_path( __FILE__ ) );
 define( 'OSOE_URL', plugin_dir_url( __FILE__ ) );
@@ -124,7 +124,9 @@ function osoe_sanitize_color( $c ) {
 }
 
 /**
- * Базовый стиль кнопок — наследуется из основного плагина Order Share Odinokov.
+ * Базовый стиль кнопок — читается из тех же опций БД, что и основной плагин
+ * (option `oso_settings`), поэтому настройки сохраняются даже если основной
+ * плагин деактивирован или удалён.
  */
 function osoe_get_base_style() {
     $base = array(
@@ -140,14 +142,16 @@ function osoe_get_base_style() {
         'font_weight'  => 600,
         'uppercase'    => 0,
     );
-    if ( function_exists( 'oso_get_settings' ) ) {
-        $s = oso_get_settings();
+
+    $s = get_option( 'oso_settings', array() );
+    if ( is_array( $s ) ) {
         foreach ( $base as $k => $v ) {
             if ( isset( $s[ $k ] ) && '' !== $s[ $k ] ) {
                 $base[ $k ] = $s[ $k ];
             }
         }
     }
+
     return $base;
 }
 
@@ -157,6 +161,29 @@ function osoe_get_email_to() {
         $to = get_option( 'admin_email' );
     }
     return $to;
+}
+
+add_action( 'phpmailer_init', 'osoe_phpmailer_init' );
+function osoe_phpmailer_init( $phpmailer ) {
+    if ( function_exists( 'oso_phpmailer_init' ) ) {
+        return;
+    }
+    $smtp = get_option( 'oso_smtp', array() );
+    if ( ! is_array( $smtp ) || empty( $smtp['enabled'] ) || empty( $smtp['host'] ) ) {
+        return;
+    }
+    $phpmailer->isSMTP();
+    $phpmailer->Host       = $smtp['host'];
+    $phpmailer->Port       = (int) $smtp['port'];
+    $phpmailer->SMTPAuth   = true;
+    $phpmailer->Username   = $smtp['username'];
+    $phpmailer->Password   = $smtp['password'];
+    $phpmailer->SMTPSecure = ( 'none' === $smtp['secure'] ) ? '' : $smtp['secure'];
+    $phpmailer->CharSet    = 'UTF-8';
+
+    if ( ! empty( $smtp['from_email'] ) && is_email( $smtp['from_email'] ) ) {
+        $phpmailer->setFrom( $smtp['from_email'], $smtp['from_name'] ? $smtp['from_name'] : get_bloginfo( 'name' ) );
+    }
 }
 
 add_action( 'admin_init', 'osoe_register_settings' );

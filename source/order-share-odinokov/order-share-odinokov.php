@@ -3,7 +3,7 @@
  * Plugin Name:       Order Share Odinokov
  * Plugin URI:        https://github.com/KirillOdinokov/wp-plugins
  * Description:       Объединённый плагин: кнопки «Отправить» (Web Share API), «Сохранить PDF» (Print) и «Оставить заявку» (PopUp форма) на страницах товара WooCommerce. Полная настройка стиля всех трёх кнопок из админки. Защита от ботов, капча, отключение add-to-cart. Шорткод [sert-request] — форма запроса документации.
- * Version:           1.0.19
+ * Version:           1.0.20
  * Author:            Odinokov
  * Author URI:        https://github.com/KirillOdinokov/wp-plugins
  * License:           GPL-2.0-or-later
@@ -20,7 +20,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 if ( ! defined( 'OSO_VERSION' ) ) {
-    define( 'OSO_VERSION', '1.0.19' );
+    define( 'OSO_VERSION', '1.0.20' );
 }
 if ( ! defined( 'OSO_FILE' ) ) {
     define( 'OSO_FILE', __FILE__ );
@@ -98,8 +98,7 @@ function oso_activate() {
 
 register_uninstall_hook( __FILE__, 'oso_uninstall' );
 function oso_uninstall() {
-    delete_option( 'oso_settings' );
-    delete_option( 'oso_email_to' );
+    // Настройки НЕ удаляются: их использует плагин Order Share Odinokov Extended.
 }
 
 function oso_migrate_client_email() {
