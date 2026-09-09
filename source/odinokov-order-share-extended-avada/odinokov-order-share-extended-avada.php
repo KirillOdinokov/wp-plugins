@@ -1,9 +1,9 @@
 <?php
 /**
- * Plugin Name:       Order Share Odinokov Extended
+ * Plugin Name:       Order Share Odinokov Extended Avada
  * Plugin URI:        https://github.com/KirillOdinokov/wp-plugins
- * Description:       Расширенная версия Order Share Odinokov: дополнительный блок «Сопровождение проекта» с кнопками «Заказать образец», «Провести испытания», «Заказать выезд на объект» и PopUp-формами.
- * Version:           1.0.6
+ * Description:       Расширенная версия Order Share Odinokov для темы Avada: дополнительный блок «Сопровождение проекта» с кнопками «Заказать образец», «Провести испытания», «Заказать выезд на объект» и PopUp-формами.
+ * Version:           1.0.7
  * Author:            Odinokov
  * Author URI:        https://github.com/KirillOdinokov/wp-plugins
  * License:           GPL-2.0-or-later
@@ -19,7 +19,7 @@ if ( ! defined( 'ABSPATH' ) ) {
     exit;
 }
 
-define( 'OSOE_VERSION', '1.0.6' );
+define( 'OSOE_VERSION', '1.0.7' );
 define( 'OSOE_FILE', __FILE__ );
 define( 'OSOE_DIR', plugin_dir_path( __FILE__ ) );
 define( 'OSOE_URL', plugin_dir_url( __FILE__ ) );
@@ -29,10 +29,10 @@ require_once OSOE_DIR . 'includes/class-osoe.php';
 
 new OSOE_Plugin_Updater(
     __FILE__,
-    'https://raw.githubusercontent.com/KirillOdinokov/wp-plugins/main/updates/odinokov-order-share-extended.json',
+    'https://raw.githubusercontent.com/KirillOdinokov/wp-plugins/main/updates/odinokov-order-share-extended-avada.json',
     OSOE_VERSION,
     array(
-        'name'        => 'Order Share Odinokov Extended',
+        'name'        => 'Order Share Odinokov Extended Avada',
         'author'      => '<a href="https://github.com/KirillOdinokov/wp-plugins">Odinokov</a>',
         'author_uri'  => 'https://github.com/KirillOdinokov/wp-plugins',
         'description' => 'Блок «Сопровождение проекта»: заказ образца, испытания, выезд на объект.',
@@ -277,8 +277,8 @@ function osoe_register_menu() {
     }
     add_submenu_page(
         'odinokov-plugins',
-        'Order Share Extended',
-        'Order Share Extended',
+        'Order Share Extended Avada',
+        'Order Share Extended Avada',
         'manage_options',
         'order-share-extended',
         'osoe_render_settings_page'
@@ -290,7 +290,7 @@ function osoe_dashboard() {
     <div class="wrap"><h1>Плагины Одиноков</h1>
     <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px;margin-top:20px;">
         <div style="background:#fff;border:1px solid #c3c4c7;border-radius:4px;padding:16px;">
-            <h3 style="margin-top:0;">Order Share Odinokov Extended</h3>
+            <h3 style="margin-top:0;">Order Share Odinokov Extended Avada</h3>
             <p>Блок «Сопровождение проекта»: образцы, испытания, выезд на объект.</p>
         </div>
     </div></div>
@@ -304,7 +304,7 @@ function osoe_render_settings_page() {
     $s = osoe_get_settings();
     ?>
     <div class="wrap osoe-admin">
-        <h1>Order Share Odinokov Extended — настройки</h1>
+        <h1>Order Share Odinokov Extended Avada — настройки</h1>
         <form method="post" action="options.php">
             <?php settings_fields( 'osoe_settings_group' ); ?>
 

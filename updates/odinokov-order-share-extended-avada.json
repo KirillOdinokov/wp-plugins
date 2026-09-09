@@ -1,0 +1,10 @@
+﻿{
+    "requires":  "5.8",
+    "download_url":  "https://raw.githubusercontent.com/KirillOdinokov/wp-plugins/main/repo/odinokov-order-share-extended-avada.zip",
+    "last_updated":  "2026-09-09",
+    "tested":  "6.7",
+    "version":  "1.0.7",
+    "requires_php":  "7.4",
+    "homepage":  "https://raw.githubusercontent.com/KirillOdinokov/wp-plugins/main",
+    "changelog":  "= 1.0.7 =\n* Переименован в -avada\n* Кнопки и подписи растянуты на всю ширину в столбик"
+}

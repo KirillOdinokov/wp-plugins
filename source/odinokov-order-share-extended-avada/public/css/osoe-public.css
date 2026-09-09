@@ -12,7 +12,7 @@
     display: flex;
     flex-direction: column;
     gap: 14px;
-    align-items: center;
+    align-items: stretch;
 }
 .osoe-block.osoe-layout-row .osoe-block-buttons {
     flex-direction: row;
@@ -23,7 +23,7 @@
 .osoe-btn-item {
     display: flex;
     flex-direction: column;
-    align-items: center;
+    align-items: stretch;
     max-width: 100%;
 }
 .osoe-block.osoe-layout-row .osoe-btn-item {
@@ -34,6 +34,10 @@
     transition: all .2s ease;
     box-sizing: border-box;
     white-space: nowrap;
+    width: 100%;
+}
+.osoe-block.osoe-layout-row .osoe-btn {
+    width: auto;
 }
 .osoe-btn .osoe-btn-ico {
     display: inline-flex;
@@ -60,7 +64,6 @@
 .osoe-btn-caption {
     display: block;
     white-space: normal;
-    max-width: 240px;
     text-align: center;
 }
 .osoe-block.osoe-layout-row .osoe-btn-caption {
