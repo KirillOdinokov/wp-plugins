@@ -1,0 +1,10 @@
+﻿{
+    "requires":  "5.8",
+    "download_url":  "https://raw.githubusercontent.com/KirillOdinokov/wp-plugins/main/repo/odinokov-order-share-extended.zip",
+    "last_updated":  "2026-09-09",
+    "tested":  "6.7",
+    "version":  "1.0.0",
+    "requires_php":  "7.4",
+    "homepage":  "https://raw.githubusercontent.com/KirillOdinokov/wp-plugins/main",
+    "changelog":  "= 1.0.0 =\n* Блок «Сопровождение проекта» с кнопками «Заказать образец», «Провести испытания», «Заказать выезд на объект»\n* PopUp-форма с капчей и отправкой на почту"
+}
