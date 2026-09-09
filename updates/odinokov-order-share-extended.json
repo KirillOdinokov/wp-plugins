@@ -3,8 +3,8 @@
     "download_url":  "https://raw.githubusercontent.com/KirillOdinokov/wp-plugins/main/repo/odinokov-order-share-extended.zip",
     "last_updated":  "2026-09-09",
     "tested":  "6.7",
-    "version":  "1.0.2",
+    "version":  "1.0.3",
     "requires_php":  "7.4",
     "homepage":  "https://raw.githubusercontent.com/KirillOdinokov/wp-plugins/main",
-    "changelog":  "= 1.0.2 =\n* Блок оборачивает контент (рамка больше не растягивается на всю ширину)\n* Опция иконок на кнопках (по умолчанию выключено)\n* Переключение раскладки: в столбик / в строку"
+    "changelog":  "= 1.0.3 =\n* Ширина блока теперь определяется кнопкой, а не подписью"
 }
