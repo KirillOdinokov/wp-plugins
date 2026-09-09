@@ -4,6 +4,7 @@
     display: block;
     width: 100%;
     vertical-align: top;
+    clear: both;
 }
 .osoe-block-title {
     color: #222;

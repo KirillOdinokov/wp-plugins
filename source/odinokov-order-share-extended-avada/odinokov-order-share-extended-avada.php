@@ -3,7 +3,7 @@
  * Plugin Name:       Order Share Odinokov Extended Avada
  * Plugin URI:        https://github.com/KirillOdinokov/wp-plugins
  * Description:       Расширенная версия Order Share Odinokov для темы Avada: дополнительный блок «Сопровождение проекта» с кнопками «Заказать образец», «Провести испытания», «Заказать выезд на объект» и PopUp-формами.
- * Version:           1.0.7
+ * Version:           1.0.8
  * Author:            Odinokov
  * Author URI:        https://github.com/KirillOdinokov/wp-plugins
  * License:           GPL-2.0-or-later
@@ -19,7 +19,7 @@ if ( ! defined( 'ABSPATH' ) ) {
     exit;
 }
 
-define( 'OSOE_VERSION', '1.0.7' );
+define( 'OSOE_VERSION', '1.0.8' );
 define( 'OSOE_FILE', __FILE__ );
 define( 'OSOE_DIR', plugin_dir_path( __FILE__ ) );
 define( 'OSOE_URL', plugin_dir_url( __FILE__ ) );
