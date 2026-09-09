@@ -6,6 +6,10 @@
     max-width: 100%;
     vertical-align: top;
 }
+.osoe-block.osoe-layout-row {
+    display: block;
+    width: 100%;
+}
 .osoe-block-title {
     color: #222;
 }
@@ -20,15 +24,13 @@
     align-items: flex-start;
 }
 .osoe-btn-item {
-    display: flex;
-    flex-direction: column;
-    align-items: stretch;
+    display: block;
     width: max-content;
     max-width: 100%;
 }
 .osoe-block.osoe-layout-row .osoe-btn-item {
-    flex: 1 1 auto;
-    min-width: 200px;
+    flex: 1 1 0;
+    min-width: 0;
     width: auto;
 }
 .osoe-btn {
@@ -61,12 +63,10 @@
 .osoe-btn-caption {
     display: block;
     white-space: normal;
-    width: 0;
-    min-width: 100%;
+    max-width: 240px;
 }
 .osoe-block.osoe-layout-row .osoe-btn-caption {
-    width: auto;
-    min-width: 0;
+    max-width: none;
 }
 
 /* Modal */

@@ -3,8 +3,8 @@
     "download_url":  "https://raw.githubusercontent.com/KirillOdinokov/wp-plugins/main/repo/odinokov-order-share-extended.zip",
     "last_updated":  "2026-09-09",
     "tested":  "6.7",
-    "version":  "1.0.3",
+    "version":  "1.0.4",
     "requires_php":  "7.4",
     "homepage":  "https://raw.githubusercontent.com/KirillOdinokov/wp-plugins/main",
-    "changelog":  "= 1.0.3 =\n* Ширина блока теперь определяется кнопкой, а не подписью"
+    "changelog":  "= 1.0.4 =\n* Исправлена ширина блока и раскладка «в строку»"
 }
