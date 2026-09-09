@@ -5,6 +5,8 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 class OSOE_Main {
 
+    private static $block_done = false;
+
     public function __construct() {
         add_action( 'wp_enqueue_scripts', array( $this, 'enqueue_assets' ) );
         add_action( 'woocommerce_after_single_product_summary', array( $this, 'render_block' ), 6 );
@@ -54,6 +56,10 @@ class OSOE_Main {
         if ( ! $this->is_product_screen() ) {
             return;
         }
+        if ( self::$block_done ) {
+            return;
+        }
+        self::$block_done = true;
         $s = osoe_get_settings();
 
         $has_btn = ! empty( $s['btn1_enabled'] ) || ! empty( $s['btn2_enabled'] ) || ! empty( $s['btn3_enabled'] );
@@ -86,21 +92,27 @@ class OSOE_Main {
         }
 
         $buttons = array(
-            'btn1' => array( 'type' => 'sample', 'enabled' => $s['btn1_enabled'], 'label' => $s['btn1_label'], 'caption' => $s['btn1_caption'] ),
-            'btn2' => array( 'type' => 'test',   'enabled' => $s['btn2_enabled'], 'label' => $s['btn2_label'], 'caption' => $s['btn2_caption'] ),
-            'btn3' => array( 'type' => 'visit',  'enabled' => $s['btn3_enabled'], 'label' => $s['btn3_label'], 'caption' => $s['btn3_caption'] ),
+            'btn1' => array( 'type' => 'sample', 'enabled' => $s['btn1_enabled'], 'label' => $s['btn1_label'], 'caption' => $s['btn1_caption'], 'icon' => $s['btn1_icon'] ),
+            'btn2' => array( 'type' => 'test',   'enabled' => $s['btn2_enabled'], 'label' => $s['btn2_label'], 'caption' => $s['btn2_caption'], 'icon' => $s['btn2_icon'] ),
+            'btn3' => array( 'type' => 'visit',  'enabled' => $s['btn3_enabled'], 'label' => $s['btn3_label'], 'caption' => $s['btn3_caption'], 'icon' => $s['btn3_icon'] ),
         );
 
-        $btn_style = 'display:inline-flex;align-items:center;justify-content:center;gap:8px;background:' . $base['bg_color'] . ';color:' . $base['text_color'] . ';border:' . $border . ';border-radius:' . (int) $base['border_radius'] . 'px;padding:' . max(4,(int) round((int)$base['padding_v']*0.8)) . 'px ' . max(6,(int) round((int)$base['padding_h']*0.8)) . 'px;font-size:' . $btn_fs . 'px;font-weight:' . (int) $base['font_weight'] . ';text-transform:' . $upper . ';line-height:1.2;text-decoration:none;cursor:pointer;width:100%;' . $font_family_css;
+        $show_icons = ! empty( $s['show_icons'] );
+        $layout     = ( 'row' === $s['layout'] ) ? 'row' : 'column';
+
+        $btn_style = 'display:inline-flex;align-items:center;justify-content:center;gap:8px;background:' . $base['bg_color'] . ';color:' . $base['text_color'] . ';border:' . $border . ';border-radius:' . (int) $base['border_radius'] . 'px;padding:' . max(4,(int) round((int)$base['padding_v']*0.8)) . 'px ' . max(6,(int) round((int)$base['padding_h']*0.8)) . 'px;font-size:' . $btn_fs . 'px;font-weight:' . (int) $base['font_weight'] . ';text-transform:' . $upper . ';line-height:1.2;text-decoration:none;cursor:pointer;' . $font_family_css;
 
         ?>
-        <div class="osoe-block" data-material="<?php echo esc_attr( $material ); ?>" style="background:<?php echo esc_attr( $s['block_bg'] ); ?>;border:<?php echo esc_attr( $block_border ); ?>;border-radius:<?php echo esc_attr( (int) $s['block_border_radius'] ); ?>px;padding:<?php echo esc_attr( (int) $s['block_padding'] ); ?>px;<?php echo $font_family_css; ?>">
+        <div class="osoe-block osoe-layout-<?php echo esc_attr( $layout ); ?>" data-material="<?php echo esc_attr( $material ); ?>" style="background:<?php echo esc_attr( $s['block_bg'] ); ?>;border:<?php echo esc_attr( $block_border ); ?>;border-radius:<?php echo esc_attr( (int) $s['block_border_radius'] ); ?>px;padding:<?php echo esc_attr( (int) $s['block_padding'] ); ?>px;<?php echo $font_family_css; ?>">
             <div class="osoe-block-title" style="font-size:<?php echo esc_attr( $title_fs ); ?>px;font-weight:700;text-align:center;margin-bottom:16px;"><?php echo esc_html( $s['block_title'] ); ?></div>
             <div class="osoe-block-buttons">
                 <?php foreach ( $buttons as $b ) : ?>
                     <?php if ( empty( $b['enabled'] ) ) { continue; } ?>
                     <div class="osoe-btn-item">
                         <a href="javascript:void(0)" class="osoe-btn" data-type="<?php echo esc_attr( $b['type'] ); ?>" data-label="<?php echo esc_attr( $b['label'] ); ?>" style="<?php echo esc_attr( $btn_style ); ?>">
+                            <?php if ( $show_icons && '' !== $b['icon'] ) : ?>
+                                <span class="osoe-btn-ico" aria-hidden="true"><i class="<?php echo esc_attr( $b['icon'] ); ?>"></i></span>
+                            <?php endif; ?>
                             <span class="osoe-btn-txt"><?php echo esc_html( $b['label'] ); ?></span>
                         </a>
                         <?php if ( '' !== $b['caption'] ) : ?>

@@ -3,7 +3,7 @@
  * Plugin Name:       Order Share Odinokov Extended
  * Plugin URI:        https://github.com/KirillOdinokov/wp-plugins
  * Description:       Расширенная версия Order Share Odinokov: дополнительный блок «Сопровождение проекта» с кнопками «Заказать образец», «Провести испытания», «Заказать выезд на объект» и PopUp-формами.
- * Version:           1.0.1
+ * Version:           1.0.2
  * Author:            Odinokov
  * Author URI:        https://github.com/KirillOdinokov/wp-plugins
  * License:           GPL-2.0-or-later
@@ -19,7 +19,7 @@ if ( ! defined( 'ABSPATH' ) ) {
     exit;
 }
 
-define( 'OSOE_VERSION', '1.0.1' );
+define( 'OSOE_VERSION', '1.0.2' );
 define( 'OSOE_FILE', __FILE__ );
 define( 'OSOE_DIR', plugin_dir_path( __FILE__ ) );
 define( 'OSOE_URL', plugin_dir_url( __FILE__ ) );
@@ -63,18 +63,23 @@ function osoe_defaults() {
         'title_font_ratio'     => 130,
         'btn_font_ratio'       => 80,
         'caption_font_ratio'   => 70,
+        'layout'               => 'column',
+        'show_icons'           => 0,
 
         'btn1_enabled'         => 1,
         'btn1_label'           => 'Заказать образец',
         'btn1_caption'         => 'Вышлем образец СДЕК/КСЭ, если Вы уже наш клиент - за наш счет, если ещё ничего не купили - за Ваш',
+        'btn1_icon'            => 'fa-solid fa-box',
 
         'btn2_enabled'         => 1,
         'btn2_label'           => 'Провести испытания',
         'btn2_caption'         => 'Для материалов типа фасадного крепежа, где это необходимо, можем провести испытания с предоставлением протокола испытаний',
+        'btn2_icon'            => 'fa-solid fa-flask',
 
         'btn3_enabled'         => 1,
         'btn3_label'           => 'Заказать выезд на объект',
         'btn3_caption'         => 'Выедем на объект, проведем шэф монтаж или правильно подберем решение',
+        'btn3_icon'            => 'fa-solid fa-truck',
     );
 }
 
@@ -89,6 +94,8 @@ function osoe_get_settings() {
     foreach ( array( 'btn1_enabled', 'btn2_enabled', 'btn3_enabled' ) as $k ) {
         $merged[ $k ] = ! empty( $merged[ $k ] ) ? 1 : 0;
     }
+    $merged['show_icons'] = ! empty( $merged['show_icons'] ) ? 1 : 0;
+    $merged['layout'] = in_array( $merged['layout'], array( 'column', 'row' ), true ) ? $merged['layout'] : 'column';
     $merged['block_border_width'] = max( 0, min( 20, (int) $merged['block_border_width'] ) );
     $merged['block_border_radius'] = max( 0, min( 100, (int) $merged['block_border_radius'] ) );
     $merged['block_padding'] = max( 0, min( 60, (int) $merged['block_padding'] ) );
@@ -99,14 +106,24 @@ function osoe_get_settings() {
     $merged['block_title'] = sanitize_text_field( wp_unslash( $merged['block_title'] ) );
     $merged['btn1_label'] = sanitize_text_field( wp_unslash( $merged['btn1_label'] ) );
     $merged['btn1_caption'] = sanitize_text_field( wp_unslash( $merged['btn1_caption'] ) );
+    $merged['btn1_icon'] = osoe_sanitize_icon_class( $merged['btn1_icon'] );
     $merged['btn2_label'] = sanitize_text_field( wp_unslash( $merged['btn2_label'] ) );
     $merged['btn2_caption'] = sanitize_text_field( wp_unslash( $merged['btn2_caption'] ) );
+    $merged['btn2_icon'] = osoe_sanitize_icon_class( $merged['btn2_icon'] );
     $merged['btn3_label'] = sanitize_text_field( wp_unslash( $merged['btn3_label'] ) );
     $merged['btn3_caption'] = sanitize_text_field( wp_unslash( $merged['btn3_caption'] ) );
+    $merged['btn3_icon'] = osoe_sanitize_icon_class( $merged['btn3_icon'] );
     $merged['block_border_color'] = osoe_sanitize_color( $merged['block_border_color'] );
     $merged['block_bg'] = osoe_sanitize_color( $merged['block_bg'] );
 
     return $merged;
+}
+
+function osoe_sanitize_icon_class( $v ) {
+    $v = is_string( $v ) ? trim( $v ) : '';
+    $v = wp_strip_all_tags( $v );
+    $v = preg_replace( '/[^A-Za-z0-9_\- ]/', '', $v );
+    return substr( trim( $v ), 0, 100 );
 }
 
 function osoe_sanitize_color( $c ) {
@@ -207,6 +224,8 @@ function osoe_sanitize_settings( $input ) {
     foreach ( array( 'btn1_enabled', 'btn2_enabled', 'btn3_enabled' ) as $b ) {
         $out[ $b ] = ! empty( $input[ $b ] ) ? 1 : 0;
     }
+    $out['show_icons'] = ! empty( $input['show_icons'] ) ? 1 : 0;
+    $out['layout'] = ( isset( $input['layout'] ) && 'row' === $input['layout'] ) ? 'row' : 'column';
 
     $texts = array(
         'block_title',
@@ -219,6 +238,10 @@ function osoe_sanitize_settings( $input ) {
         if ( '' === $out[ $t ] && isset( $defaults[ $t ] ) ) {
             $out[ $t ] = $defaults[ $t ];
         }
+    }
+
+    foreach ( array( 'btn1_icon', 'btn2_icon', 'btn3_icon' ) as $i ) {
+        $out[ $i ] = isset( $input[ $i ] ) ? osoe_sanitize_icon_class( $input[ $i ] ) : $defaults[ $i ];
     }
 
     $nums = array(
@@ -311,6 +334,19 @@ function osoe_render_settings_page() {
                     <th scope="row">Внутренний отступ блока (px)</th>
                     <td><input type="number" min="0" max="60" name="osoe_settings[block_padding]" value="<?php echo esc_attr( $s['block_padding'] ); ?>"></td>
                 </tr>
+                <tr>
+                    <th scope="row">Расположение кнопок</th>
+                    <td>
+                        <select name="osoe_settings[layout]">
+                            <option value="column" <?php selected( $s['layout'], 'column' ); ?>>В столбик</option>
+                            <option value="row" <?php selected( $s['layout'], 'row' ); ?>>В строку</option>
+                        </select>
+                    </td>
+                </tr>
+                <tr>
+                    <th scope="row">Показывать иконки</th>
+                    <td><label><input type="checkbox" name="osoe_settings[show_icons]" value="1" <?php checked( $s['show_icons'], 1 ); ?>> показывать иконки на кнопках</label></td>
+                </tr>
             </table>
 
             <h2>Размеры шрифтов (в % от базового)</h2>
@@ -333,6 +369,7 @@ function osoe_render_settings_page() {
             <table class="form-table" role="presentation">
                 <tr><th scope="row">Включить</th><td><label><input type="checkbox" name="osoe_settings[btn1_enabled]" value="1" <?php checked( $s['btn1_enabled'], 1 ); ?>> показывать кнопку</label></td></tr>
                 <tr><th scope="row">Текст кнопки</th><td><input type="text" class="regular-text" name="osoe_settings[btn1_label]" value="<?php echo esc_attr( $s['btn1_label'] ); ?>"></td></tr>
+                <tr><th scope="row">Иконка (Font Awesome)</th><td><input type="text" class="regular-text" name="osoe_settings[btn1_icon]" value="<?php echo esc_attr( $s['btn1_icon'] ); ?>" placeholder="fa-solid fa-box"></td></tr>
                 <tr><th scope="row">Подпись под кнопкой</th><td><textarea name="osoe_settings[btn1_caption]" rows="3" class="large-text"><?php echo esc_textarea( $s['btn1_caption'] ); ?></textarea></td></tr>
             </table>
 
@@ -340,6 +377,7 @@ function osoe_render_settings_page() {
             <table class="form-table" role="presentation">
                 <tr><th scope="row">Включить</th><td><label><input type="checkbox" name="osoe_settings[btn2_enabled]" value="1" <?php checked( $s['btn2_enabled'], 1 ); ?>> показывать кнопку</label></td></tr>
                 <tr><th scope="row">Текст кнопки</th><td><input type="text" class="regular-text" name="osoe_settings[btn2_label]" value="<?php echo esc_attr( $s['btn2_label'] ); ?>"></td></tr>
+                <tr><th scope="row">Иконка (Font Awesome)</th><td><input type="text" class="regular-text" name="osoe_settings[btn2_icon]" value="<?php echo esc_attr( $s['btn2_icon'] ); ?>" placeholder="fa-solid fa-flask"></td></tr>
                 <tr><th scope="row">Подпись под кнопкой</th><td><textarea name="osoe_settings[btn2_caption]" rows="3" class="large-text"><?php echo esc_textarea( $s['btn2_caption'] ); ?></textarea></td></tr>
             </table>
 
@@ -347,6 +385,7 @@ function osoe_render_settings_page() {
             <table class="form-table" role="presentation">
                 <tr><th scope="row">Включить</th><td><label><input type="checkbox" name="osoe_settings[btn3_enabled]" value="1" <?php checked( $s['btn3_enabled'], 1 ); ?>> показывать кнопку</label></td></tr>
                 <tr><th scope="row">Текст кнопки</th><td><input type="text" class="regular-text" name="osoe_settings[btn3_label]" value="<?php echo esc_attr( $s['btn3_label'] ); ?>"></td></tr>
+                <tr><th scope="row">Иконка (Font Awesome)</th><td><input type="text" class="regular-text" name="osoe_settings[btn3_icon]" value="<?php echo esc_attr( $s['btn3_icon'] ); ?>" placeholder="fa-solid fa-truck"></td></tr>
                 <tr><th scope="row">Подпись под кнопкой</th><td><textarea name="osoe_settings[btn3_caption]" rows="3" class="large-text"><?php echo esc_textarea( $s['btn3_caption'] ); ?></textarea></td></tr>
             </table>
 

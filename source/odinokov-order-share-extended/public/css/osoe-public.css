@@ -1,6 +1,10 @@
 .osoe-block {
     margin: 16px 0;
     box-sizing: border-box;
+    display: inline-block;
+    width: auto;
+    max-width: 100%;
+    vertical-align: top;
 }
 .osoe-block-title {
     color: #222;
@@ -10,14 +14,38 @@
     flex-direction: column;
     gap: 14px;
 }
+.osoe-block.osoe-layout-row .osoe-block-buttons {
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: flex-start;
+}
 .osoe-btn-item {
     display: flex;
     flex-direction: column;
     align-items: stretch;
 }
+.osoe-block.osoe-layout-row .osoe-btn-item {
+    flex: 1 1 auto;
+    min-width: 200px;
+}
 .osoe-btn {
     transition: all .2s ease;
     box-sizing: border-box;
+    white-space: nowrap;
+}
+.osoe-btn .osoe-btn-ico {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+    flex-shrink: 0;
+}
+.osoe-btn .osoe-btn-ico i {
+    font-size: 1em;
+    line-height: 1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
 }
 .osoe-btn:hover {
     opacity: .92;
@@ -29,6 +57,7 @@
 }
 .osoe-btn-caption {
     display: block;
+    white-space: normal;
 }
 
 /* Modal */
