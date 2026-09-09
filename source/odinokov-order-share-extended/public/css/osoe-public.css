@@ -1,14 +1,9 @@
 .osoe-block {
     margin: 16px 0;
     box-sizing: border-box;
-    display: inline-block;
-    width: auto;
-    max-width: 100%;
-    vertical-align: top;
-}
-.osoe-block.osoe-layout-row {
     display: block;
     width: 100%;
+    vertical-align: top;
 }
 .osoe-block-title {
     color: #222;
@@ -17,21 +12,23 @@
     display: flex;
     flex-direction: column;
     gap: 14px;
+    align-items: center;
 }
 .osoe-block.osoe-layout-row .osoe-block-buttons {
     flex-direction: row;
     flex-wrap: wrap;
     align-items: flex-start;
+    justify-content: center;
 }
 .osoe-btn-item {
-    display: block;
-    width: max-content;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
     max-width: 100%;
 }
 .osoe-block.osoe-layout-row .osoe-btn-item {
     flex: 1 1 0;
     min-width: 0;
-    width: auto;
 }
 .osoe-btn {
     transition: all .2s ease;
@@ -64,6 +61,7 @@
     display: block;
     white-space: normal;
     max-width: 240px;
+    text-align: center;
 }
 .osoe-block.osoe-layout-row .osoe-btn-caption {
     max-width: none;

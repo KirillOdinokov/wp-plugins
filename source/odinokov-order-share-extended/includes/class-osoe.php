@@ -9,8 +9,7 @@ class OSOE_Main {
 
     public function __construct() {
         add_action( 'wp_enqueue_scripts', array( $this, 'enqueue_assets' ) );
-        add_action( 'woocommerce_after_single_product_summary', array( $this, 'render_block' ), 6 );
-        add_action( 'porto_woocommerce_share', array( $this, 'render_block' ), 60 );
+        add_action( 'woocommerce_after_single_product', array( $this, 'render_block' ), 6 );
         add_action( 'wp_footer', array( $this, 'render_popup' ), 1 );
 
         add_action( 'wp_ajax_osoe_submit', array( $this, 'handle_submit' ) );
