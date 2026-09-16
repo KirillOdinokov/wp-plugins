@@ -36,18 +36,21 @@ function odinokov_ai_call_deepseek($api_key, $model, $messages, $temperature, $m
     $current_temperature = $temperature;
 
     for ($i = 0; $i < $attempts; $i++) {
+        $payload = [
+            'model'       => $model,
+            'messages'    => $messages,
+            'max_tokens'  => $max_tokens,
+            'temperature' => $current_temperature,
+            'thinking'    => ['type' => 'disabled'],
+        ];
+
         $response = wp_remote_post('https://api.deepseek.com/v1/chat/completions', [
             'timeout' => 120,
             'headers' => [
                 'Authorization' => "Bearer {$api_key}",
                 'Content-Type'  => 'application/json',
             ],
-            'body' => wp_json_encode([
-                'model'       => $model,
-                'messages'    => $messages,
-                'temperature' => $current_temperature,
-                'max_tokens'  => $max_tokens,
-            ]),
+            'body' => wp_json_encode($payload),
         ]);
 
         if (is_wp_error($response)) {
