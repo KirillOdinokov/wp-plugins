@@ -23,12 +23,12 @@ add_action('wp_ajax_odinokov_ai_verify_captcha', 'odinokov_ai_handle_verify_capt
 add_action('wp_ajax_nopriv_odinokov_ai_verify_captcha', 'odinokov_ai_handle_verify_captcha');
 
 function odinokov_ai_valid_model($configured = '') {
-    $valid = ['deepseek-chat', 'deepseek-reasoner'];
+    $valid = ['deepseek-v4-pro', 'deepseek-flash', 'deepseek-v4-flash'];
     $configured = trim((string) $configured);
     if (in_array($configured, $valid, true)) {
         return $configured;
     }
-    return 'deepseek-chat';
+    return 'deepseek-flash';
 }
 
 function odinokov_ai_call_deepseek($api_key, $model, $messages, $temperature, $max_tokens, $retries = 1) {
@@ -93,7 +93,7 @@ function odinokov_ai_handle_chat() {
         wp_send_json_error(['detail' => 'API-ключ не настроен. Зайдите в Настройки → Odinokov AI Chat.'], 500);
     }
 
-    $model       = odinokov_ai_valid_model(get_option('odinokov_ai_model', 'deepseek-chat'));
+    $model       = odinokov_ai_valid_model(get_option('odinokov_ai_model', 'deepseek-flash'));
     $temperature = (float) get_option('odinokov_ai_temperature', 0.3);
     $max_tokens  = (int) get_option('odinokov_ai_max_tokens', 2048);
 
@@ -282,7 +282,7 @@ function odinokov_ai_handle_generate_areas() {
         . "- Название категории (ГОСТ XXXX-YYYY, СП XX.XXXX)\n\n"
         . "Категории:\n" . $categories;
 
-    $model = odinokov_ai_valid_model(get_option('odinokov_ai_model', 'deepseek-chat'));
+    $model = odinokov_ai_valid_model(get_option('odinokov_ai_model', 'deepseek-flash'));
 
     $result = odinokov_ai_call_deepseek($api_key, $model, [
         ['role' => 'system', 'content' => $system_msg],
@@ -323,7 +323,7 @@ function odinokov_ai_handle_generate_suggestions() {
         . "Не нумеруй строки, не добавляй лишнего текста, только вопросы.\n\n"
         . "Категории:\n" . $categories;
 
-    $model = odinokov_ai_valid_model(get_option('odinokov_ai_model', 'deepseek-chat'));
+    $model = odinokov_ai_valid_model(get_option('odinokov_ai_model', 'deepseek-flash'));
 
     $result = odinokov_ai_call_deepseek($api_key, $model, [
         ['role' => 'user', 'content' => $gen_prompt],
