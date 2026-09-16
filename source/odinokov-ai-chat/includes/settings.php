@@ -65,7 +65,7 @@ function odinokov_ai_dashboard() {
 
 function odinokov_ai_register_settings() {
     register_setting('odinokov_ai_options', 'odinokov_ai_api_key', ['type' => 'string', 'sanitize_callback' => 'sanitize_text_field']);
-    register_setting('odinokov_ai_options', 'odinokov_ai_model', ['type' => 'string', 'sanitize_callback' => 'sanitize_text_field', 'default' => 'deepseek-v4-pro']);
+    register_setting('odinokov_ai_options', 'odinokov_ai_model', ['type' => 'string', 'sanitize_callback' => 'sanitize_text_field', 'default' => 'deepseek-chat']);
     register_setting('odinokov_ai_options', 'odinokov_ai_temperature', ['type' => 'float', 'sanitize_callback' => function($v) { return max(0, min(2, (float)$v)); }, 'default' => 0.3]);
     register_setting('odinokov_ai_options', 'odinokov_ai_max_tokens', ['type' => 'int', 'sanitize_callback' => 'absint', 'default' => 2048]);
     register_setting('odinokov_ai_options', 'odinokov_ai_system_prompt', ['type' => 'string', 'sanitize_callback' => 'wp_kses_post']);
@@ -170,8 +170,8 @@ function odinokov_ai_settings_html() {
                     <th scope="row"><label for="odinokov_ai_model">Модель</label></th>
                     <td>
                         <select id="odinokov_ai_model" name="odinokov_ai_model">
-                            <option value="deepseek-v4-pro" <?php selected(get_option('odinokov_ai_model', 'deepseek-v4-pro'), 'deepseek-v4-pro'); ?>>DeepSeek V4 Pro</option>
-                            <option value="deepseek-v4-flash" <?php selected(get_option('odinokov_ai_model', 'deepseek-v4-pro'), 'deepseek-v4-flash'); ?>>DeepSeek V4 Flash</option>
+                            <option value="deepseek-chat" <?php selected(get_option('odinokov_ai_model', 'deepseek-chat'), 'deepseek-chat'); ?>>DeepSeek Chat (V3)</option>
+                            <option value="deepseek-reasoner" <?php selected(get_option('odinokov_ai_model', 'deepseek-chat'), 'deepseek-reasoner'); ?>>DeepSeek Reasoner (R1)</option>
                         </select>
                     </td>
                 </tr>

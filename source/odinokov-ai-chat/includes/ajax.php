@@ -22,6 +22,63 @@ function odinokov_ai_handle_verify_captcha() {
 add_action('wp_ajax_odinokov_ai_verify_captcha', 'odinokov_ai_handle_verify_captcha');
 add_action('wp_ajax_nopriv_odinokov_ai_verify_captcha', 'odinokov_ai_handle_verify_captcha');
 
+function odinokov_ai_valid_model($configured = '') {
+    $valid = ['deepseek-chat', 'deepseek-reasoner'];
+    $configured = trim((string) $configured);
+    if (in_array($configured, $valid, true)) {
+        return $configured;
+    }
+    return 'deepseek-chat';
+}
+
+function odinokov_ai_call_deepseek($api_key, $model, $messages, $temperature, $max_tokens, $retries = 1) {
+    $attempts = $retries + 1;
+    $current_temperature = $temperature;
+
+    for ($i = 0; $i < $attempts; $i++) {
+        $response = wp_remote_post('https://api.deepseek.com/v1/chat/completions', [
+            'timeout' => 120,
+            'headers' => [
+                'Authorization' => "Bearer {$api_key}",
+                'Content-Type'  => 'application/json',
+            ],
+            'body' => wp_json_encode([
+                'model'       => $model,
+                'messages'    => $messages,
+                'temperature' => $current_temperature,
+                'max_tokens'  => $max_tokens,
+            ]),
+        ]);
+
+        if (is_wp_error($response)) {
+            return ['error' => 'Ошибка соединения: ' . $response->get_error_message()];
+        }
+
+        $status_code = wp_remote_retrieve_response_code($response);
+        $body_raw    = wp_remote_retrieve_body($response);
+        $data        = json_decode($body_raw, true);
+
+        if ($status_code !== 200) {
+            $error_msg = isset($data['error']['message']) ? $data['error']['message'] : 'Неизвестная ошибка API';
+            return ['error' => "DeepSeek API ({$status_code}): {$error_msg}"];
+        }
+
+        $content = isset($data['choices'][0]['message']['content']) ? trim($data['choices'][0]['message']['content']) : '';
+        if ($content !== '') {
+            return ['content' => $content];
+        }
+
+        $reasoning = isset($data['choices'][0]['message']['reasoning_content']) ? trim($data['choices'][0]['message']['reasoning_content']) : '';
+        if ($reasoning !== '') {
+            return ['content' => $reasoning];
+        }
+
+        $current_temperature = min(2.0, $current_temperature + 0.2);
+    }
+
+    return ['error' => 'empty'];
+}
+
 function odinokov_ai_handle_chat() {
     check_ajax_referer('odinokov_ai_chat_nonce', 'nonce');
 
@@ -36,7 +93,7 @@ function odinokov_ai_handle_chat() {
         wp_send_json_error(['detail' => 'API-ключ не настроен. Зайдите в Настройки → Odinokov AI Chat.'], 500);
     }
 
-    $model       = get_option('odinokov_ai_model', 'deepseek-v4-pro');
+    $model       = odinokov_ai_valid_model(get_option('odinokov_ai_model', 'deepseek-chat'));
     $temperature = (float) get_option('odinokov_ai_temperature', 0.3);
     $max_tokens  = (int) get_option('odinokov_ai_max_tokens', 2048);
 
@@ -54,44 +111,24 @@ function odinokov_ai_handle_chat() {
 
     $full_prompt = $system_prompt . "\n\n" . $knowledge_areas;
 
-    $body = [
-        'model'       => $model,
-        'messages'    => [
-            ['role' => 'system', 'content' => $full_prompt],
-            ['role' => 'user',   'content' => $message],
-        ],
-        'temperature' => $temperature,
-        'max_tokens'  => $max_tokens,
+    $messages = [
+        ['role' => 'system', 'content' => $full_prompt],
+        ['role' => 'user',   'content' => $message],
     ];
 
-    $response = wp_remote_post('https://api.deepseek.com/v1/chat/completions', [
-        'timeout' => 120,
-        'headers' => [
-            'Authorization' => "Bearer {$api_key}",
-            'Content-Type'  => 'application/json',
-        ],
-        'body' => wp_json_encode($body),
-    ]);
-    // Chat timeout: 120s
+    $result = odinokov_ai_call_deepseek($api_key, $model, $messages, $temperature, $max_tokens, 2);
 
-    if (is_wp_error($response)) {
-        $err = 'Ошибка соединения: ' . $response->get_error_message();
-        odinokov_ai_log_error($message, $err, $model);
-        wp_send_json_error(['detail' => $err], 502);
+    if (!empty($result['error'])) {
+        if ('empty' === $result['error']) {
+            $reply = 'К сожалению, я не смог сформировать ответ. Пожалуйста, переформулируйте вопрос или попробуйте ещё раз.';
+            odinokov_ai_log_conversation($message, '[EMPTY] ' . $reply, $model);
+            wp_send_json_success(['reply' => $reply]);
+        }
+        odinokov_ai_log_error($message, $result['error'], $model);
+        wp_send_json_error(['detail' => $result['error']], 502);
     }
 
-    $status_code = wp_remote_retrieve_response_code($response);
-    $body_raw    = wp_remote_retrieve_body($response);
-    $data        = json_decode($body_raw, true);
-
-    if ($status_code !== 200 || !isset($data['choices'][0]['message']['content'])) {
-        $error_msg = $data['error']['message'] ?? 'Неизвестная ошибка API';
-        $full_err  = "DeepSeek API ({$status_code}): {$error_msg}";
-        odinokov_ai_log_error($message, $full_err, $model);
-        wp_send_json_error(['detail' => $full_err], 502);
-    }
-
-    $reply = $data['choices'][0]['message']['content'];
+    $reply = $result['content'];
 
     odinokov_ai_log_conversation($message, $reply, $model);
 
@@ -245,37 +282,21 @@ function odinokov_ai_handle_generate_areas() {
         . "- Название категории (ГОСТ XXXX-YYYY, СП XX.XXXX)\n\n"
         . "Категории:\n" . $categories;
 
-    $response = wp_remote_post('https://api.deepseek.com/v1/chat/completions', [
-        'timeout' => 120,
-        'headers' => [
-            'Authorization' => "Bearer {$api_key}",
-            'Content-Type'  => 'application/json',
-        ],
-        'body' => wp_json_encode([
-            'model'       => get_option('odinokov_ai_model', 'deepseek-chat'),
-            'messages'    => [
-                ['role' => 'system', 'content' => $system_msg],
-                ['role' => 'user', 'content' => $gen_prompt],
-            ],
-            'temperature' => 0.3,
-            'max_tokens'  => 2048,
-        ]),
-    ]);
+    $model = odinokov_ai_valid_model(get_option('odinokov_ai_model', 'deepseek-chat'));
 
-    if (is_wp_error($response)) {
-        wp_send_json_error(['detail' => 'Ошибка соединения: ' . $response->get_error_message()], 502);
+    $result = odinokov_ai_call_deepseek($api_key, $model, [
+        ['role' => 'system', 'content' => $system_msg],
+        ['role' => 'user', 'content' => $gen_prompt],
+    ], 0.3, 2048, 2);
+
+    if (!empty($result['error'])) {
+        if ('empty' === $result['error']) {
+            wp_send_json_error(['detail' => 'API вернул пустой ответ. Попробуйте ещё раз или упростите список категорий.'], 502);
+        }
+        wp_send_json_error(['detail' => $result['error']], 502);
     }
 
-    $status_code = wp_remote_retrieve_response_code($response);
-    $body_raw    = wp_remote_retrieve_body($response);
-    $data        = json_decode($body_raw, true);
-
-    if ($status_code !== 200 || !isset($data['choices'][0]['message']['content'])) {
-        $error_msg = $data['error']['message'] ?? 'Неизвестная ошибка API';
-        wp_send_json_error(['detail' => "DeepSeek API ({$status_code}): {$error_msg}"], 502);
-    }
-
-    $areas = trim($data['choices'][0]['message']['content']);
+    $areas = $result['content'];
     if (empty($areas)) {
         wp_send_json_error(['detail' => 'API вернул пустой ответ. Попробуйте ещё раз или упростите список категорий.'], 502);
     }
@@ -302,36 +323,20 @@ function odinokov_ai_handle_generate_suggestions() {
         . "Не нумеруй строки, не добавляй лишнего текста, только вопросы.\n\n"
         . "Категории:\n" . $categories;
 
-    $response = wp_remote_post('https://api.deepseek.com/v1/chat/completions', [
-        'timeout' => 120,
-        'headers' => [
-            'Authorization' => "Bearer {$api_key}",
-            'Content-Type'  => 'application/json',
-        ],
-        'body' => wp_json_encode([
-            'model'       => get_option('odinokov_ai_model', 'deepseek-chat'),
-            'messages'    => [
-                ['role' => 'user', 'content' => $gen_prompt],
-            ],
-            'temperature' => 0.5,
-            'max_tokens'  => 1024,
-        ]),
-    ]);
+    $model = odinokov_ai_valid_model(get_option('odinokov_ai_model', 'deepseek-chat'));
 
-    if (is_wp_error($response)) {
-        wp_send_json_error(['detail' => 'Ошибка соединения: ' . $response->get_error_message()], 502);
+    $result = odinokov_ai_call_deepseek($api_key, $model, [
+        ['role' => 'user', 'content' => $gen_prompt],
+    ], 0.5, 1024, 2);
+
+    if (!empty($result['error'])) {
+        if ('empty' === $result['error']) {
+            wp_send_json_error(['detail' => 'API вернул пустой ответ. Попробуйте ещё раз.'], 502);
+        }
+        wp_send_json_error(['detail' => $result['error']], 502);
     }
 
-    $status_code = wp_remote_retrieve_response_code($response);
-    $body_raw    = wp_remote_retrieve_body($response);
-    $data        = json_decode($body_raw, true);
-
-    if ($status_code !== 200 || !isset($data['choices'][0]['message']['content'])) {
-        $error_msg = $data['error']['message'] ?? 'Неизвестная ошибка API';
-        wp_send_json_error(['detail' => "DeepSeek API ({$status_code}): {$error_msg}"], 502);
-    }
-
-    $suggestions = trim($data['choices'][0]['message']['content']);
+    $suggestions = $result['content'];
     wp_send_json_success(['suggestions' => $suggestions]);
 }
 add_action('wp_ajax_odinokov_ai_generate_suggestions', 'odinokov_ai_handle_generate_suggestions');
