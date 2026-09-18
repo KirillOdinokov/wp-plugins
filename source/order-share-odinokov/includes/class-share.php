@@ -15,6 +15,22 @@ class OSO_Share {
         add_action( 'woocommerce_share', array( $this, 'render_buttons_product' ), 50 );
         add_action( 'porto_woocommerce_share', array( $this, 'render_buttons_product' ), 50 );
         add_filter( 'the_content', array( $this, 'filter_the_content' ), 20 );
+
+        add_shortcode( 'oso_buttons', array( $this, 'render_shortcode' ) );
+    }
+
+    public function render_shortcode( $atts ) {
+        if ( ! ( function_exists( 'is_product' ) && is_product() ) ) {
+            return '';
+        }
+        $s = oso_get_settings();
+        if ( empty( $s['enable_share_product'] ) ) {
+            return '';
+        }
+        oso_share_mark_done();
+        ob_start();
+        $this->output( $s, 'product' );
+        return ob_get_clean();
     }
 
     private function is_share_screen() {
