@@ -117,6 +117,14 @@ class MaxMind_DB_Reader {
 		return null;
 	}
 
+	public function get_metadata() {
+		return $this->metadata;
+	}
+
+	public function get_build_epoch() {
+		return isset( $this->metadata['build_epoch'] ) ? (int) $this->metadata['build_epoch'] : 0;
+	}
+
 	public function __destruct() {
 		if ( $this->handle ) {
 			fclose( $this->handle );

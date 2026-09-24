@@ -53,9 +53,45 @@ class WP_Geo_Blocker_Admin {
         $mu_dir = WP_CONTENT_DIR . '/mu-plugins';
         $mu_file = $mu_dir . '/odinokov-geo-blocker-mu.php';
         $mu_exists = file_exists( $mu_file );
+
+        $db_info = self::get_db_info();
         ?>
         <div class="wrap">
             <h1>Odinokov Geo Blocker</h1>
+            <div class="card" style="max-width:800px;padding:20px;margin-top:20px;">
+                <h2>База GeoIP</h2>
+                <table class="form-table" role="presentation">
+                    <tr>
+                        <th>Файл</th>
+                        <td><code><?php echo esc_html( $db_info['file'] ); ?></code></td>
+                    </tr>
+                    <tr>
+                        <th>Статус</th>
+                        <td>
+                            <?php if ( $db_info['exists'] ) : ?>
+                                <span style="color:green;font-weight:600;">Загружена</span>
+                            <?php else : ?>
+                                <span style="color:red;font-weight:600;">Отсутствует</span>
+                            <?php endif; ?>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th>Дата релиза базы</th>
+                        <td>
+                            <?php if ( $db_info['build_date'] ) : ?>
+                                <?php echo esc_html( $db_info['build_date'] ); ?>
+                            <?php else : ?>
+                                <span style="color:#888;">—</span>
+                            <?php endif; ?>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th>Размер</th>
+                        <td><?php echo esc_html( $db_info['size'] ); ?></td>
+                    </tr>
+                </table>
+            </div>
+
             <div class="card" style="max-width:800px;padding:20px;margin-top:20px;">
                 <h2>Разрешённые страны</h2>
                 <p>Россия (RU), Беларусь (BY), Украина (UA), Казахстан (KZ), Узбекистан (UZ)</p>
@@ -138,8 +174,37 @@ class WP_Geo_Blocker_Admin {
         <?php
     }
 
+    public static function get_db_info() {
+        $file = ODGK_DB_FILE;
+        $info = array(
+            'file'       => $file,
+            'exists'     => file_exists( $file ),
+            'build_date' => '',
+            'size'       => '',
+        );
+
+        if ( $info['exists'] ) {
+            $info['size'] = size_format( filesize( $file ) );
+            if ( class_exists( 'MaxMind_DB_Reader' ) ) {
+                try {
+                    $reader = new MaxMind_DB_Reader( $file );
+                    $epoch = $reader->get_build_epoch();
+                    if ( $epoch > 0 ) {
+                        $info['build_date'] = wp_date( 'd.m.Y H:i:s', $epoch );
+                    }
+                    unset( $reader );
+                } catch ( Exception $e ) {
+                    $info['build_date'] = '';
+                }
+            }
+        } else {
+            $info['size'] = '—';
+        }
+
+        return $info;
+    }
+
     public static function handle_add_exception() {
-        if ( ! current_user_can( 'manage_options' ) ) wp_die( 'Unauthorized' );
         check_admin_referer( 'odgk_add_exception', 'odgk_nonce' );
         $ip = isset( $_POST['exception_ip'] ) ? sanitize_text_field( wp_unslash( $_POST['exception_ip'] ) ) : '';
         $note = isset( $_POST['exception_note'] ) ? sanitize_text_field( wp_unslash( $_POST['exception_note'] ) ) : '';

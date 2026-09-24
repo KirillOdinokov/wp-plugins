@@ -1,10 +1,10 @@
 ﻿{
     "requires":  "5.8",
     "download_url":  "https://raw.githubusercontent.com/KirillOdinokov/wp-plugins/main/repo/odinokov-geo-blocker.zip",
-    "last_updated":  "2026-08-12",
+    "last_updated":  "2026-09-24",
     "tested":  "6.7",
-    "version":  "1.0.4",
+    "version":  "1.0.5",
     "requires_php":  "7.2",
     "homepage":  "https://raw.githubusercontent.com/KirillOdinokov/wp-plugins/main",
-    "changelog":  "= 1.0.4 =\n* Кеширование DNS-верификации Googlebot на 24ч (файловый кеш)\n* Автоочистка просроченных записей (1 из 200 запросов)"
+    "changelog":  "= 1.0.5 =\n* В админке добавлены статус и дата релиза базы GeoIP"
 }
