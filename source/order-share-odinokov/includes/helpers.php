@@ -56,22 +56,19 @@ function oso_get_icon_set_png( $icon_set, $which ) {
     $base_url = OSO_URL . 'icons/' . rawurlencode( $icon_set ) . '/';
 
     if ( 'share' === $which ) {
-        $file = 'share.png';
+        $candidates = array( 'share.png' );
     } elseif ( 'pdf' === $which ) {
-        $file = 'pdf.png';
+        $candidates = array( 'pdf.png', 'pdf-icon.png' );
     } else {
-        if ( file_exists( $base_dir . 'mail.png' ) ) {
-            $file = 'mail.png';
-        } elseif ( file_exists( $base_dir . 'main.png' ) ) {
-            $file = 'main.png';
-        } else {
-            return '';
+        $candidates = array( 'mail.png', 'send.png', 'main.png' );
+    }
+
+    foreach ( $candidates as $file ) {
+        if ( file_exists( $base_dir . $file ) ) {
+            return $base_url . $file;
         }
     }
 
-    if ( file_exists( $base_dir . $file ) ) {
-        return $base_url . $file;
-    }
     return '';
 }
 
