@@ -30,6 +30,7 @@ class Admin {
         add_action( 'admin_init', [ $this, 'register_settings' ] );
         add_action( 'admin_enqueue_scripts', [ $this, 'enqueue_media' ] );
         add_action( 'admin_post_sod_force_check', [ $this, 'force_check' ] );
+        add_action( 'admin_post_sod_generate_turbo', [ $this, 'generate_turbo' ] );
     }
 
     public function add_menu() {
@@ -40,6 +41,7 @@ class Admin {
         }
         if ( ! $e ) add_menu_page( 'Одиноков', 'Одиноков', 'manage_options', 'odinokov-plugins', [ $this, 'dashboard' ], 'dashicons-admin-settings', 30 );
         add_submenu_page( 'odinokov-plugins', __( 'Schema Odinokov', 'schema-odinokov' ), __( 'Schema', 'schema-odinokov' ), 'manage_options', 'schema-odinokov', [ $this, 'render_page' ] );
+        add_submenu_page( 'odinokov-plugins', __( 'Turbo Yandex', 'schema-odinokov' ), __( 'Turbo Yandex', 'schema-odinokov' ), 'manage_options', 'schema-odinokov-turbo', [ $this, 'render_turbo_page' ] );
     }
 
     public function dashboard() {
@@ -78,6 +80,8 @@ class Admin {
                 ],
             ]
         );
+
+        $this->register_turbo_settings();
     }
 
     /**
@@ -424,11 +428,125 @@ class Admin {
         <?php
     }
 
+    public function register_turbo_settings() {
+        register_setting(
+            'schema_odinokov_turbo_group',
+            Turbo::OPTION_KEY,
+            [
+                'type'              => 'array',
+                'sanitize_callback' => [ $this, 'sanitize_turbo' ],
+                'default'           => [
+                    'enabled'    => 1,
+                    'post_types' => [ 'post', 'page', 'product' ],
+                    'items'      => 100,
+                ],
+            ]
+        );
+    }
+
+    public function sanitize_turbo( $input ) {
+        $input = is_array( $input ) ? $input : [];
+        $out = [
+            'enabled'    => ! empty( $input['enabled'] ) ? 1 : 0,
+            'post_types' => array_values( array_filter( (array) ( $input['post_types'] ?? [] ), function ( $pt ) {
+                return in_array( $pt, [ 'post', 'page', 'product' ], true );
+            } ) ),
+            'items'      => max( 1, min( 500, (int) ( $input['items'] ?? 100 ) ) ),
+        ];
+        if ( empty( $out['post_types'] ) ) {
+            $out['post_types'] = [ 'post', 'page', 'product' ];
+        }
+        return $out;
+    }
+
+    public function render_turbo_page() {
+        if ( ! current_user_can( 'manage_options' ) ) {
+            return;
+        }
+
+        $settings = Turbo::instance()->get_settings();
+        $feed_url = Turbo::instance()->get_feed_url();
+        $generated = isset( $_GET['generated'] );
+        ?>
+        <div class="wrap">
+            <h1><?php esc_html_e( 'Яндекс.Турбо — отдельный фид', 'schema-odinokov' ); ?></h1>
+            <p><?php esc_html_e( 'Генерирует RSS-фид турбо-страниц Яндекса и добавляет ссылку на него в sitemap_index.xml (Yoast SEO).', 'schema-odinokov' ); ?></p>
+
+            <?php if ( $generated ) : ?>
+                <div class="notice notice-success is-dismissible"><p><?php esc_html_e( 'Фид успешно перегенерирован.', 'schema-odinokov' ); ?></p></div>
+            <?php endif; ?>
+
+            <div class="card" style="max-width:800px;padding:20px;margin-top:16px;">
+                <h2><?php esc_html_e( 'Адрес фида', 'schema-odinokov' ); ?></h2>
+                <p><code><?php echo esc_html( $feed_url ); ?></code></p>
+                <p class="description"><?php esc_html_e( 'Укажите этот адрес в Яндекс.Вебмастер → Турбо-страницы → Источники.', 'schema-odinokov' ); ?></p>
+                <form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" style="margin:12px 0;">
+                    <?php wp_nonce_field( 'sod_generate_turbo', 'sod_generate_turbo_nonce' ); ?>
+                    <input type="hidden" name="action" value="sod_generate_turbo">
+                    <button type="submit" class="button button-primary"><?php esc_html_e( 'Сгенерировать фид сейчас', 'schema-odinokov' ); ?></button>
+                </form>
+            </div>
+
+            <form method="post" action="options.php">
+                <?php settings_fields( 'schema_odinokov_turbo_group' ); ?>
+                <table class="form-table" role="presentation">
+                    <tr>
+                        <th scope="row"><?php esc_html_e( 'Включить турбо-фид', 'schema-odinokov' ); ?></th>
+                        <td>
+                            <label>
+                                <input type="checkbox" name="<?php echo esc_attr( Turbo::OPTION_KEY ); ?>[enabled]" value="1" <?php checked( $settings['enabled'], 1 ); ?> />
+                                <?php esc_html_e( 'Отдавать фид по адресу /turbo.xml', 'schema-odinokov' ); ?>
+                            </label>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row"><?php esc_html_e( 'Типы записей', 'schema-odinokov' ); ?></th>
+                        <td>
+                            <?php
+                            $types = [ 'post' => __( 'Записи', 'schema-odinokov' ), 'page' => __( 'Страницы', 'schema-odinokov' ), 'product' => __( 'Товары', 'schema-odinokov' ) ];
+                            foreach ( $types as $pt => $label ) :
+                                ?>
+                                <label style="display:block;margin-bottom:4px;">
+                                    <input type="checkbox" name="<?php echo esc_attr( Turbo::OPTION_KEY ); ?>[post_types][]" value="<?php echo esc_attr( $pt ); ?>" <?php checked( in_array( $pt, $settings['post_types'], true ) ); ?> />
+                                    <?php echo esc_html( $label ); ?>
+                                </label>
+                            <?php endforeach; ?>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row"><?php esc_html_e( 'Количество записей', 'schema-odinokov' ); ?></th>
+                        <td>
+                            <input type="number" name="<?php echo esc_attr( Turbo::OPTION_KEY ); ?>[items]" value="<?php echo esc_attr( $settings['items'] ); ?>" min="1" max="500" class="small-text" />
+                            <p class="description"><?php esc_html_e( 'Сколько последних записей включать в фид (максимум 500).', 'schema-odinokov' ); ?></p>
+                        </td>
+                    </tr>
+                </table>
+                <?php submit_button(); ?>
+            </form>
+        </div>
+        <?php
+    }
+
+    public function generate_turbo() {
+        if ( ! current_user_can( 'manage_options' ) ) {
+            wp_die( 'Access denied.' );
+        }
+        check_admin_referer( 'sod_generate_turbo', 'sod_generate_turbo_nonce' );
+
+        $settings = Turbo::instance()->get_settings();
+        $feed = Turbo::instance()->build_feed( $settings );
+        set_transient( Turbo::CACHE_KEY, $feed, Turbo::CACHE_TTL );
+
+        flush_rewrite_rules();
+
+        wp_safe_redirect( admin_url( 'admin.php?page=schema-odinokov-turbo&generated=1' ) );
+        exit;
+    }
+
     public function force_check() {
         if ( ! current_user_can( 'manage_options' ) ) {
             wp_die( 'Access denied.' );
         }
-        check_admin_referer( 'sod_force_check', 'sod_force_check_nonce' );
         delete_transient( 'sod_rel_' . md5( 'https://raw.githubusercontent.com/KirillOdinokov/wp-plugins/main/updates/schema-odinokov.json' ) );
         set_site_transient( 'update_plugins', null );
         wp_safe_redirect( admin_url( 'plugins.php?sod_force_check_done=1' ) );
