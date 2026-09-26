@@ -1,0 +1,10 @@
+﻿{
+    "requires":  "5.8",
+    "download_url":  "https://raw.githubusercontent.com/KirillOdinokov/wp-plugins/main/repo/odinokov-high-load-vps.zip",
+    "last_updated":  "2026-09-26",
+    "tested":  "6.7",
+    "version":  "1.0.0",
+    "requires_php":  "7.2",
+    "homepage":  "https://raw.githubusercontent.com/KirillOdinokov/wp-plugins/main",
+    "changelog":  "= 1.0.0 =\n* Rate limiting по IP\n* Блокировка глубокой пагинации и большого per_page\n* Блокировка длинных filter-строк\n* Блокировка ботов по User-Agent\n* Geo-блокировка (опционально)"
+}
