@@ -122,9 +122,9 @@ class ODHLV_Core {
 	private static function is_search_engine( $ua ) {
 		$patterns = array(
 			'Googlebot', 'Google-InspectionTool', 'APIs-Google', 'AdsBot-Google',
-			'Bingbot', 'msnbot', 'DuckDuckBot',
+			'DuckDuckBot',
 			'YandexBot', 'YandexImages', 'YandexMobileBot', 'YandexMetrika', 'YandexWebmaster', 'YandexTurbo',
-			'Baiduspider', 'Sogou', 'Exabot', 'facebookexternalhit', 'Twitterbot',
+			'Sogou', 'Exabot', 'facebookexternalhit', 'Twitterbot',
 		);
 		foreach ( $patterns as $p ) {
 			if ( stripos( $ua, $p ) !== false ) return true;
@@ -282,6 +282,7 @@ class ODHLV_Core {
 		self::$blocked = true;
 
 		self::log_block( $ip, $reason, $detail );
+		self::log_traffic( $ip, $reason, $detail );
 
 		status_header( 403 );
 		header( 'Content-Type: text/plain; charset=utf-8' );
@@ -310,6 +311,29 @@ class ODHLV_Core {
 		@file_put_contents( ODHLV_BLOCK_LOG_FILE, json_encode( $entries, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE ) );
 	}
 
+	private static function log_traffic( $ip, $reason, $detail ) {
+		$entries = array();
+		if ( file_exists( ODHLV_TRAFFIC_FILE ) ) {
+			$raw = @file_get_contents( ODHLV_TRAFFIC_FILE );
+			if ( $raw ) {
+				$tmp = json_decode( $raw, true );
+				if ( is_array( $tmp ) ) $entries = $tmp;
+			}
+		}
+		$entries[] = array(
+			'ip'       => $ip,
+			'reason'   => $reason,
+			'url'      => self::get_request_uri(),
+			'ua'       => mb_substr( isset( $_SERVER['HTTP_USER_AGENT'] ) ? $_SERVER['HTTP_USER_AGENT'] : '', 0, 200 ),
+			'referer'  => mb_substr( isset( $_SERVER['HTTP_REFERER'] ) ? $_SERVER['HTTP_REFERER'] : '', 0, 300 ),
+			'method'   => isset( $_SERVER['REQUEST_METHOD'] ) ? $_SERVER['REQUEST_METHOD'] : '',
+			'country'  => self::get_country( $ip ),
+			'time'     => gmdate( 'Y-m-d H:i:s' ),
+		);
+		if ( count( $entries ) > 2000 ) $entries = array_slice( $entries, -2000 );
+		@file_put_contents( ODHLV_TRAFFIC_FILE, json_encode( $entries, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE ) );
+	}
+
 	/* ================== Log helpers for admin ================== */
 
 	public static function get_block_log() {
@@ -322,6 +346,18 @@ class ODHLV_Core {
 
 	public static function clear_block_log() {
 		if ( file_exists( ODHLV_BLOCK_LOG_FILE ) ) @unlink( ODHLV_BLOCK_LOG_FILE );
+	}
+
+	public static function get_traffic_log() {
+		if ( ! file_exists( ODHLV_TRAFFIC_FILE ) ) return array();
+		$raw = @file_get_contents( ODHLV_TRAFFIC_FILE );
+		if ( ! $raw ) return array();
+		$data = json_decode( $raw, true );
+		return is_array( $data ) ? $data : array();
+	}
+
+	public static function clear_traffic_log() {
+		if ( file_exists( ODHLV_TRAFFIC_FILE ) ) @unlink( ODHLV_TRAFFIC_FILE );
 	}
 
 	public static function get_db_info() {

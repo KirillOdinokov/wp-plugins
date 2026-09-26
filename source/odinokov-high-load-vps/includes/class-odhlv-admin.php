@@ -11,6 +11,7 @@ class ODHLV_Admin {
 		add_action( 'admin_menu', array( __CLASS__, 'add_menu' ) );
 		add_action( 'admin_post_odhlv_save', array( __CLASS__, 'handle_save' ) );
 		add_action( 'admin_post_odhlv_clear_log', array( __CLASS__, 'handle_clear_log' ) );
+		add_action( 'admin_post_odhlv_clear_traffic', array( __CLASS__, 'handle_clear_traffic' ) );
 		add_action( 'admin_post_odhlv_install_mu', array( __CLASS__, 'handle_install_mu' ) );
 		add_action( 'admin_post_odhlv_force_check', array( __CLASS__, 'force_check' ) );
 	}
@@ -28,6 +29,7 @@ class ODHLV_Admin {
 		}
 		add_submenu_page( 'odinokov-plugins', 'High-Load VPS', 'High-Load VPS', 'manage_options', 'odhlv', array( __CLASS__, 'render_page' ) );
 		add_submenu_page( 'odinokov-plugins', 'High-Load VPS — Log', 'High-Load Log', 'manage_options', 'odhlv-log', array( __CLASS__, 'render_log_page' ) );
+		add_submenu_page( 'odinokov-plugins', 'High-Load VPS — Traffic', 'High-Load Traffic', 'manage_options', 'odhlv-traffic', array( __CLASS__, 'render_traffic_page' ) );
 	}
 
 	public static function dashboard() {
@@ -256,6 +258,14 @@ class ODHLV_Admin {
 		exit;
 	}
 
+	public static function handle_clear_traffic() {
+		if ( ! current_user_can( 'manage_options' ) ) wp_die( 'Access denied.' );
+		check_admin_referer( 'odhlv_clear_traffic', 'odhlv_nonce' );
+		ODHLV_Core::clear_traffic_log();
+		wp_safe_redirect( admin_url( 'admin.php?page=odhlv-traffic&cleared=1' ) );
+		exit;
+	}
+
 	public static function handle_install_mu() {
 		if ( ! current_user_can( 'manage_options' ) ) wp_die( 'Access denied.' );
 		check_admin_referer( 'odhlv_install_mu', 'odhlv_nonce' );
@@ -301,6 +311,73 @@ class ODHLV_Admin {
 								<td><code><?php echo esc_html( $e['ip'] ?? '' ); ?></code></td>
 								<td><?php echo esc_html( $e['reason'] ?? '' ); ?></td>
 								<td style="max-width:300px;word-break:break-word;"><?php echo esc_html( $e['detail'] ?? '' ); ?></td>
+								<td style="max-width:200px;word-break:break-word;font-size:11px;"><?php echo esc_html( $e['ua'] ?? '' ); ?></td>
+							</tr>
+						<?php endforeach; ?>
+					</tbody>
+				</table>
+			<?php endif; ?>
+		</div>
+		<?php
+	}
+
+	public static function render_traffic_page() {
+		if ( ! current_user_can( 'manage_options' ) ) return;
+		$entries = array_reverse( ODHLV_Core::get_traffic_log() );
+
+		$names = array(
+			'RU' => 'Россия', 'BY' => 'Беларусь', 'UA' => 'Украина', 'KZ' => 'Казахстан', 'UZ' => 'Узбекистан',
+			'US' => 'США', 'CN' => 'Китай', 'DE' => 'Германия', 'NL' => 'Нидерланды', 'FR' => 'Франция',
+			'GB' => 'Великобритания', 'IN' => 'Индия', 'BR' => 'Бразилия', 'JP' => 'Япония', 'KR' => 'Корея',
+		);
+		$reason_labels = array(
+			'rate_limit' => 'Rate Limit',
+			'pagination' => 'Пагинация',
+			'long_query' => 'Длинный filter',
+			'bad_ua'     => 'User-Agent',
+			'geo'        => 'Geo',
+		);
+		?>
+		<div class="wrap">
+			<h1>Трафик заблокированных</h1>
+			<?php if ( empty( $entries ) ) : ?>
+				<p>Журнал пуст.</p>
+			<?php else : ?>
+				<div style="margin:16px 0;">
+					<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" style="display:inline">
+						<?php wp_nonce_field( 'odhlv_clear_traffic', 'odhlv_nonce' ); ?>
+						<input type="hidden" name="action" value="odhlv_clear_traffic">
+						<button type="submit" class="button" onclick="return confirm('Очистить журнал?')">Очистить</button>
+					</form>
+					<span style="margin-left:12px;color:#666;">Записей: <?php echo count( $entries ); ?> / 2000</span>
+				</div>
+				<table class="wp-list-table widefat fixed striped" style="max-width:100%;">
+					<thead>
+						<tr>
+							<th style="width:130px;">Время</th>
+							<th style="width:120px;">IP</th>
+							<th style="width:90px;">Страна</th>
+							<th style="width:80px;">Метод</th>
+							<th style="width:110px;">Причина</th>
+							<th>URL</th>
+							<th>User-Agent</th>
+						</tr>
+					</thead>
+					<tbody>
+						<?php foreach ( $entries as $e ) : ?>
+							<?php
+							$c = isset( $e['country'] ) ? strtoupper( (string) $e['country'] ) : '';
+							$country_label = ( $c && isset( $names[ $c ] ) ) ? $names[ $c ] . ' (' . $c . ')' : ( $c ?: '—' );
+							$reason = isset( $e['reason'] ) ? $e['reason'] : '';
+							$reason_label = isset( $reason_labels[ $reason ] ) ? $reason_labels[ $reason ] : $reason;
+							?>
+							<tr>
+								<td style="white-space:nowrap;font-size:12px;"><?php echo esc_html( $e['time'] ?? '' ); ?></td>
+								<td><code><?php echo esc_html( $e['ip'] ?? '' ); ?></code></td>
+								<td style="white-space:nowrap;"><?php echo esc_html( $country_label ); ?></td>
+								<td><?php echo esc_html( $e['method'] ?? '' ); ?></td>
+								<td><span class="odhlv-reason odhlv-reason--<?php echo esc_attr( $reason ); ?>"><?php echo esc_html( $reason_label ); ?></span></td>
+								<td style="max-width:320px;word-break:break-all;font-size:12px;"><?php echo esc_html( $e['url'] ?? '' ); ?></td>
 								<td style="max-width:200px;word-break:break-word;font-size:11px;"><?php echo esc_html( $e['ua'] ?? '' ); ?></td>
 							</tr>
 						<?php endforeach; ?>

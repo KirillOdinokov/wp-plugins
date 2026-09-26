@@ -18,6 +18,7 @@ if ( ! defined( 'ODHLV_DATA_DIR' ) ) define( 'ODHLV_DATA_DIR', ODHLV_DIR . 'data
 if ( ! defined( 'ODHLV_CONFIG_FILE' ) ) define( 'ODHLV_CONFIG_FILE', ODHLV_DATA_DIR . '/config.json' );
 if ( ! defined( 'ODHLV_RATELIMIT_FILE' ) ) define( 'ODHLV_RATELIMIT_FILE', ODHLV_DATA_DIR . '/ratelimit.json' );
 if ( ! defined( 'ODHLV_BLOCK_LOG_FILE' ) ) define( 'ODHLV_BLOCK_LOG_FILE', ODHLV_DATA_DIR . '/block-log.json' );
+if ( ! defined( 'ODHLV_TRAFFIC_FILE' ) ) define( 'ODHLV_TRAFFIC_FILE', ODHLV_DATA_DIR . '/traffic.json' );
 if ( ! defined( 'ODHLV_DB_FILE' ) ) define( 'ODHLV_DB_FILE', ODHLV_DATA_DIR . '/GeoLite2-Country.mmdb' );
 
 if ( file_exists( ODHLV_DIR . 'includes/class-odhlv-core.php' ) ) {
