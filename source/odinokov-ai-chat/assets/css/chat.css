@@ -7,6 +7,7 @@
     flex-direction: column;
     align-items: flex-end;
     gap: 12px;
+    pointer-events: none;
 }
 
 .odinokov-ai-trigger {
@@ -23,6 +24,7 @@
     justify-content: center;
     transition: transform 0.25s ease, box-shadow 0.25s ease, background 0.25s ease;
     flex-shrink: 0;
+    pointer-events: auto;
 }
 
 .odinokov-ai-trigger:hover {
@@ -88,6 +90,7 @@
     justify-content: center;
     transition: transform 0.2s ease, box-shadow 0.2s ease;
     flex-shrink: 0;
+    pointer-events: auto;
 }
 
 .odinokov-ai-sub-btn:hover {
