@@ -1,0 +1,10 @@
+{
+    "requires":  "5.8",
+    "download_url":  "https://raw.githubusercontent.com/KirillOdinokov/wp-plugins/main/repo/odinokov-order-share-cart.zip",
+    "last_updated":  "2026-10-11",
+    "tested":  "6.7",
+    "version":  "1.0.0",
+    "requires_php":  "7.4",
+    "homepage":  "https://raw.githubusercontent.com/KirillOdinokov/wp-plugins/main",
+    "changelog":  "= 1.0.0 =\n* Первый релиз: корзина заявок, уведомление у курсора, страницы оформления и личного кабинета, авторизация."
+}
