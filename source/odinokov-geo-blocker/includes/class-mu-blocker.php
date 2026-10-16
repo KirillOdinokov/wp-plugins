@@ -59,6 +59,9 @@ class WP_Geo_MU_Blocker {
     private static function is_verified_googlebot( $ua, $ip ) {
         if ( stripos( $ua, 'Googlebot' ) === false ) return false;
 
+        // Краулеров Google (Googlebot и пр.) никогда не блокируем гео-блоком —
+        // даже если reverse-DNS не прошёл (например, таймаут DNS). Reverse-DNS
+        // оставляем только как пометку verified в кэше для диагностики.
         $cache_file = ODGK_DATA_DIR . '/googlebot_cache.json';
         $cache = array();
         if ( file_exists( $cache_file ) ) {
@@ -68,7 +71,7 @@ class WP_Geo_MU_Blocker {
 
         $now = time();
         // Cleanup expired entries (1 in 200 requests)
-        if ( ! empty( $cache ) && wp_rand( 1, 200 ) === 1 ) {
+        if ( ! empty( $cache ) && mt_rand( 1, 200 ) === 1 ) {
             $pruned = false;
             foreach ( $cache as $k => $v ) {
                 if ( $v['expires'] <= $now ) { unset( $cache[ $k ] ); $pruned = true; }
@@ -77,27 +80,16 @@ class WP_Geo_MU_Blocker {
         }
 
         $hash = md5( $ip );
-        if ( isset( $cache[ $hash ] ) && $cache[ $hash ]['expires'] > $now ) {
-            return ! empty( $cache[ $hash ]['verified'] );
+        if ( ! isset( $cache[ $hash ] ) || $cache[ $hash ]['expires'] <= $now ) {
+            $hostname = @gethostbyaddr( $ip );
+            $verified = ( $hostname && $hostname !== $ip
+                && ( stripos( $hostname, '.googlebot.com' ) !== false || stripos( $hostname, '.google.com' ) !== false )
+                && @gethostbyname( $hostname ) === $ip );
+            $cache[ $hash ] = [ 'verified' => $verified ? 1 : 0, 'expires' => $now + 86400 ];
+            @file_put_contents( $cache_file, json_encode( $cache ), LOCK_EX );
         }
 
-        $hostname = @gethostbyaddr( $ip );
-        if ( ! $hostname || $hostname === $ip ) {
-            $cache[ $hash ] = [ 'verified' => 0, 'expires' => $now + 86400 ];
-            @file_put_contents( $cache_file, json_encode( $cache ), LOCK_EX );
-            return false;
-        }
-        if ( stripos( $hostname, '.googlebot.com' ) === false && stripos( $hostname, '.google.com' ) === false ) {
-            $cache[ $hash ] = [ 'verified' => 0, 'expires' => $now + 86400 ];
-            @file_put_contents( $cache_file, json_encode( $cache ), LOCK_EX );
-            return false;
-        }
-        $resolved = @gethostbyname( $hostname );
-        $verified = ( $resolved === $ip );
-
-        $cache[ $hash ] = [ 'verified' => $verified ? 1 : 0, 'expires' => $now + 86400 ];
-        @file_put_contents( $cache_file, json_encode( $cache ), LOCK_EX );
-        return $verified;
+        return true;
     }
 
     private static function get_country( $ip ) {

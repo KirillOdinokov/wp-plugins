@@ -67,6 +67,9 @@ class WP_Geo_Blocker {
         $ua = isset( $_SERVER['HTTP_USER_AGENT'] ) ? trim( $_SERVER['HTTP_USER_AGENT'] ) : '';
         if ( stripos( $ua, 'Googlebot' ) === false ) return false;
 
+        // Краулеров Google (Googlebot и пр.) никогда не блокируем гео-блоком —
+        // даже если reverse-DNS не прошёл (например, таймаут DNS). Reverse-DNS
+        // оставляем только как пометку verified в кэше для диагностики.
         $cache_file = ODGK_DATA_DIR . '/googlebot_cache.json';
         $cache = array();
         if ( file_exists( $cache_file ) ) {
@@ -76,7 +79,7 @@ class WP_Geo_Blocker {
 
         $now = time();
         // Cleanup expired entries (1 in 200 requests)
-        if ( ! empty( $cache ) && wp_rand( 1, 200 ) === 1 ) {
+        if ( ! empty( $cache ) && mt_rand( 1, 200 ) === 1 ) {
             $pruned = false;
             foreach ( $cache as $k => $v ) {
                 if ( $v['expires'] <= $now ) { unset( $cache[ $k ] ); $pruned = true; }
@@ -85,27 +88,16 @@ class WP_Geo_Blocker {
         }
 
         $hash = md5( $ip );
-        if ( isset( $cache[ $hash ] ) && $cache[ $hash ]['expires'] > $now ) {
-            return ! empty( $cache[ $hash ]['verified'] );
+        if ( ! isset( $cache[ $hash ] ) || $cache[ $hash ]['expires'] <= $now ) {
+            $hostname = @gethostbyaddr( $ip );
+            $verified = ( $hostname && $hostname !== $ip
+                && ( stripos( $hostname, '.googlebot.com' ) !== false || stripos( $hostname, '.google.com' ) !== false )
+                && @gethostbyname( $hostname ) === $ip );
+            $cache[ $hash ] = [ 'verified' => $verified ? 1 : 0, 'expires' => $now + 86400 ];
+            @file_put_contents( $cache_file, json_encode( $cache ), LOCK_EX );
         }
 
-        $hostname = @gethostbyaddr( $ip );
-        if ( ! $hostname || $hostname === $ip ) {
-            $cache[ $hash ] = [ 'verified' => 0, 'expires' => $now + 86400 ];
-            @file_put_contents( $cache_file, json_encode( $cache ), LOCK_EX );
-            return false;
-        }
-        if ( stripos( $hostname, '.googlebot.com' ) === false && stripos( $hostname, '.google.com' ) === false ) {
-            $cache[ $hash ] = [ 'verified' => 0, 'expires' => $now + 86400 ];
-            @file_put_contents( $cache_file, json_encode( $cache ), LOCK_EX );
-            return false;
-        }
-        $resolved = @gethostbyname( $hostname );
-        $verified = ( $resolved === $ip );
-
-        $cache[ $hash ] = [ 'verified' => $verified ? 1 : 0, 'expires' => $now + 86400 ];
-        @file_put_contents( $cache_file, json_encode( $cache ), LOCK_EX );
-        return $verified;
+        return true;
     }
 
     private function get_client_ip() {
@@ -168,7 +160,7 @@ class WP_Geo_Blocker {
 
     private function show_block_page( $ip, $country, $error_msg = '' ) {
         $list = implode( ', ', array_values( $this->country_names ) );
-        $ca = wp_rand( 1, 20 ); $cb = wp_rand( 1, 20 ); $cr = $ca + $cb;
+        $ca = mt_rand( 1, 20 ); $cb = mt_rand( 1, 20 ); $cr = $ca + $cb;
         $err = $error_msg ? '<div class="msg"><p>' . esc_html( $error_msg ) . '</p></div>' : '';
         $html = '<!DOCTYPE html><html lang="ru"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>Доступ ограничен</title><style>body{font-family:sans-serif;background:#f5f5f5;display:flex;justify-content:center;align-items:center;min-height:100vh;padding:20px;color:#333}.box{background:#fff;border-radius:12px;box-shadow:0 4px 24px rgba(0,0,0,.1);max-width:600px;padding:40px}h1{color:#d32f2f;margin-bottom:20px}p{line-height:1.6;margin-bottom:12px}.en{color:#666;font-style:italic}.cb{background:#f0f4ff;border:1px solid #c5d3f0;border-radius:8px;padding:20px;margin:20px 0}.cb label{display:block;font-weight:600;margin-bottom:8px}.cb input{width:100%;padding:10px 14px;border:1px solid #ccc;border-radius:6px;font-size:16px}.fg{margin-bottom:16px}.fg label{display:block;font-weight:600;margin-bottom:6px}.fg input{width:100%;padding:10px 14px;border:1px solid #ccc;border-radius:6px;font-size:16px}.btn{background:#1976d2;color:#fff;border:none;padding:12px 28px;border-radius:6px;font-size:16px;cursor:pointer}.btn:hover{background:#1565c0}.msg{background:#ffebee;color:#c62828;border:1px solid #ef9a9a;border-radius:6px;padding:12px;margin-bottom:16px}</style></head><body><div class="box"><h1>Доступ ограничен</h1><p>Сайт доступен только с территорий: ' . esc_html( $list ) . '.</p><p class="en">This website is only accessible from: ' . esc_html( $list ) . '.</p>' . $err . '<form method="post"><div class="fg"><label>Ваш IP:</label><input value="' . esc_attr( $ip ) . '" readonly style="background:#f9f9f9;"></div><div class="cb"><label>Решите пример: ' . esc_html( "$ca + $cb = ?" ) . '</label><input type="text" name="odgk_captcha" placeholder="Ответ" autocomplete="off" required></div><input type="hidden" name="odgk_answer" value="' . $cr . '"><button type="submit" name="odgk_submit" value="1" class="btn">Отправить запрос</button></form></div></body></html>';
         status_header( 403 ); nocache_headers(); die( $html );
