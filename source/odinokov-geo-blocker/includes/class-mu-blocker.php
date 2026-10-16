@@ -57,7 +57,7 @@ class WP_Geo_MU_Blocker {
     }
 
     private static function is_verified_googlebot( $ua, $ip ) {
-        if ( stripos( $ua, 'Googlebot' ) === false ) return false;
+        if ( ! self::is_google_ua( $ua ) ) return false;
 
         // Краулеров Google (Googlebot и пр.) никогда не блокируем гео-блоком —
         // даже если reverse-DNS не прошёл (например, таймаут DNS). Reverse-DNS
@@ -90,6 +90,29 @@ class WP_Geo_MU_Blocker {
         }
 
         return true;
+    }
+
+    private static function is_google_ua( $ua ) {
+        $bots = array(
+            'Googlebot',                 // основной краулер (включая Image/News/Video)
+            'Google-InspectionTool',     // инструмент проверки URL (Search Console)
+            'Google-Site-Verification',  // подтверждение владения сайтом
+            'GoogleOther',               // прочие задачи Google
+            'Google-Extended',           // краулер для AI (BERT/Gemini)
+            'Google-Read-Aloud',         // чтение вслух
+            'Storebot-Google',           // Google Store
+            'AdsBot-Google',             // краулер рекламы
+            'Mediapartners-Google',      // AdSense
+            'APIs-Google',               // Google API
+            'Feedfetcher-Google',        // Google News/Reader
+            'GoogleProducer',            // Google News
+            'Google-Publisher-Plugin',   // Google Publisher
+            'Google Favicon',            // загрузчик favicon
+        );
+        foreach ( $bots as $b ) {
+            if ( stripos( $ua, $b ) !== false ) return true;
+        }
+        return false;
     }
 
     private static function get_country( $ip ) {
