@@ -36,6 +36,10 @@ class WP_Geo_MU_Blocker {
 
         $allowed = array( 'RU', 'BY', 'UA', 'KZ', 'UZ' );
         if ( ! in_array( $country, $allowed, true ) ) {
+            // Google-сервисы с обычным браузерным UA (PageSpeed, Rich Results,
+            // Lighthouse и т.п.) приходят с IP Google — пропускаем по reverse-DNS.
+            if ( self::is_google_ip( $ip ) ) return;
+
             if ( class_exists( 'WP_Geo_Blocker_Logger' ) ) {
                 WP_Geo_Blocker_Logger::log_mu( $ip, $country );
             }
@@ -113,6 +117,44 @@ class WP_Geo_MU_Blocker {
             if ( stripos( $ua, $b ) !== false ) return true;
         }
         return false;
+    }
+
+    private static function is_google_ip( $ip ) {
+        $cache_file = ODGK_DATA_DIR . '/google_ip_cache.json';
+        $cache = array();
+        if ( file_exists( $cache_file ) ) {
+            $c = @file_get_contents( $cache_file );
+            if ( $c ) { $tmp = json_decode( $c, true ); if ( is_array( $tmp ) ) $cache = $tmp; }
+        }
+
+        $now  = time();
+        $hash = md5( $ip );
+
+        if ( isset( $cache[ $hash ] ) && $cache[ $hash ]['expires'] > $now ) {
+            return ! empty( $cache[ $hash ]['is_google'] );
+        }
+
+        // Occasional cleanup of expired entries (1 in 200 requests).
+        if ( ! empty( $cache ) && mt_rand( 1, 200 ) === 1 ) {
+            $pruned = false;
+            foreach ( $cache as $k => $v ) {
+                if ( $v['expires'] <= $now ) { unset( $cache[ $k ] ); $pruned = true; }
+            }
+            if ( $pruned ) @file_put_contents( $cache_file, json_encode( $cache ), LOCK_EX );
+        }
+
+        $hostname  = @gethostbyaddr( $ip );
+        $is_google = false;
+        if ( $hostname && $hostname !== $ip ) {
+            foreach ( array( '.googlebot.com', '.googleusercontent.com', '.google.com' ) as $s ) {
+                if ( substr( $hostname, -strlen( $s ) ) === $s ) { $is_google = true; break; }
+            }
+        }
+
+        $cache[ $hash ] = [ 'is_google' => $is_google ? 1 : 0, 'expires' => $now + 86400 ];
+        @file_put_contents( $cache_file, json_encode( $cache ), LOCK_EX );
+
+        return $is_google;
     }
 
     private static function get_country( $ip ) {

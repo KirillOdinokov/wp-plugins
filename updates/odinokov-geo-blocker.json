@@ -3,8 +3,8 @@
     "download_url":  "https://raw.githubusercontent.com/KirillOdinokov/wp-plugins/main/repo/odinokov-geo-blocker.zip",
     "last_updated":  "2026-10-11",
     "tested":  "6.7",
-    "version":  "1.0.7",
+    "version":  "1.0.8",
     "requires_php":  "7.2",
     "homepage":  "https://raw.githubusercontent.com/KirillOdinokov/wp-plugins/main",
-    "changelog":  "= 1.0.7 =\n* Расширен whitelist Google: Google-Site-Verification, Google-InspectionTool, GoogleOther, Google-Extended, AdsBot-Google, Mediapartners-Google, Storebot-Google и др. — верификация и индексация Google больше не блокируются гео-блоком."
+    "changelog":  "= 1.0.8 =\n* Reverse-DNS проверка для всех «неразрешённых» IP: IP Google (*.googlebot.com, *.google.com, *.googleusercontent.com) пропускаются даже с обычным браузерным UA (PageSpeed, Rich Results, Lighthouse). Результат кэшируется в google_ip_cache.json."
 }
