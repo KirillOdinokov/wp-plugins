@@ -1,10 +1,10 @@
 ﻿{
     "requires":  "5.8",
     "download_url":  "https://raw.githubusercontent.com/KirillOdinokov/wp-plugins/main/repo/odinokov-high-load-vps.zip",
-    "last_updated":  "2026-09-26",
+    "last_updated":  "2026-10-30",
     "tested":  "6.7",
-    "version":  "1.0.1",
+    "version":  "1.0.2",
     "requires_php":  "7.2",
     "homepage":  "https://raw.githubusercontent.com/KirillOdinokov/wp-plugins/main",
-    "changelog":  "= 1.0.1 =\n* Bingbot и Baidu убраны из белого списка\n* Журнал трафика заблокированных (как Wordfence)"
+    "changelog":  "= 1.0.2 =\n* Фикс fatal: wp_rand() на этапе MU заменена на mt_rand().\n* Авторизованный администратор (cookie wordpress_logged_in_*) не ограничивается rate-limit'ом — админка и admin-ajax/heartbeat не блокируются."
 }

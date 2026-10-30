@@ -98,7 +98,7 @@ class ODHLV_Core {
 			self::block( $ip, 'geo', self::get_country( $ip ) );
 		}
 
-		if ( ! empty( $config['rate_limit_enabled'] ) && self::is_rate_limited( $ip, $config ) ) {
+		if ( ! empty( $config['rate_limit_enabled'] ) && ! self::is_admin_logged_in_request() && self::is_rate_limited( $ip, $config ) ) {
 			self::block( $ip, 'rate_limit', '' );
 		}
 	}
@@ -117,6 +117,27 @@ class ODHLV_Core {
 
 	private static function get_request_uri() {
 		return isset( $_SERVER['REQUEST_URI'] ) ? $_SERVER['REQUEST_URI'] : '';
+	}
+
+	/**
+	 * Авторизованный заход в админку/логин не ограничиваем rate-limit'ом,
+	 * чтобы не блокировать работу администратора (heartbeat/autosave/admin-ajax).
+	 * На этапе MU полноценная авторизация недоступна, поэтому проверяем наличие
+	 * cookie wordpress_logged_in_*.
+	 */
+	private static function is_admin_logged_in_request() {
+		$uri = self::get_request_uri();
+		if ( false === strpos( $uri, '/wp-admin/' ) && false === strpos( $uri, 'wp-login.php' ) ) {
+			return false;
+		}
+		if ( ! empty( $_COOKIE ) && is_array( $_COOKIE ) ) {
+			foreach ( $_COOKIE as $k => $v ) {
+				if ( 0 === strpos( $k, 'wordpress_logged_in_' ) ) {
+					return true;
+				}
+			}
+		}
+		return false;
 	}
 
 	private static function is_search_engine( $ua ) {
@@ -216,7 +237,7 @@ class ODHLV_Core {
 		}
 
 		// Периодическая очистка устаревших записей (1 из 100 запросов).
-		if ( ! empty( $data ) && wp_rand( 1, 100 ) === 1 ) {
+		if ( ! empty( $data ) && mt_rand( 1, 100 ) === 1 ) {
 			$pruned = false;
 			foreach ( $data as $k => $hits ) {
 				$hits = array_values( array_filter( $hits, function ( $t ) use ( $now, $window ) {
