@@ -23,16 +23,54 @@ class MaxMind_DB_Reader {
 	private $pointer_base = 0;
 	private $ipv4_start = 0;
 
+	/** @var \MaxMind\Db\Reader|null Официальный ридер (расширение maxminddb или библиотека) */
+	private $official = null;
+
 	public function __construct( $filepath ) {
 		if ( ! is_string( $filepath ) || ! file_exists( $filepath ) ) {
 			throw new Exception( 'MaxMind DB file not found: ' . $filepath );
 		}
+
+		// Приоритет — официальный ридер MaxMind (расширение maxminddb или
+		// библиотека из WooCommerce). Он корректен и быстрый; внутренний
+		// декодер используется только если официального нет.
+		if ( ! class_exists( '\MaxMind\Db\Reader' ) ) {
+			$this->require_official_lib();
+		}
+		if ( class_exists( '\MaxMind\Db\Reader' ) ) {
+			try {
+				$this->official = new \MaxMind\Db\Reader( $filepath );
+				return;
+			} catch ( \Throwable $e ) {
+				$this->official = null;
+			}
+		}
+
 		$data = @file_get_contents( $filepath );
 		if ( false === $data || strlen( $data ) < 16 ) {
 			throw new Exception( 'Cannot read MaxMind DB file: ' . $filepath );
 		}
 		$this->data = $data;
 		$this->parse_metadata();
+	}
+
+	private function require_official_lib() {
+		if ( ! defined( 'WP_CONTENT_DIR' ) ) {
+			return;
+		}
+		$base  = WP_CONTENT_DIR . '/plugins/woocommerce/vendor/maxmind-db/reader/src/MaxMind/Db/';
+		$files = array(
+			'Reader/InvalidDatabaseException.php',
+			'Reader/Util.php',
+			'Reader/Decoder.php',
+			'Reader/Metadata.php',
+			'Reader.php',
+		);
+		foreach ( $files as $f ) {
+			if ( file_exists( $base . $f ) ) {
+				@require_once $base . $f;
+			}
+		}
 	}
 
 	private function parse_metadata() {
@@ -150,8 +188,25 @@ class MaxMind_DB_Reader {
 	}
 
 	public function get_country_code( $ip_address ) {
-		// Гибридный режим: разные записи в БД корректно декодируются при разных
-		// базах секции данных. Пробуем оба варианта и берём первый, где найден ISO-код.
+		if ( null !== $this->official ) {
+			try {
+				$rec = $this->official->get( $ip_address );
+				if ( is_array( $rec ) ) {
+					if ( isset( $rec['country']['iso_code'] ) && is_string( $rec['country']['iso_code'] ) ) {
+						return $rec['country']['iso_code'];
+					}
+					if ( isset( $rec['registered_country']['iso_code'] ) && is_string( $rec['registered_country']['iso_code'] ) ) {
+						return $rec['registered_country']['iso_code'];
+					}
+				}
+			} catch ( \Throwable $e ) {
+				// ignore
+			}
+			return null;
+		}
+
+		// Резервный режим (внутренний декодер): разные записи корректно
+		// декодируются при разных базах секции данных — пробуем оба варианта.
 		foreach ( array( $this->data_start, $this->tree_size + 16 ) as $data_start ) {
 			$data = $this->lookup( $ip_address, $data_start );
 			if ( ! is_array( $data ) ) {
@@ -168,11 +223,42 @@ class MaxMind_DB_Reader {
 	}
 
 	public function get_metadata() {
+		if ( null !== $this->official ) {
+			try {
+				$m = $this->official->metadata();
+				$get = function ( $name ) use ( $m ) {
+					if ( is_object( $m ) ) {
+						if ( method_exists( $m, $name ) ) {
+							try { return $m->$name(); } catch ( \Throwable $e ) { return null; }
+						}
+						if ( isset( $m->$name ) ) {
+							return $m->$name;
+						}
+					}
+					if ( is_array( $m ) && isset( $m[ $name ] ) ) {
+						return $m[ $name ];
+					}
+					return null;
+				};
+				if ( is_object( $m ) || is_array( $m ) ) {
+					return array(
+						'node_count'    => (int) $get( 'nodeCount' ),
+						'record_size'   => (int) $get( 'recordSize' ),
+						'ip_version'    => (int) $get( 'ipVersion' ),
+						'build_epoch'   => (int) $get( 'buildEpoch' ),
+						'database_type' => (string) $get( 'databaseType' ),
+					);
+				}
+			} catch ( \Throwable $e ) {
+				// ignore
+			}
+		}
 		return $this->metadata;
 	}
 
 	public function get_build_epoch() {
-		return isset( $this->metadata['build_epoch'] ) ? (int) $this->metadata['build_epoch'] : 0;
+		$meta = $this->get_metadata();
+		return isset( $meta['build_epoch'] ) ? (int) $meta['build_epoch'] : 0;
 	}
 }
 
