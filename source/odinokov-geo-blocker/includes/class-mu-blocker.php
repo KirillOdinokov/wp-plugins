@@ -1,10 +1,17 @@
 <?php
+require_once __DIR__ . '/persist.php';
+
 class WP_Geo_MU_Blocker {
 
     public static function check() {
         if ( defined( 'WP_CLI' ) && WP_CLI ) return;
         if ( php_sapi_name() === 'cli' ) return;
         if ( ! isset( $_SERVER['HTTP_HOST'] ) ) return;
+
+        // Восстанавливаем базу/исключения из резервной копии, если апдейт их стёр.
+        if ( function_exists( 'odgk_persist_sync' ) ) {
+            odgk_persist_sync();
+        }
 
         $ip = self::get_client_ip();
         $ua = isset( $_SERVER['HTTP_USER_AGENT'] ) ? trim( $_SERVER['HTTP_USER_AGENT'] ) : '';

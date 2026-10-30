@@ -1,117 +1,160 @@
 <?php
 /**
- * MaxMind GeoLite2 Binary DB Reader
- * Reads country code from .mmdb file without external PHP extensions.
+ * MaxMind GeoLite2 / GeoIP2 Binary DB Reader (pure PHP).
+ *
+ * Корректно читает стандартный формат MaxMind DB (.mmdb):
+ *  - поисковое дерево (record_size 24/28/32),
+ *  - секцию данных,
+ *  - метаданные в конце файла (маркер "\xAB\xCD\xEFMaxMind.com").
+ *
+ * Безопасен: при повреждённом/несовместимом файле бросает исключение
+ * (вызывающий код ловит и работает fail-open), не зацикливается
+ * (ограничение глубины) и не сыплет notice'ами.
  */
 class MaxMind_DB_Reader {
 
-	private $handle;
-	private $metadata;
-	private $data_section_start;
-	private $ipv4_start_node;
+	private $data;
+	private $metadata = array();
+	private $node_count = 0;
+	private $record_size = 24;
+	private $node_byte_size = 6;
+	private $tree_size = 0;
+	private $data_start = 0;
+	private $pointer_base = 0;
+	private $ipv4_start = 0;
 
 	public function __construct( $filepath ) {
-		if ( ! file_exists( $filepath ) ) {
+		if ( ! is_string( $filepath ) || ! file_exists( $filepath ) ) {
 			throw new Exception( 'MaxMind DB file not found: ' . $filepath );
 		}
-		$this->handle = fopen( $filepath, 'rb' );
-		if ( ! $this->handle ) {
-			throw new Exception( 'Cannot open MaxMind DB file: ' . $filepath );
+		$data = @file_get_contents( $filepath );
+		if ( false === $data || strlen( $data ) < 16 ) {
+			throw new Exception( 'Cannot read MaxMind DB file: ' . $filepath );
 		}
+		$this->data = $data;
 		$this->parse_metadata();
 	}
 
 	private function parse_metadata() {
-		$header = fread( $this->handle, 4 );
-		if ( strlen( $header ) < 4 ) {
-			throw new Exception( 'Invalid MaxMind DB file' );
+		$marker = "\xab\xcd\xefMaxMind.com";
+		$pos    = strrpos( $this->data, $marker );
+		if ( false === $pos ) {
+			throw new Exception( 'Invalid MaxMind DB: metadata marker not found' );
 		}
-		$metadata_section_size = unpack( 'N', $header )[1];
-		$raw_metadata = fread( $this->handle, $metadata_section_size );
-		$decoder = new MaxMind_DB_Decoder( $raw_metadata, 0 );
+		$decoder        = new MaxMind_DB_Decoder( $this->data, $pos + strlen( $marker ), 0 );
 		$this->metadata = $decoder->decode();
-		$this->data_section_start = ftell( $this->handle );
+		if ( ! is_array( $this->metadata ) || ! isset( $this->metadata['node_count'] ) || ! isset( $this->metadata['record_size'] ) ) {
+			throw new Exception( 'Invalid MaxMind DB metadata' );
+		}
 
-		$node_count = $this->metadata['node_count'];
-		$node_byte_size = $this->metadata['record_size'] * 2 / 8;
-		$search_tree_size = $node_count * $node_byte_size;
+		$this->node_count     = (int) $this->metadata['node_count'];
+		$this->record_size    = (int) $this->metadata['record_size'];
+		$this->node_byte_size = (int) ( $this->record_size / 4 );
+		if ( $this->node_byte_size < 6 || $this->node_byte_size > 8 || $this->node_count <= 0 ) {
+			throw new Exception( 'Unsupported MaxMind DB layout' );
+		}
+		$this->tree_size     = $this->node_count * $this->node_byte_size;
+		$this->data_start    = $this->tree_size;
+		$this->pointer_base  = $this->tree_size + 16;
 
-		$ip_version = isset( $this->metadata['ip_version'] ) ? $this->metadata['ip_version'] : 6;
-		if ( $ip_version === 6 ) {
+		$ip_version = isset( $this->metadata['ip_version'] ) ? (int) $this->metadata['ip_version'] : 6;
+		if ( 6 === $ip_version ) {
 			$node = 0;
 			for ( $i = 0; $i < 96; $i++ ) {
 				$node = $this->read_node( $node, 0 );
 			}
-			$this->ipv4_start_node = $node;
+			$this->ipv4_start = $node;
 		} else {
-			$this->ipv4_start_node = 0;
+			$this->ipv4_start = 0;
 		}
 	}
 
-	private function read_node( $node_number, $index ) {
-		$node_byte_size = $this->metadata['record_size'] * 2 / 8;
-		$offset = $node_number * $node_byte_size + $this->data_section_start;
-		fseek( $this->handle, $offset );
-		$raw = fread( $this->handle, $node_byte_size );
-		if ( strlen( $raw ) < $node_byte_size ) {
+	private function read_node( $node, $index ) {
+		$offset = $node * $this->node_byte_size;
+		if ( $offset < 0 || $offset + $this->node_byte_size > $this->tree_size ) {
 			return 0;
 		}
-		$record_size = $this->metadata['record_size'];
-		$bits = '';
-		for ( $i = 0; $i < strlen( $raw ); $i++ ) {
-			$bits .= str_pad( decbin( ord( $raw[ $i ] ) ), 8, '0', STR_PAD_LEFT );
-		}
-		$left = bindec( substr( $bits, 0, $record_size ) );
-		$right = bindec( substr( $bits, $record_size, $record_size ) );
-		return $index === 0 ? $left : $right;
-	}
 
-	private function resolve_data_pointer( $pointer, &$out_offset ) {
-		$data_section_offset = $this->data_section_start + $this->metadata['node_count'] * ( $this->metadata['record_size'] * 2 / 8 );
-		$out_offset = $pointer + $data_section_offset;
+		if ( 24 === $this->record_size ) {
+			if ( 0 === $index ) {
+				return ( ord( $this->data[ $offset ] ) << 16 ) | ( ord( $this->data[ $offset + 1 ] ) << 8 ) | ord( $this->data[ $offset + 2 ] );
+			}
+			return ( ord( $this->data[ $offset + 3 ] ) << 16 ) | ( ord( $this->data[ $offset + 4 ] ) << 8 ) | ord( $this->data[ $offset + 5 ] );
+		}
+
+		if ( 28 === $this->record_size ) {
+			$b0 = ord( $this->data[ $offset ] );
+			$b1 = ord( $this->data[ $offset + 1 ] );
+			$b2 = ord( $this->data[ $offset + 2 ] );
+			$b3 = ord( $this->data[ $offset + 3 ] );
+			$b4 = ord( $this->data[ $offset + 4 ] );
+			$b5 = ord( $this->data[ $offset + 5 ] );
+			$b6 = ord( $this->data[ $offset + 6 ] );
+			if ( 0 === $index ) {
+				return ( $b0 << 20 ) | ( $b1 << 12 ) | ( $b2 << 4 ) | ( $b3 >> 4 );
+			}
+			return ( ( $b3 & 0x0f ) << 24 ) | ( $b4 << 16 ) | ( $b5 << 8 ) | $b6;
+		}
+
+		// record_size 32
+		if ( 0 === $index ) {
+			return ( ord( $this->data[ $offset ] ) << 24 ) | ( ord( $this->data[ $offset + 1 ] ) << 16 ) | ( ord( $this->data[ $offset + 2 ] ) << 8 ) | ord( $this->data[ $offset + 3 ] );
+		}
+		return ( ord( $this->data[ $offset + 4 ] ) << 24 ) | ( ord( $this->data[ $offset + 5 ] ) << 16 ) | ( ord( $this->data[ $offset + 6 ] ) << 8 ) | ord( $this->data[ $offset + 7 ] );
 	}
 
 	public function lookup( $ip_address ) {
-		$packed = inet_pton( $ip_address );
-		if ( ! $packed ) {
+		$packed = @inet_pton( $ip_address );
+		if ( false === $packed || ( strlen( $packed ) !== 4 && strlen( $packed ) !== 16 ) ) {
 			return null;
 		}
+
 		$bits = '';
-		for ( $i = 0; $i < strlen( $packed ); $i++ ) {
+		$len  = strlen( $packed );
+		for ( $i = 0; $i < $len; $i++ ) {
 			$bits .= str_pad( decbin( ord( $packed[ $i ] ) ), 8, '0', STR_PAD_LEFT );
 		}
 
-		$is_ipv4 = ( strlen( $packed ) === 4 );
-		if ( $is_ipv4 ) {
-			$bits = str_pad( $bits, 128, '0', STR_PAD_LEFT );
+		if ( 4 === $len ) {
+			$node = $this->ipv4_start;
+		} else {
+			$node = 0;
 		}
 
-		$node = 0;
-		$node_count = $this->metadata['node_count'];
-		$record_size = $this->metadata['record_size'];
-
-		for ( $i = 0; $i < strlen( $bits ); $i++ ) {
-			$bit = (int) $bits[ $i ];
-			$next = $this->read_node( $node, $bit );
-			if ( $next >= $node_count ) {
-				$data_offset = 0;
-				$this->resolve_data_pointer( $next - $node_count, $data_offset );
-				fseek( $this->handle, $data_offset );
-				$raw_data = fread( $this->handle, 1024 );
-				$decoder = new MaxMind_DB_Decoder( $raw_data, 0 );
-				return $decoder->decode();
+		$bits_len = strlen( $bits );
+		for ( $i = 0; $i < $bits_len; $i++ ) {
+			if ( $node >= $this->node_count ) {
+				break;
 			}
-			$node = $next;
+			$node = $this->read_node( $node, (int) $bits[ $i ] );
 		}
-		return null;
+
+		if ( $node <= $this->node_count ) {
+			// $node === node_count — «нет данных»; < node_count — не дошли до записи.
+			return null;
+		}
+
+		$offset = $node - $this->node_count + $this->data_start;
+		if ( $offset < 0 || $offset >= strlen( $this->data ) ) {
+			return null;
+		}
+		$decoder = new MaxMind_DB_Decoder( $this->data, $offset, $this->pointer_base );
+		try {
+			return $decoder->decode();
+		} catch ( Exception $e ) {
+			return null;
+		}
 	}
 
 	public function get_country_code( $ip_address ) {
 		$data = $this->lookup( $ip_address );
-		if ( isset( $data['country']['iso_code'] ) ) {
+		if ( ! is_array( $data ) ) {
+			return null;
+		}
+		if ( isset( $data['country']['iso_code'] ) && is_string( $data['country']['iso_code'] ) ) {
 			return $data['country']['iso_code'];
 		}
-		if ( isset( $data['registered_country']['iso_code'] ) ) {
+		if ( isset( $data['registered_country']['iso_code'] ) && is_string( $data['registered_country']['iso_code'] ) ) {
 			return $data['registered_country']['iso_code'];
 		}
 		return null;
@@ -124,141 +167,171 @@ class MaxMind_DB_Reader {
 	public function get_build_epoch() {
 		return isset( $this->metadata['build_epoch'] ) ? (int) $this->metadata['build_epoch'] : 0;
 	}
-
-	public function __destruct() {
-		if ( $this->handle ) {
-			fclose( $this->handle );
-		}
-	}
 }
 
 class MaxMind_DB_Decoder {
 
 	private $data;
 	private $offset;
+	private $base;
+	private $depth = 0;
 
-	public function __construct( $data, $offset ) {
-		$this->data = $data;
+	public function __construct( $data, $offset, $base = 0 ) {
+		$this->data   = $data;
 		$this->offset = $offset;
+		$this->base   = $base;
 	}
 
 	public function decode() {
-		$ctrl_byte = ord( $this->data[ $this->offset ] );
+		if ( ++$this->depth > 200 ) {
+			$this->depth--;
+			throw new Exception( 'MaxMind DB decode depth exceeded' );
+		}
+		if ( $this->offset < 0 || $this->offset >= strlen( $this->data ) ) {
+			$this->depth--;
+			throw new Exception( 'MaxMind DB decode out of bounds' );
+		}
+
+		$ctrl = ord( $this->data[ $this->offset ] );
 		$this->offset++;
-		$type = $ctrl_byte >> 5;
+		$type = $ctrl >> 5;
 
-		switch ( $type ) {
-			case 1: // map
-				return $this->decode_map( $ctrl_byte );
-			case 2: // array
-				return $this->decode_array( $ctrl_byte );
-			case 3: // boolean
-				return $this->decode_boolean( $ctrl_byte );
-			case 4: // utf8_string
-				return $this->decode_string( $ctrl_byte );
-			case 5: // double
-				return $this->decode_double( $ctrl_byte );
-			case 6: // bytes
-				return $this->decode_bytes( $ctrl_byte );
-			case 7: // uint16, uint32, uint64, uint128
-				return $this->decode_uint( $ctrl_byte );
-			case 0: // pointer
-				return $this->decode_pointer( $ctrl_byte );
-			default:
-				return null;
+		if ( 0 === $type ) {
+			// Extended type.
+			if ( $this->offset >= strlen( $this->data ) ) {
+				$this->depth--;
+				throw new Exception( 'MaxMind DB truncated extended type' );
+			}
+			$type = ord( $this->data[ $this->offset ] ) + 7;
+			$this->offset++;
 		}
+
+		if ( 1 === $type ) {
+			$result = $this->decode_pointer( $ctrl );
+		} else {
+			$size = $this->decode_size( $ctrl );
+			switch ( $type ) {
+				case 2:  $result = $this->read_bytes( $size ); break;                 // utf8_string
+				case 3:  $result = $this->decode_double( $size ); break;              // double
+				case 4:  $result = $this->read_bytes( $size ); break;                 // bytes
+				case 5:                                                                 // uint16
+				case 6:                                                                 // uint32
+				case 9:                                                                 // uint64
+				case 10: $result = $this->decode_uint( $size ); break;                // uint128
+				case 7:  $result = $this->decode_map( $size ); break;                 // map
+				case 8:  $result = $this->decode_int32( $size ); break;               // int32
+				case 11: $result = $this->decode_array( $size ); break;               // array
+				case 14: $result = (bool) ( $ctrl & 0x1 ); break;                     // boolean
+				case 15: $result = $this->decode_float( $size ); break;               // float
+				default: $result = null;
+			}
+		}
+
+		$this->depth--;
+		return $result;
 	}
 
-	private function size_from_ctrl( $ctrl_byte, $type, &$size ) {
-		$size = $ctrl_byte & 0x1f;
-		if ( $size <= 28 ) {
-			return;
+	private function decode_size( $ctrl ) {
+		$size = $ctrl & 0x1f;
+		if ( $size < 29 ) {
+			return $size;
 		}
-		$extra_bytes = $size - 28;
-		$size = 0;
-		for ( $i = 0; $i < $extra_bytes; $i++ ) {
-			$size = ( $size << 8 ) | ord( $this->data[ $this->offset + $i ] );
+		if ( 29 === $size ) {
+			$size = 29 + ord( $this->data[ $this->offset ] );
+			$this->offset += 1;
+			return $size;
 		}
-		$this->offset += $extra_bytes;
+		if ( 30 === $size ) {
+			$size = 285 + ( ( ord( $this->data[ $this->offset ] ) << 8 ) | ord( $this->data[ $this->offset + 1 ] ) );
+			$this->offset += 2;
+			return $size;
+		}
+		$size = 65821 + ( ( ord( $this->data[ $this->offset ] ) << 16 ) | ( ord( $this->data[ $this->offset + 1 ] ) << 8 ) | ord( $this->data[ $this->offset + 2 ] ) );
+		$this->offset += 3;
+		return $size;
 	}
 
-	private function decode_map( $ctrl_byte ) {
-		$count = 0;
-		$this->size_from_ctrl( $ctrl_byte, 1, $count );
+	private function read_bytes( $size ) {
+		$str = substr( $this->data, $this->offset, $size );
+		$this->offset += $size;
+		return $str;
+	}
+
+	private function decode_uint( $size ) {
+		$value = 0;
+		for ( $i = 0; $i < $size; $i++ ) {
+			$value = ( $value << 8 ) | ord( $this->data[ $this->offset + $i ] );
+		}
+		$this->offset += $size;
+		return $value;
+	}
+
+	private function decode_int32( $size ) {
+		$value = 0;
+		for ( $i = 0; $i < $size; $i++ ) {
+			$value = ( $value << 8 ) | ord( $this->data[ $this->offset + $i ] );
+		}
+		$this->offset += $size;
+		if ( $size > 0 && $size < 4 && ( $value & ( 1 << ( $size * 8 - 1 ) ) ) ) {
+			$value -= ( 1 << ( $size * 8 ) );
+		} elseif ( 4 === $size && $value > 0x7fffffff ) {
+			$value -= 0x100000000;
+		}
+		return $value;
+	}
+
+	private function decode_double( $size ) {
+		$raw = substr( $this->data, $this->offset, 8 );
+		$this->offset += $size;
+		$u = unpack( 'E', $raw );
+		return isset( $u[1] ) ? $u[1] : 0.0;
+	}
+
+	private function decode_float( $size ) {
+		$raw = substr( $this->data, $this->offset, 4 );
+		$this->offset += $size;
+		$u = unpack( 'G', $raw );
+		return isset( $u[1] ) ? $u[1] : 0.0;
+	}
+
+	private function decode_map( $size ) {
 		$result = array();
-		for ( $i = 0; $i < $count; $i++ ) {
-			$key = $this->decode();
+		for ( $i = 0; $i < $size; $i++ ) {
+			$key   = $this->decode();
 			$value = $this->decode();
-			$result[ $key ] = $value;
+			if ( is_string( $key ) || is_int( $key ) ) {
+				$result[ $key ] = $value;
+			}
 		}
 		return $result;
 	}
 
-	private function decode_array( $ctrl_byte ) {
-		$count = 0;
-		$this->size_from_ctrl( $ctrl_byte, 2, $count );
+	private function decode_array( $size ) {
 		$result = array();
-		for ( $i = 0; $i < $count; $i++ ) {
+		for ( $i = 0; $i < $size; $i++ ) {
 			$result[] = $this->decode();
 		}
 		return $result;
 	}
 
-	private function decode_boolean( $ctrl_byte ) {
-		return (bool) ( $ctrl_byte & 0x1f );
-	}
-
-	private function decode_string( $ctrl_byte ) {
-		$len = 0;
-		$this->size_from_ctrl( $ctrl_byte, 4, $len );
-		$str = substr( $this->data, $this->offset, $len );
-		$this->offset += $len;
-		return $str;
-	}
-
-	private function decode_double( $ctrl_byte ) {
-		$len = 0;
-		$this->size_from_ctrl( $ctrl_byte, 5, $len );
-		if ( $len === 8 ) {
-			$raw = substr( $this->data, $this->offset, 8 );
-			$this->offset += 8;
-			$unpacked = unpack( 'E', $raw );
-			return $unpacked[1];
+	private function decode_pointer( $ctrl ) {
+		$size  = ( $ctrl >> 3 ) & 0x3;
+		$value = $ctrl & 0x7;
+		$count = $size + 1;
+		for ( $i = 0; $i < $count; $i++ ) {
+			$value = ( $value << 8 ) | ord( $this->data[ $this->offset ] );
+			$this->offset++;
 		}
-		$this->offset += $len;
-		return 0.0;
-	}
 
-	private function decode_bytes( $ctrl_byte ) {
-		$len = 0;
-		$this->size_from_ctrl( $ctrl_byte, 6, $len );
-		$bytes = substr( $this->data, $this->offset, $len );
-		$this->offset += $len;
-		return $bytes;
-	}
-
-	private function decode_uint( $ctrl_byte ) {
-		$len = 0;
-		$this->size_from_ctrl( $ctrl_byte, 7, $len );
-		$val = 0;
-		for ( $i = 0; $i < $len; $i++ ) {
-			$val = ( $val << 8 ) | ord( $this->data[ $this->offset + $i ] );
+		$target = $this->base + $value;
+		if ( $target < 0 || $target >= strlen( $this->data ) ) {
+			return null;
 		}
-		$this->offset += $len;
-		return $val;
-	}
 
-	private function decode_pointer( $ctrl_byte ) {
-		$size = ( $ctrl_byte >> 3 ) & 0x3;
-		$offset = $ctrl_byte & 0x7;
-		for ( $i = 0; $i < $size; $i++ ) {
-			$offset = ( $offset << 8 ) | ord( $this->data[ $this->offset + $i ] );
-		}
-		$this->offset += $size;
-		$saved_offset = $this->offset;
-		$this->offset = $offset;
-		$result = $this->decode();
-		$this->offset = $saved_offset;
+		$saved         = $this->offset;
+		$this->offset  = $target;
+		$result        = $this->decode();
+		$this->offset  = $saved;
 		return $result;
 	}
 }
