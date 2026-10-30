@@ -28,8 +28,10 @@ class WP_Geo_Blocker {
         if ( null === $country ) return;
 
         if ( ! in_array( $country, $this->allowed_countries, true ) ) {
-            // Google-сервисы с обычным браузерным UA приходят с IP Google — пропускаем по reverse-DNS.
-            if ( $this->is_google_ip( $ip ) ) return;
+            // Reverse-DNS только для «google»-UA, чтобы не делать DNS-запрос на
+            // каждый заблокированный IP под флудом.
+            $ua_now = isset( $_SERVER['HTTP_USER_AGENT'] ) ? $_SERVER['HTTP_USER_AGENT'] : '';
+            if ( false !== stripos( $ua_now, 'google' ) && $this->is_google_ip( $ip ) ) return;
 
             WP_Geo_Blocker_Logger::log( $ip, $country );
             if ( $_SERVER['REQUEST_METHOD'] === 'POST' && isset( $_POST['odgk_submit'] ) ) {

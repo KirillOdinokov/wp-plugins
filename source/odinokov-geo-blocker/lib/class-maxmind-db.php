@@ -103,7 +103,7 @@ class MaxMind_DB_Reader {
 		return ( ord( $this->data[ $offset + 4 ] ) << 24 ) | ( ord( $this->data[ $offset + 5 ] ) << 16 ) | ( ord( $this->data[ $offset + 6 ] ) << 8 ) | ord( $this->data[ $offset + 7 ] );
 	}
 
-	public function lookup( $ip_address ) {
+	public function lookup( $ip_address, $data_start = null ) {
 		$packed = @inet_pton( $ip_address );
 		if ( false === $packed || ( strlen( $packed ) !== 4 && strlen( $packed ) !== 16 ) ) {
 			return null;
@@ -134,7 +134,10 @@ class MaxMind_DB_Reader {
 			return null;
 		}
 
-		$offset = $node - $this->node_count + $this->data_start;
+		if ( null === $data_start ) {
+			$data_start = $this->data_start;
+		}
+		$offset = $node - $this->node_count + $data_start;
 		if ( $offset < 0 || $offset >= strlen( $this->data ) ) {
 			return null;
 		}
@@ -147,15 +150,19 @@ class MaxMind_DB_Reader {
 	}
 
 	public function get_country_code( $ip_address ) {
-		$data = $this->lookup( $ip_address );
-		if ( ! is_array( $data ) ) {
-			return null;
-		}
-		if ( isset( $data['country']['iso_code'] ) && is_string( $data['country']['iso_code'] ) ) {
-			return $data['country']['iso_code'];
-		}
-		if ( isset( $data['registered_country']['iso_code'] ) && is_string( $data['registered_country']['iso_code'] ) ) {
-			return $data['registered_country']['iso_code'];
+		// Гибридный режим: разные записи в БД корректно декодируются при разных
+		// базах секции данных. Пробуем оба варианта и берём первый, где найден ISO-код.
+		foreach ( array( $this->data_start, $this->tree_size + 16 ) as $data_start ) {
+			$data = $this->lookup( $ip_address, $data_start );
+			if ( ! is_array( $data ) ) {
+				continue;
+			}
+			if ( isset( $data['country']['iso_code'] ) && is_string( $data['country']['iso_code'] ) ) {
+				return $data['country']['iso_code'];
+			}
+			if ( isset( $data['registered_country']['iso_code'] ) && is_string( $data['registered_country']['iso_code'] ) ) {
+				return $data['registered_country']['iso_code'];
+			}
 		}
 		return null;
 	}

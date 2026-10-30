@@ -3,8 +3,8 @@
     "download_url":  "https://raw.githubusercontent.com/KirillOdinokov/wp-plugins/main/repo/odinokov-geo-blocker.zip",
     "last_updated":  "2026-10-30",
     "tested":  "6.7",
-    "version":  "1.0.9",
+    "version":  "1.0.10",
     "requires_php":  "7.2",
     "homepage":  "https://raw.githubusercontent.com/KirillOdinokov/wp-plugins/main",
-    "changelog":  "= 1.0.9 =\n* Новый корректный ридер MaxMind DB (поддержка стандартного формата GeoLite2/GeoIP2, record_size 24/28/32). Старый ридер был несовместим со стандартным mmdb и вызывал лавину notice/зацикливание.\n* Данные (база GeoLite2, exceptions.json, журнал) резервируются в wp-content/uploads/odinokov-geo-blocker и автоматически восстанавливаются после обновления плагина — база больше не пропадает при апдейте."
+    "changelog":  "= 1.0.10 =\n* Ридер: гибридное определение страны (пробует обе базы секции данных) — теперь распознаются облачные/зарубежные IP (Azure/GCP и др.), которые раньше давали NULL и проходили.\n* Reverse-DNS (is_google_ip) выполняется только для UA с «google» — убрана лишняя DNS-нагрузка под флудом."
 }

@@ -43,9 +43,10 @@ class WP_Geo_MU_Blocker {
 
         $allowed = array( 'RU', 'BY', 'UA', 'KZ', 'UZ' );
         if ( ! in_array( $country, $allowed, true ) ) {
-            // Google-сервисы с обычным браузерным UA (PageSpeed, Rich Results,
-            // Lighthouse и т.п.) приходят с IP Google — пропускаем по reverse-DNS.
-            if ( self::is_google_ip( $ip ) ) return;
+            // Google-сервисы с обычным браузерным UA (PageSpeed и т.п.) приходят с
+            // IP Google. Reverse-DNS делаем только если в UA есть «google», иначе
+            // под флудом это тысячи DNS-запросов на каждый заблокированный IP.
+            if ( false !== stripos( $ua, 'google' ) && self::is_google_ip( $ip ) ) return;
 
             if ( class_exists( 'WP_Geo_Blocker_Logger' ) ) {
                 WP_Geo_Blocker_Logger::log_mu( $ip, $country );
