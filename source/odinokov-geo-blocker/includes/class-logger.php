@@ -33,6 +33,29 @@ class WP_Geo_Blocker_Logger {
         if ( file_exists( $file ) ) unlink( $file );
     }
 
+    /**
+     * Гео-блокировки уровня MU (append-only JSONL):
+     * geo-blocks.log — по строке на блок: {time, ip, country, ua, url}.
+     */
+    public static function get_geo_blocks( $limit = 1000 ) {
+        $file = ODGK_DATA_DIR . '/geo-blocks.log';
+        if ( ! file_exists( $file ) ) return array();
+        $lines = @file( $file, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES );
+        if ( ! is_array( $lines ) ) return array();
+        $lines = array_slice( $lines, -max( 1, (int) $limit ) );
+        $out   = array();
+        foreach ( $lines as $line ) {
+            $d = json_decode( $line, true );
+            if ( is_array( $d ) ) $out[] = $d;
+        }
+        return array_reverse( $out );
+    }
+
+    public static function clear_geo_blocks() {
+        $file = ODGK_DATA_DIR . '/geo-blocks.log';
+        if ( file_exists( $file ) ) @unlink( $file );
+    }
+
     private static function read_log_raw( $file ) {
         if ( ! file_exists( $file ) ) return array();
         $content = @file_get_contents( $file );

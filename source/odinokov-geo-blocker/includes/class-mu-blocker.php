@@ -48,6 +48,8 @@ class WP_Geo_MU_Blocker {
             // под флудом это тысячи DNS-запросов на каждый заблокированный IP.
             if ( false !== stripos( $ua, 'google' ) && self::is_google_ip( $ip ) ) return;
 
+            self::log_block( $ip, $country, $ua );
+
             if ( class_exists( 'WP_Geo_Blocker_Logger' ) ) {
                 WP_Geo_Blocker_Logger::log_mu( $ip, $country );
             }
@@ -66,6 +68,32 @@ class WP_Geo_MU_Blocker {
             }
         }
         return '127.0.0.1';
+    }
+
+    /**
+     * Логирование гео-блокировок в append-only JSONL (быстро и безопасно под флудом,
+     * без перезаписи всего массива на каждый блок). Читается в админке (Geo Log).
+     */
+    private static function log_block( $ip, $country, $ua ) {
+        if ( ! defined( 'ODGK_DATA_DIR' ) ) return;
+        $file  = ODGK_DATA_DIR . '/geo-blocks.log';
+        $entry = array(
+            'time'    => gmdate( 'Y-m-d H:i:s' ),
+            'ip'      => $ip,
+            'country' => $country,
+            'ua'      => mb_substr( isset( $_SERVER['HTTP_USER_AGENT'] ) ? $_SERVER['HTTP_USER_AGENT'] : '', 0, 200 ),
+            'url'     => mb_substr( isset( $_SERVER['REQUEST_URI'] ) ? $_SERVER['REQUEST_URI'] : '', 0, 300 ),
+        );
+        @file_put_contents( $file, json_encode( $entry, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES ) . "\n", FILE_APPEND | LOCK_EX );
+
+        // Ротация: 1 раз на ~200 блокировок, если файл распух — оставляем последние 5000 строк.
+        if ( mt_rand( 1, 200 ) === 1 && @filesize( $file ) > 8 * 1024 * 1024 ) {
+            $lines = @file( $file, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES );
+            if ( is_array( $lines ) ) {
+                $lines = array_slice( $lines, -5000 );
+                @file_put_contents( $file, implode( "\n", $lines ) . "\n", LOCK_EX );
+            }
+        }
     }
 
     private static function is_verified_googlebot( $ua, $ip ) {

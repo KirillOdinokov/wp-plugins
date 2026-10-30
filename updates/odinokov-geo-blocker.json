@@ -3,8 +3,8 @@
     "download_url":  "https://raw.githubusercontent.com/KirillOdinokov/wp-plugins/main/repo/odinokov-geo-blocker.zip",
     "last_updated":  "2026-10-30",
     "tested":  "6.7",
-    "version":  "1.0.11",
+    "version":  "1.0.12",
     "requires_php":  "7.2",
     "homepage":  "https://raw.githubusercontent.com/KirillOdinokov/wp-plugins/main",
-    "changelog":  "= 1.0.11 =\n* КРИТИЧНО: ридер теперь использует официальный MaxMind \\MaxMind\\Db\\Reader (расширение maxminddb или библиотека WooCommerce). Самописный декодер возвращал NULL для большинства зарубежных IP — из-за этого geo-блок не срабатывал и боты проходили. Теперь страны определяются корректно (RU→RU, US/BR/AR и т.п. → блок)."
+    "changelog":  "= 1.0.12 =\n* Логирование гео-блокировок на уровне MU: append-only geo-blocks.log (IP, страна, UA, URL, время), без нагрузки под флудом; ротация файла.\n* В админке «Geo Log» — список гео-блокировок, сводка по странам, кнопки «Очистить» и «В WhiteList»."
 }

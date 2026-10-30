@@ -259,40 +259,85 @@ class WP_Geo_Blocker_Admin {
         if ( ! current_user_can( 'manage_options' ) ) wp_die( 'Unauthorized' );
         check_admin_referer( 'odgk_clear_log', 'odgk_nonce' );
         WP_Geo_Blocker_Logger::clear();
+        WP_Geo_Blocker_Logger::clear_geo_blocks();
         wp_safe_redirect( admin_url( 'admin.php?page=odgk-log&cleared=1' ) ); exit;
     }
 
     public static function render_log_page() {
-        $entries = array_reverse( WP_Geo_Blocker_Logger::get_entries() );
-        $names = array( 'RU' => 'Россия', 'BY' => 'Беларусь', 'US' => 'США', 'UA' => 'Украина', 'KZ' => 'Казахстан', 'UZ' => 'Узбекистан' );
+        $geo    = WP_Geo_Blocker_Logger::get_geo_blocks( 1000 );
+        $legacy = array_reverse( WP_Geo_Blocker_Logger::get_entries() );
+        $names  = array(
+            'RU' => 'Россия', 'BY' => 'Беларусь', 'US' => 'США', 'UA' => 'Украина', 'KZ' => 'Казахстан', 'UZ' => 'Узбекистан',
+            'DE' => 'Германия', 'BR' => 'Бразилия', 'AR' => 'Аргентина', 'VN' => 'Вьетнам', 'FR' => 'Франция',
+            'NL' => 'Нидерланды', 'FI' => 'Финляндия', 'MX' => 'Мексика', 'SG' => 'Сингапур', 'GB' => 'Британия',
+        );
+        $geo_country = array();
+        foreach ( $geo as $g ) {
+            $c = isset( $g['country'] ) ? $g['country'] : '??';
+            $geo_country[ $c ] = ( isset( $geo_country[ $c ] ) ? $geo_country[ $c ] : 0 ) + 1;
+        }
+        arsort( $geo_country );
         ?>
         <div class="wrap">
-            <h1>Журнал блокировок</h1>
-            <?php if ( empty( $entries ) ) : ?>
+            <h1>Журнал гео-блокировок</h1>
+            <div style="margin:16px 0;">
+                <form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" style="display:inline">
+                    <?php wp_nonce_field( 'odgk_clear_log', 'odgk_nonce' ); ?>
+                    <input type="hidden" name="action" value="odgk_clear_log">
+                    <button type="submit" class="button" onclick="return confirm('Очистить журнал?')">Очистить</button>
+                </form>
+                <span style="margin-left:12px;color:#666;">Показаны последние: <?php echo (int) count( $geo ); ?> (geo-blocks.log)</span>
+            </div>
+
+            <?php if ( ! empty( $geo_country ) ) : ?>
+                <p style="margin:8px 0 16px;">
+                    <?php foreach ( $geo_country as $c => $n ) : ?>
+                        <span style="display:inline-block;background:#f0f0f1;border-radius:10px;padding:2px 10px;margin:0 6px 6px 0;font-size:13px;"><?php echo esc_html( isset( $names[ $c ] ) ? $names[ $c ] . ' (' . $c . ')' : $c ); ?>: <b><?php echo (int) $n; ?></b></span>
+                    <?php endforeach; ?>
+                </p>
+            <?php endif; ?>
+
+            <?php if ( empty( $geo ) && empty( $legacy ) ) : ?>
                 <p>Журнал пуст.</p>
-            <?php else : ?>
-                <div style="margin:16px 0;">
-                    <form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" style="display:inline">
-                        <?php wp_nonce_field( 'odgk_clear_log', 'odgk_nonce' ); ?>
-                        <input type="hidden" name="action" value="odgk_clear_log">
-                        <button type="submit" class="button" onclick="return confirm('Очистить журнал?')">Очистить</button>
-                    </form>
-                    <span style="margin-left:12px;color:#666;">Записей: <?php echo count( $entries ); ?> / 2000</span>
-                </div>
-                <table class="wp-list-table widefat fixed striped" style="max-width:900px;">
-                    <thead><tr><th>Время</th><th>IP</th><th>Hostname</th><th>Страна</th><th></th></tr></thead>
+            <?php elseif ( ! empty( $geo ) ) : ?>
+                <table class="wp-list-table widefat fixed striped" style="max-width:1100px;">
+                    <thead><tr><th style="width:140px;">Время (UTC)</th><th style="width:130px;">IP</th><th style="width:110px;">Страна</th><th>User-Agent</th><th>URL</th><th style="width:110px;"></th></tr></thead>
                     <tbody>
-                        <?php foreach ( $entries as $e ) : ?>
+                        <?php foreach ( $geo as $e ) : ?>
                             <tr>
-                                <td><?php echo esc_html( $e['time'] ?? '' ); ?></td>
-                                <td><code><?php echo esc_html( $e['ip'] ); ?></code></td>
-                                <td><?php echo esc_html( $e['hostname'] ?? '' ); ?></td>
-                                <td><?php $c = $e['country'] ?? ''; echo esc_html( isset( $names[ $c ] ) ? $names[ $c ] . " ($c)" : $c ); ?></td>
+                                <td><?php echo esc_html( isset( $e['time'] ) ? $e['time'] : '' ); ?></td>
+                                <td><code><?php echo esc_html( isset( $e['ip'] ) ? $e['ip'] : '' ); ?></code></td>
+                                <td><?php $c = isset( $e['country'] ) ? $e['country'] : ''; echo esc_html( isset( $names[ $c ] ) ? $names[ $c ] . " ($c)" : $c ); ?></td>
+                                <td style="font-size:11px;word-break:break-all;"><?php echo esc_html( isset( $e['ua'] ) ? $e['ua'] : '' ); ?></td>
+                                <td style="font-size:11px;word-break:break-all;"><?php echo esc_html( isset( $e['url'] ) ? $e['url'] : '' ); ?></td>
                                 <td>
                                     <form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" style="display:inline">
                                         <?php wp_nonce_field( 'odgk_add_exception', 'odgk_nonce' ); ?>
                                         <input type="hidden" name="action" value="odgk_add_exception">
-                                        <input type="hidden" name="exception_ip" value="<?php echo esc_attr( $e['ip'] ); ?>">
+                                        <input type="hidden" name="exception_ip" value="<?php echo esc_attr( isset( $e['ip'] ) ? $e['ip'] : '' ); ?>">
+                                        <input type="hidden" name="exception_note" value="Из журнала">
+                                        <button type="submit" class="button button-small">В WhiteList</button>
+                                    </form>
+                                </td>
+                            </tr>
+                        <?php endforeach; ?>
+                    </tbody>
+                </table>
+            <?php else : ?>
+                <table class="wp-list-table widefat fixed striped" style="max-width:900px;">
+                    <thead><tr><th>Время</th><th>IP</th><th>Hostname</th><th>Страна</th><th></th></tr></thead>
+                    <tbody>
+                        <?php foreach ( $legacy as $e ) : ?>
+                            <tr>
+                                <td><?php echo esc_html( isset( $e['time'] ) ? $e['time'] : '' ); ?></td>
+                                <td><code><?php echo esc_html( isset( $e['ip'] ) ? $e['ip'] : '' ); ?></code></td>
+                                <td><?php echo esc_html( isset( $e['hostname'] ) ? $e['hostname'] : '' ); ?></td>
+                                <td><?php $c = isset( $e['country'] ) ? $e['country'] : ''; echo esc_html( isset( $names[ $c ] ) ? $names[ $c ] . " ($c)" : $c ); ?></td>
+                                <td>
+                                    <form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" style="display:inline">
+                                        <?php wp_nonce_field( 'odgk_add_exception', 'odgk_nonce' ); ?>
+                                        <input type="hidden" name="action" value="odgk_add_exception">
+                                        <input type="hidden" name="exception_ip" value="<?php echo esc_attr( isset( $e['ip'] ) ? $e['ip'] : '' ); ?>">
                                         <input type="hidden" name="exception_note" value="Из лога">
                                         <button type="submit" class="button button-small">В WhiteList</button>
                                     </form>
